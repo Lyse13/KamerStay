@@ -15,6 +15,7 @@ import com.kamerstay.app.features.auth.WelcomeScreen
 import com.kamerstay.app.features.manager.CheckInScreen
 import com.kamerstay.app.features.manager.CheckOutScreen
 import com.kamerstay.app.features.manager.ManagerDashboardScreen
+import com.kamerstay.app.features.manager.ManagerProfileScreen
 import com.kamerstay.app.features.manager.ReservationDetailsScreen
 import com.kamerstay.app.features.manager.ReservationsScreen
 import com.kamerstay.app.features.manager.RoomManagementScreen
@@ -146,7 +147,7 @@ fun KamerStayNavGraph(
             )
         }
         composable(Routes.ManagerProfile.route) {
-            // ManagerProfileScreen(navController) — bientôt
+            ManagerProfileScreen(navController)
         }
 
         // ── Shared ────────────────────────────────────
