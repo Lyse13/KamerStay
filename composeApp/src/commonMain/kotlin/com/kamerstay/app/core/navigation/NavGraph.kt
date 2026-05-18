@@ -12,6 +12,7 @@ import com.kamerstay.app.features.auth.SignUpScreen
 import com.kamerstay.app.features.auth.SplashScreen
 import com.kamerstay.app.features.auth.VerificationCodeScreen
 import com.kamerstay.app.features.auth.WelcomeScreen
+import com.kamerstay.app.features.manager.AddEditRoomScreen
 import com.kamerstay.app.features.manager.CheckInScreen
 import com.kamerstay.app.features.manager.CheckOutScreen
 import com.kamerstay.app.features.manager.ManagerDashboardScreen
@@ -123,7 +124,7 @@ fun KamerStayNavGraph(
             RoomManagementScreen(navController)
         }
         composable(Routes.AddEditRoom.route) {
-            // AddEditRoomScreen(navController) — bientôt
+            AddEditRoomScreen(navController)
         }
         composable(Routes.Reservations.route) {
             ReservationsScreen(navController)
