@@ -27,9 +27,12 @@ import com.kamerstay.app.features.traveler.BookingScreen
 import com.kamerstay.app.features.traveler.FilterScreen
 import com.kamerstay.app.features.traveler.HotelDetailsScreen
 import com.kamerstay.app.features.traveler.HotelSearchScreen
+import com.kamerstay.app.features.traveler.NotificationsScreen
 import com.kamerstay.app.features.traveler.PaymentScreen
 import com.kamerstay.app.features.traveler.RoomDetailsScreen
+import com.kamerstay.app.features.traveler.SettingsScreen
 import com.kamerstay.app.features.traveler.TravelerHomeScreen
+import com.kamerstay.app.features.traveler.TravelerProfileScreen
 
 @Composable
 fun KamerStayNavGraph(
@@ -113,7 +116,7 @@ fun KamerStayNavGraph(
             )
         }
         composable(Routes.TravelerProfile.route) {
-            // TravelerProfileScreen(navController) — bientôt
+             TravelerProfileScreen(navController)
         }
 
         // ── Manager ───────────────────────────────────
@@ -153,10 +156,10 @@ fun KamerStayNavGraph(
 
         // ── Shared ────────────────────────────────────
         composable(Routes.Notifications.route) {
-            // NotificationsScreen(navController) — bientôt
+            NotificationsScreen(navController)
         }
         composable(Routes.Settings.route) {
-            // SettingsScreen(navController) — bientôt
+             SettingsScreen(navController)
         }
     }
 }
