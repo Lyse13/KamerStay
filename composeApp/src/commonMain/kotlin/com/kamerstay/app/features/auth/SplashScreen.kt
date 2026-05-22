@@ -23,6 +23,8 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.DeepEmerald
 import com.kamerstay.app.core.theme.OnPrimaryContainer
 import com.kamerstay.app.core.theme.WarmAmber
+import androidx.compose.foundation.border
+import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -72,15 +74,28 @@ fun SplashScreen(navController: NavController) {
 
             Box(
                 contentAlignment = Alignment.TopEnd,
-                modifier = Modifier.size(140.dp)
+                modifier = Modifier.size(160.dp)
             ) {
+                // ── Losange (diamant) ──────────────────────
                 Box(
                     modifier = Modifier
-                        .size(110.dp)
+                        .size(120.dp)
                         .align(Alignment.BottomStart)
                         .rotate(45f)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(DeepEmerald.copy(alpha = 0.6f)),
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFF005A4E),
+                                    Color(0xFF004D40),
+                                )
+                            )
+                        )
+                        .border(
+                            width = 1.5.dp,
+                            color = Color.White.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(24.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(modifier = Modifier.rotate(-45f)) {
@@ -88,9 +103,12 @@ fun SplashScreen(navController: NavController) {
                     }
                 }
 
+                // ── Étoile — touche le coin du losange ────
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
+                        .align(Alignment.TopEnd)
+                        .offset(x = (-25).dp, y = 25.dp)  // ← ajustez ces valeurs
                         .clip(CircleShape)
                         .background(WarmAmber),
                     contentAlignment = Alignment.Center
@@ -149,31 +167,28 @@ fun SplashScreen(navController: NavController) {
 
 @Composable
 fun MountainIcon() {
-    androidx.compose.foundation.Canvas(modifier = Modifier.size(56.dp)) {
+    androidx.compose.foundation.Canvas(modifier = Modifier.size(64.dp)) {
         val w = size.width
         val h = size.height
 
+        // Montagne gauche (petite)
         val leftPath = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.05f, h * 0.85f)
-            lineTo(w * 0.35f, h * 0.35f)
-            lineTo(w * 0.55f, h * 0.65f)
-            lineTo(w * 0.05f, h * 0.65f)
-            close()
-        }
-        val rightPath = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.25f, h * 0.85f)
-            lineTo(w * 0.62f, h * 0.20f)
-            lineTo(w * 0.95f, h * 0.85f)
+            moveTo(w * 0.02f, h * 0.82f)
+            lineTo(w * 0.30f, h * 0.38f)
+            lineTo(w * 0.55f, h * 0.82f)
             close()
         }
 
-        val strokeStyle = androidx.compose.ui.graphics.drawscope.Stroke(
-            width = 3.5f,
-            cap = androidx.compose.ui.graphics.StrokeCap.Round,
-            join = androidx.compose.ui.graphics.StrokeJoin.Round
-        )
-        drawPath(path = leftPath, color = WarmAmber, style = strokeStyle)
-        drawPath(path = rightPath, color = WarmAmber, style = strokeStyle)
+        // Montagne droite (grande)
+        val rightPath = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.28f, h * 0.82f)
+            lineTo(w * 0.62f, h * 0.18f)
+            lineTo(w * 0.98f, h * 0.82f)
+            close()
+        }
+
+        drawPath(path = leftPath, color = WarmAmber)
+        drawPath(path = rightPath, color = WarmAmber)
     }
 }
 
@@ -187,7 +202,6 @@ fun StarIcon() {
 
         val starPath = androidx.compose.ui.graphics.Path().apply {
             for (i in 0 until 10) {
-                // Utilise PI de Kotlin (en Double) et convertit en Float
                 val angle = (PI / 5 * i - PI / 2).toFloat()
                 val r = if (i % 2 == 0) outerR else innerR
                 val x = cx + r * cos(angle)
@@ -197,14 +211,10 @@ fun StarIcon() {
             close()
         }
 
+        // FILLED — pas de Stroke
         drawPath(
             path = starPath,
-            color = DeepEmerald,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = 2f,
-                cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                join = androidx.compose.ui.graphics.StrokeJoin.Round
-            )
+            color = DeepEmerald
         )
     }
 }

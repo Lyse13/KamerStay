@@ -20,13 +20,16 @@ import com.kamerstay.app.features.manager.ManagerProfileScreen
 import com.kamerstay.app.features.manager.ReservationDetailsScreen
 import com.kamerstay.app.features.manager.ReservationsScreen
 import com.kamerstay.app.features.manager.RoomManagementScreen
+import com.kamerstay.app.features.manager.StaffManagementScreen
 import com.kamerstay.app.features.traveler.BookingConfirmationScreen
 import com.kamerstay.app.features.traveler.BookingDetailsScreen
 import com.kamerstay.app.features.traveler.BookingHistoryScreen
 import com.kamerstay.app.features.traveler.BookingScreen
+import com.kamerstay.app.features.traveler.BookingVoucherScreen
 import com.kamerstay.app.features.traveler.FilterScreen
 import com.kamerstay.app.features.traveler.HotelDetailsScreen
 import com.kamerstay.app.features.traveler.HotelSearchScreen
+import com.kamerstay.app.features.traveler.LocalTravelGuideScreen
 import com.kamerstay.app.features.traveler.NotificationsScreen
 import com.kamerstay.app.features.traveler.PaymentScreen
 import com.kamerstay.app.features.traveler.RoomDetailsScreen
@@ -118,6 +121,12 @@ fun KamerStayNavGraph(
         composable(Routes.TravelerProfile.route) {
              TravelerProfileScreen(navController)
         }
+        composable(Routes.BookingVoucher.route) {
+            BookingVoucherScreen(navController)
+        }
+        composable(Routes.LocalGuide.route) {
+            LocalTravelGuideScreen(navController)
+        }
 
         // ── Manager ───────────────────────────────────
         composable(Routes.ManagerDashboard.route) {
@@ -152,6 +161,9 @@ fun KamerStayNavGraph(
         }
         composable(Routes.ManagerProfile.route) {
             ManagerProfileScreen(navController)
+        }
+        composable(Routes.StaffManagement.route) {
+            StaffManagementScreen(navController)
         }
 
         // ── Shared ────────────────────────────────────

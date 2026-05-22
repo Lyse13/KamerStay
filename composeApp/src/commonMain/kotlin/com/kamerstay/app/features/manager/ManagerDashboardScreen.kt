@@ -316,6 +316,34 @@ fun ManagerDashboardScreen(navController: NavController) {
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White)
+                            .border(1.dp, OutlineVariant, RoundedCornerShape(12.dp))
+                            .clickable { navController.navigate(Routes.StaffManagement.route) }
+                            .padding(horizontal = 20.dp, vertical = 18.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Outlined.People, contentDescription = null,
+                                    tint = OnSurface, modifier = Modifier.size(22.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Manage Staff", fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold, color = OnSurface)
+                            }
+                            Icon(Icons.Filled.ChevronRight, contentDescription = null,
+                                tint = OnSurfaceVariant, modifier = Modifier.size(20.dp))
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Maintenance Note

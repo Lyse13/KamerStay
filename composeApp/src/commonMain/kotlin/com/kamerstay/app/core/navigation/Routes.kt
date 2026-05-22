@@ -60,4 +60,8 @@ sealed class Routes(val route: String) {
     data object Notifications : Routes("notifications")
 //    data object MapLocation : Routes("map_location")
     data object Settings : Routes("settings")
+
+    data object StaffManagement : Routes("staff_management")
+    data object BookingVoucher : Routes("booking_voucher")
+    data object LocalGuide : Routes("local_guide")
 }
