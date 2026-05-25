@@ -1,16 +1,21 @@
 package com.kamerstay.app.core.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kamerstay.app.core.theme.DeepEmerald
-import com.kamerstay.app.core.theme.WarmAmber
+import com.kamerstay.app.core.theme.ForestGreen
 
 @Composable
 fun KamerStayButton(
@@ -19,7 +24,7 @@ fun KamerStayButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    containerColor: Color = DeepEmerald,
+    containerColor: Color = ForestGreen,
     contentColor: Color = Color.White
 ) {
     Button(
@@ -58,9 +63,20 @@ fun KamerStayOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    borderColor: Color = DeepEmerald,
-    contentColor: Color = DeepEmerald
+    borderColor: Color = ForestGreen,
+    contentColor: Color = ForestGreen
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val animatedContainerColor by animateColorAsState(
+        targetValue = if (isHovered) {
+            borderColor.copy(alpha = 0.2f)
+        } else {
+            Color.Transparent
+        },
+        label = "ButtonHoverAnimation"
+    )
+
     OutlinedButton(
         onClick = onClick,
         enabled = enabled,
@@ -68,10 +84,12 @@ fun KamerStayOutlinedButton(
             .fillMaxWidth()
             .height(52.dp),
         shape = RoundedCornerShape(8.dp),
+        interactionSource = interactionSource,
         colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = animatedContainerColor,
             contentColor = contentColor
         ),
-        border = androidx.compose.foundation.BorderStroke(1.5.dp, borderColor)
+        border = BorderStroke(1.5.dp, borderColor)
     ) {
         Text(
             text = text,

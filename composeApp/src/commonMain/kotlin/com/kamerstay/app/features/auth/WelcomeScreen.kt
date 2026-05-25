@@ -1,12 +1,13 @@
 package com.kamerstay.app.features.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,10 +30,14 @@ import com.kamerstay.app.core.components.KamerStayButton
 import com.kamerstay.app.core.components.KamerStayOutlinedButton
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.hotel_hero
+import kamerstay.composeapp.generated.resources.logo_icon
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun WelcomeScreen(navController: NavController) {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -43,74 +48,45 @@ fun WelcomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // ── Hero Image ────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(380.dp)
             ) {
-                // Background simulé (remplacer par vraie photo plus tard)
+                Image(
+                    painter = painterResource(Res.drawable.hotel_hero),
+                    contentDescription = "Hotel Hero",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    Color(0xFF1A3A4A),
-                                    Color(0xFF0D2535),
-                                    Color(0xFF1C3D2E),
+                                    Color.Black.copy(alpha = 0.2f),
+                                    Color.Black.copy(alpha = 0.5f)
                                 )
                             )
                         )
                 )
 
-                // Overlay gradient
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.3f)
-                                )
-                            )
-                        )
+                Image(
+                    painter = painterResource(Res.drawable.logo_icon),
+                    contentDescription = "KamerStay Logo",
+                    modifier = Modifier.size(36.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop
                 )
-
-                // ── Top Bar Logo ──────────────────────────
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(DeepEmerald),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Hotel,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "KamerStay",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "KamerStay",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
             }
 
-            // ── White Card ────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,12 +96,11 @@ fun WelcomeScreen(navController: NavController) {
                     .padding(horizontal = 24.dp, vertical = 28.dp)
             ) {
                 Column {
-                    // ── Badge Vérifié ─────────────────────
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Outlined.Verified,
                             contentDescription = null,
-                            tint = ErrorColor,
+                            tint = BurntClay,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
@@ -133,23 +108,22 @@ fun WelcomeScreen(navController: NavController) {
                             text = "VERIFIED LISTINGS ONLY",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = ErrorColor,
+                            color = BurntClay,
                             letterSpacing = 1.5.sp
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── Titre Bicolore ────────────────────
                     Text(
                         text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = OnSurface)) {
+                            withStyle(SpanStyle(color = ForestGreen)) {
                                 append("Experience\n")
                             }
-                            withStyle(SpanStyle(color = WarmAmber)) {
+                            withStyle(SpanStyle(color = RichGold)) {
                                 append("Cameroonian\n")
                             }
-                            withStyle(SpanStyle(color = OnSurface)) {
+                            withStyle(SpanStyle(color = ForestGreen)) {
                                 append("Hospitality")
                             }
                         },
@@ -160,18 +134,16 @@ fun WelcomeScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── Description ───────────────────────
                     Text(
-                        text = "Book verified hotels near your favorite landmarks with ease. From the coast of Douala to the hills of Yaoundé.",
-                        fontSize = 15.sp,
+                        text = "Book verified hotels near your favorite landmarks with ease. From the coast\n of Douala to the hills of Yaoundé.",
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Normal,
-                        color = OnSurfaceVariant,
+                        color = StoneGrayGreen,
                         lineHeight = 22.sp
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ── Boutons ───────────────────────────
                     KamerStayButton(
                         text = "Sign Up  →",
                         onClick = { navController.navigate(Routes.SignUp.route) }
@@ -186,7 +158,6 @@ fun WelcomeScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // ── 3 Features ────────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
@@ -207,7 +178,6 @@ fun WelcomeScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ── Footer Links ──────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -234,7 +204,6 @@ fun WelcomeScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // ── Copyright ─────────────────────────
                     Text(
                         text = "© 2025 KamerStay. Built with Modern African Hospitality.",
                         fontSize = 11.sp,

@@ -28,12 +28,57 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.ErrorPopup
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.model.enums.UserRole
 
+// ── Validation helpers ────────────────────────────────────
+fun validateFullName(name: String): String? {
+    return when {
+        name.isBlank() -> "Please fill out this field."
+        name.trim().length < 2 -> "Name must be at least 2 characters."
+        else -> null
+    }
+}
+
+fun validateEmail(email: String): String? {
+    return when {
+        email.isBlank() -> "Please fill out this field."
+        !email.contains("@") -> "Please include an '@' in the email address. '$email' is missing an '@'."
+        email.endsWith("@") || email.substringAfter("@").isBlank() ->
+            "Please enter a part following '@'. '$email' is incomplete."
+        !email.substringAfter("@").contains(".") ->
+            "Please enter a valid email address."
+        else -> null
+    }
+}
+
+fun validatePhone(phone: String): String? {
+    return when {
+        phone.isBlank() -> "Please fill out this field."
+        phone.replace(" ", "").replace("+", "").length < 9 ->
+            "Please enter a valid phone number."
+        else -> null
+    }
+}
+
+fun validatePassword(password: String): String? {
+    return when {
+        password.isBlank() -> "Please fill out this field."
+        password.length < 8 -> "Password must be at least 8 characters."
+        !password.any { it.isUpperCase() } -> "Password must contain at least one uppercase letter."
+        !password.any { it.isLowerCase() } -> "Password must contain at least one lowercase letter."
+        !password.any { it.isDigit() } -> "Password must contain at least one number."
+        !password.any { !it.isLetterOrDigit() } -> "Password must contain at least one special character (@, #, \$, etc.)."
+        else -> null
+    }
+}
+
+
 @Composable
 fun SignUpScreen(navController: NavController) {
+
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
@@ -41,6 +86,29 @@ fun SignUpScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var selectedRole by remember { mutableStateOf(UserRole.TRAVELER) }
     var isLoading by remember { mutableStateOf(false) }
+
+    var submitted by remember { mutableStateOf(false) }
+
+    val rawNameError = if (submitted) validateFullName(fullName) else null
+    val rawEmailError = if (submitted || email.isNotEmpty()) validateEmail(email) else null
+    val rawPhoneError = if (submitted) validatePhone(phoneNumber) else null
+    val rawPasswordError = if (submitted || password.isNotEmpty()) validatePassword(password) else null
+
+    // Errors
+    val nameError = rawNameError
+    val emailError = if (nameError == null) rawEmailError else null
+    val phoneError = if (nameError == null && emailError == null) rawPhoneError else null
+    val passwordError = if (nameError == null && emailError == null && phoneError == null) rawPasswordError else null
+
+    // Password strength
+    val passwordStrength = when {
+        password.isEmpty() -> 0
+        password.length < 6 -> 1
+        password.length < 8 -> 2
+        validatePassword(password) == null -> 4
+        password.length >= 8 && password.any { it.isUpperCase() } -> 3
+        else -> 2
+    }
 
     Box(
         modifier = Modifier
@@ -55,6 +123,35 @@ fun SignUpScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            // ── Back Button ───────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier
+                        .clickable { navController.popBackStack() }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = OnSurface,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Back",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = OnSurface
+                    )
+                }
+            }
+
             // ── Card principale ───────────────────────────
             Box(
                 modifier = Modifier
@@ -65,7 +162,7 @@ fun SignUpScreen(navController: NavController) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    // ── Icône avatar ──────────────────────
+                    // Avatar icon
                     Box(
                         modifier = Modifier
                             .size(64.dp)
@@ -83,7 +180,6 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ── Titre ─────────────────────────────
                     Text(
                         text = "Create Your\nAccount",
                         fontSize = 28.sp,
@@ -104,7 +200,6 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // ── Role Selector ─────────────────────
                     RoleSelector(
                         selectedRole = selectedRole,
                         onRoleSelected = { selectedRole = it }
@@ -122,15 +217,16 @@ fun SignUpScreen(navController: NavController) {
                             Text("Mouandeu Pangop", color = OnSurfaceVariant.copy(0.5f))
                         },
                         leadingIcon = {
-                            Icon(
-                                Icons.Outlined.Person,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant
-                            )
+                            Icon(Icons.Outlined.Person, contentDescription = null,
+                                tint = if (nameError != null) ErrorColor else OnSurfaceVariant)
                         },
+                        isError = nameError != null,
+                        supportingText = if (nameError != null) {
+                            { ErrorPopup(message = nameError) }
+                        } else null,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = authTextFieldColors(),
+                        colors = validatedTextFieldColors(nameError != null),
                         singleLine = true
                     )
 
@@ -143,27 +239,26 @@ fun SignUpScreen(navController: NavController) {
                         value = email,
                         onValueChange = { email = it },
                         placeholder = {
-                            Text("lysette@example.com", color = OnSurfaceVariant.copy(0.5f))
+                            Text("lysette@example.cm", color = OnSurfaceVariant.copy(0.5f))
                         },
                         leadingIcon = {
-                            Icon(
-                                Icons.Outlined.Email,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant
-                            )
+                            Icon(Icons.Outlined.Email, contentDescription = null,
+                                tint = if (emailError != null) ErrorColor else OnSurfaceVariant)
                         },
+                        isError = emailError != null,
+                        supportingText = if (emailError != null) {
+                            { ErrorPopup(message = emailError) }
+                        } else null,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = authTextFieldColors(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email
-                        ),
+                        colors = validatedTextFieldColors(emailError != null),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── Phone Number ──────────────────────
+                    // ── Phone ─────────────────────────────
                     FormLabel(text = "Phone Number")
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
@@ -173,18 +268,17 @@ fun SignUpScreen(navController: NavController) {
                             Text("+237 600 000 000", color = OnSurfaceVariant.copy(0.5f))
                         },
                         leadingIcon = {
-                            Icon(
-                                Icons.Outlined.Phone,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant
-                            )
+                            Icon(Icons.Outlined.Phone, contentDescription = null,
+                                tint = if (phoneError != null) ErrorColor else OnSurfaceVariant)
                         },
+                        isError = phoneError != null,
+                        supportingText = if (phoneError != null) {
+                            { ErrorPopup(message = phoneError) }
+                        } else null,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = authTextFieldColors(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Phone
-                        ),
+                        colors = validatedTextFieldColors(phoneError != null),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         singleLine = true
                     )
 
@@ -200,11 +294,8 @@ fun SignUpScreen(navController: NavController) {
                             Text("••••••••", color = OnSurfaceVariant.copy(0.5f))
                         },
                         leadingIcon = {
-                            Icon(
-                                Icons.Outlined.Lock,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant
-                            )
+                            Icon(Icons.Outlined.Lock, contentDescription = null,
+                                tint = if (passwordError != null) ErrorColor else OnSurfaceVariant)
                         },
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -220,20 +311,44 @@ fun SignUpScreen(navController: NavController) {
                         visualTransformation = if (passwordVisible)
                             VisualTransformation.None
                         else PasswordVisualTransformation(),
+                        isError = passwordError != null,
+                        supportingText = if (passwordError != null) {
+                            { ErrorPopup(message = passwordError) }
+                        } else null,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = authTextFieldColors(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password
-                        ),
+                        colors = validatedTextFieldColors(passwordError != null),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true
                     )
 
+                    // ── Password Strength Bar ─────────────
+                    if (password.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        PasswordStrengthIndicator(strength = passwordStrength)
+                    }
+
+                    // ── Password Requirements ─────────────
+                    if (password.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        PasswordRequirements(password = password)
+                    }
+
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ── Bouton Create Account ─────────────
+                    // ── Create Account Button ─────────────
                     Button(
-                        onClick = { isLoading = true },
+                        onClick = {
+                            submitted = true
+                            val isValid = validateFullName(fullName) == null &&
+                                    validateEmail(email) == null &&
+                                    validatePhone(phoneNumber) == null &&
+                                    validatePassword(password) == null
+                            if (isValid) {
+                                isLoading = true
+                                // TODO: navigate or call API
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
@@ -260,7 +375,6 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // ── Sign In Link ──────────────────────
                     Text(
                         text = buildAnnotatedString {
                             withStyle(SpanStyle(color = OnSurfaceVariant)) {
@@ -280,61 +394,36 @@ fun SignUpScreen(navController: NavController) {
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
-
-                    // ── Divider ───────────────────────────
                     HorizontalDivider(color = Divider)
-
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ── Footer badges ─────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Outlined.Shield,
-                            contentDescription = null,
-                            tint = WarmAmber,
-                            modifier = Modifier.size(14.dp)
-                        )
+                        Icon(Icons.Outlined.Shield, contentDescription = null,
+                            tint = WarmAmber, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "SECURE REGISTRATION",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurfaceVariant,
-                            letterSpacing = 0.8.sp
-                        )
+                        Text("SECURE REGISTRATION", fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold, color = OnSurfaceVariant,
+                            letterSpacing = 0.8.sp)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(4.dp)
-                                .clip(CircleShape)
-                                .background(OnSurfaceVariant.copy(0.3f))
-                        )
+                        Box(modifier = Modifier.size(4.dp).clip(CircleShape)
+                            .background(OnSurfaceVariant.copy(0.3f)))
                         Spacer(modifier = Modifier.width(12.dp))
-                        Icon(
-                            Icons.Outlined.Shield,
-                            contentDescription = null,
-                            tint = WarmAmber,
-                            modifier = Modifier.size(14.dp)
-                        )
+                        Icon(Icons.Outlined.Shield, contentDescription = null,
+                            tint = WarmAmber, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "DATA PRIVACY",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurfaceVariant,
-                            letterSpacing = 0.8.sp
-                        )
+                        Text("DATA PRIVACY", fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold, color = OnSurfaceVariant,
+                            letterSpacing = 0.8.sp)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Footer KamerStay ──────────────────────────
             Text(
                 text = "KamerStay",
                 fontSize = 20.sp,
@@ -427,6 +516,100 @@ fun RoleSelector(
     }
 }
 
+@Composable
+fun PasswordStrengthIndicator(strength: Int) {
+    val (label, color) = when (strength) {
+        1 -> "Very Weak" to ErrorColor
+        2 -> "Weak" to StatusReserved
+        3 -> "Good" to WarmAmber
+        4 -> "Strong" to StatusConfirmed
+        else -> "" to Color.Transparent
+    }
+
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Password strength",
+                fontSize = 12.sp,
+                color = OnSurfaceVariant
+            )
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = color
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            repeat(4) { index ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            if (index < strength) color
+                            else OutlineVariant.copy(alpha = 0.3f)
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PasswordRequirements(password: String) {
+    val requirements = listOf(
+        "At least 8 characters" to (password.length >= 8),
+        "One uppercase letter (A-Z)" to password.any { it.isUpperCase() },
+        "One lowercase letter (a-z)" to password.any { it.isLowerCase() },
+        "One number (0-9)" to password.any { it.isDigit() },
+        "One special character (@, #, \$, !...)" to password.any { !it.isLetterOrDigit() }
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(SurfaceVariant)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = "PASSWORD REQUIREMENTS",
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = OnSurfaceVariant,
+            letterSpacing = 0.8.sp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        requirements.forEach { (text, met) ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = if (met) Icons.Outlined.CheckCircle
+                    else Icons.Outlined.RadioButtonUnchecked,
+                    contentDescription = null,
+                    tint = if (met) StatusConfirmed else OnSurfaceVariant.copy(0.4f),
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = text,
+                    fontSize = 12.sp,
+                    color = if (met) OnSurface else OnSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
 // ── Form Label ────────────────────────────────────────────
 @Composable
 fun FormLabel(text: String) {
@@ -448,4 +631,17 @@ fun authTextFieldColors() = OutlinedTextFieldDefaults.colors(
     cursorColor = DeepEmerald,
     focusedContainerColor = SurfaceVariant,
     unfocusedContainerColor = SurfaceVariant,
+)
+
+// ── Validated TextField Colors ────────────────────────────
+@Composable
+fun validatedTextFieldColors(isError: Boolean) = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = if (isError) ErrorColor else DeepEmerald,
+    unfocusedBorderColor = if (isError) ErrorColor.copy(0.5f) else OutlineVariant,
+    focusedLabelColor = if (isError) ErrorColor else DeepEmerald,
+    cursorColor = if (isError) ErrorColor else DeepEmerald,
+    focusedContainerColor = if (isError) ErrorColor.copy(0.04f) else SurfaceVariant,
+    unfocusedContainerColor = if (isError) ErrorColor.copy(0.04f) else SurfaceVariant,
+    errorBorderColor = ErrorColor,
+    errorContainerColor = ErrorColor.copy(0.04f),
 )

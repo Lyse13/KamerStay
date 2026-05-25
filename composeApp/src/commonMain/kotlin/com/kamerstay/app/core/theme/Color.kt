@@ -46,3 +46,17 @@ val VerifiedBadge = Color(0xFFFFC107)
 val StarRating = Color(0xFFFFC107)
 val Divider = Color(0xFFE8EDE9)
 val CardShadow = Color(0x0D004D40)
+
+// ── Brand Extension Colors ───────────────────────
+
+// Rich Gold
+val RichGold = Color(0xFF785900)
+
+// Deep Forest Green
+val ForestGreen = Color(0xFF00342B)
+
+// Burnt Clay
+val BurntClay = Color(0xFF5A1300)
+
+// Stone Gray Green
+val StoneGrayGreen = Color(0xFF3F4945)
