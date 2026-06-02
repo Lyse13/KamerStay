@@ -1,16 +1,15 @@
 package com.kamerstay.app.features.traveler
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,32 +29,31 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.model.Room
-import com.kamerstay.app.model.enums.RoomStatus
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HotelDetailsScreen(
     navController: NavController,
     hotelId: String
 ) {
-
+    val viewModel = koinViewModel<TravelerViewModel>()
     val hotel = MockData.getHotelById(hotelId) ?: MockData.hotels.first()
-    val rooms = MockData.getRoomsForHotel(hotelId)
-    var isFavorite by remember { mutableStateOf(false) }
-    var currentImageIndex by remember { mutableStateOf(0) }
+    val rooms = MockData.getRoomsForHotel(hotelId).ifEmpty { MockData.rooms.take(2) }
 
-    val amenityIcons = mapOf(
-        "WiFi" to Icons.Outlined.Wifi,
-        "Piscine" to Icons.Outlined.Pool,
-        "Climatisation" to Icons.Outlined.AcUnit,
-        "Restaurant" to Icons.Outlined.Restaurant,
-        "Parking" to Icons.Outlined.LocalParking,
-        "Bar" to Icons.Outlined.LocalBar,
+    var isFavorite by remember { mutableStateOf(false) }
+    var showFullDescription by remember { mutableStateOf(false) }
+
+    val amenities = listOf(
+        Icons.Outlined.Wifi to "Free Wi-Fi",
+        Icons.Outlined.Pool to "Infinity Pool",
+        Icons.Outlined.FitnessCenter to "Gym",
+        Icons.Outlined.Spa to "Luxury Spa"
     )
 
     Scaffold(
-        containerColor = WarmIvory,
+        containerColor = BackgroundLight,
         bottomBar = {
-            // ── Bottom Bar ────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -69,45 +67,39 @@ fun HotelDetailsScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Starting from",
+                            text = "Starts from",
                             fontSize = 12.sp,
-                            color = OnSurfaceVariant
+                            color = OnSurfaceSecondary
                         )
-                        Text(
-                            text = "${hotel.pricePerNight.toLong()} FCFA",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = OnSurface
-                        )
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                text = "\$${hotel.pricePerNight.toInt()}",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextDark
+                            )
+                            Text(
+                                text = " /night",
+                                fontSize = 13.sp,
+                                color = OnSurfaceSecondary
+                            )
+                        }
                     }
                     Button(
                         onClick = {
-                            val firstRoom = rooms.firstOrNull() ?: MockData.rooms.first()
                             NavigationState.selectedHotelId = hotel.id
-                            NavigationState.selectedRoomId = firstRoom.id
+                            NavigationState.selectedRoomId = rooms.firstOrNull()?.id ?: ""
                             navController.navigate(Routes.Booking.route)
                         },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DeepEmerald
-                        ),
-                        contentPadding = PaddingValues(
-                            horizontal = 28.dp,
-                            vertical = 14.dp
-                        )
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                        contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
                     ) {
                         Text(
-                            text = "Book Now",
+                            text = "Check Dates",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            Icons.Outlined.CalendarMonth,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -124,24 +116,22 @@ fun HotelDetailsScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp)
+                        .height(300.dp)
                 ) {
-                    // Image placeholder
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
                                 brush = Brush.verticalGradient(
                                     colors = listOf(
-                                        Color(0xFF2C4A3E),
-                                        Color(0xFF1A2E28),
-                                        Color(0xFF0D1F1A),
+                                        Color(0xFF0D2A4A),
+                                        Color(0xFF1A4A6A)
                                     )
                                 )
                             )
                     )
 
-                    // Top bar overlay
+                    // Top bar
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -150,17 +140,16 @@ fun HotelDetailsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Back
                         Box(
                             modifier = Modifier
                                 .size(38.dp)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.3f))
+                                .background(Color.Black.copy(0.3f))
                                 .clickable { navController.popBackStack() },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                Icons.Filled.ArrowBack,
+                                Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = Color.White,
                                 modifier = Modifier.size(18.dp)
@@ -168,66 +157,93 @@ fun HotelDetailsScreen(
                         }
 
                         Text(
-                            text = "KamerStay",
+                            text = "MyStays",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            // Share
                             Box(
                                 modifier = Modifier
                                     .size(38.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .background(Color.Black.copy(0.3f))
                                     .clickable { },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     Icons.Outlined.Share,
-                                    contentDescription = "Share",
+                                    contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
-                            // Favorite
                             Box(
                                 modifier = Modifier
                                     .size(38.dp)
                                     .clip(CircleShape)
-                                    .background(Color.Black.copy(alpha = 0.3f))
+                                    .background(Color.Black.copy(0.3f))
                                     .clickable { isFavorite = !isFavorite },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    if (isFavorite) Icons.Filled.Favorite
+                                    if (isFavorite) Icons.Outlined.Favorite
                                     else Icons.Outlined.FavoriteBorder,
-                                    contentDescription = "Favorite",
-                                    tint = if (isFavorite) Color.Red else Color.White,
+                                    contentDescription = null,
+                                    tint = if (isFavorite) ErrorColor else Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
                     }
 
-                    // Image indicators
+                    // Photo count + View All
                     Row(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        repeat(3) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .height(4.dp)
-                                    .width(if (index == currentImageIndex) 20.dp else 6.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(
-                                        if (index == currentImageIndex) Color.White
-                                        else Color.White.copy(alpha = 0.5f)
-                                    )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.Black.copy(0.5f))
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = "1/5 Photos",
+                                fontSize = 12.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(0.5f))
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.GridView,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = "View All",
+                                fontSize = 12.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
@@ -239,82 +255,105 @@ fun HotelDetailsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(WarmIvory)
-                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                        .background(Color.White)
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
-                    // Name + Verified badge
+                    // Verified + Rating
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = hotel.name,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = OnSurface,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
                         if (hotel.isVerified) {
                             Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(WarmAmber.copy(alpha = 0.15f))
-                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Primary)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Outlined.Verified,
-                                        contentDescription = null,
-                                        tint = Color(0xFF8B6914),
-                                        modifier = Modifier.size(13.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = "VERIFIED HOTEL",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF8B6914)
-                                    )
-                                }
+                                Text(
+                                    text = "VERIFIED",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = OnPrimary
+                                )
                             }
                         }
+                        Icon(
+                            Icons.Outlined.Star,
+                            contentDescription = null,
+                            tint = StarRating,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "${hotel.rating}(${hotel.reviewCount} Reviews)",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextDark
+                        )
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = hotel.name,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark,
+                        lineHeight = 30.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Place,
+                            contentDescription = null,
+                            tint = OnSurfaceSecondary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = hotel.address,
+                            fontSize = 13.sp,
+                            color = OnSurfaceSecondary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // About this stay
+                    Text(
+                        text = "About this stay",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Rating
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = StarRating,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${hotel.rating}",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = OnSurface
-                        )
-                        Text(
-                            text = " (${hotel.reviewCount} reviews)",
-                            fontSize = 13.sp,
-                            color = OnSurfaceVariant
-                        )
+                    val desc = hotel.description.ifEmpty {
+                        "Experience Mediterranean elegance at its finest. ${hotel.name} offers unparalleled views of the sea, combining contemporary design with local architectural heritage. Each suite is a sanctuary of calm, featuring floor-to-ceiling windows, private balconies, and artisanal furnishings."
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Description
                     Text(
-                        text = hotel.description.ifEmpty {
-                            "Experience unparalleled comfort in the heart of ${hotel.city}. ${hotel.name} combines Sahelian warmth with modern amenities, offering a tranquil escape from the bustling city streets."
-                        },
+                        text = desc,
                         fontSize = 14.sp,
-                        color = OnSurfaceVariant,
-                        lineHeight = 22.sp
+                        color = OnSurfaceSecondary,
+                        lineHeight = 22.sp,
+                        maxLines = if (showFullDescription) Int.MAX_VALUE else 4,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = if (showFullDescription) "Show less" else "Read more",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Primary,
+                        modifier = Modifier
+                            .clickable { showFullDescription = !showFullDescription }
+                            .padding(top = 4.dp)
                     )
                 }
             }
@@ -324,221 +363,256 @@ fun HotelDetailsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     Text(
-                        text = "Top Amenities",
+                        text = "Amenities",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OnSurface
+                        color = TextDark
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        hotel.amenities.take(5).forEach { amenity ->
-                            val icon = amenityIcons[amenity] ?: Icons.Outlined.CheckCircle
-                            val shortLabel = when (amenity) {
-                                "Climatisation" -> "AC"
-                                "Restaurant" -> "Dining"
-                                "Piscine" -> "Pool"
-                                "Parking" -> "Parking"
-                                else -> amenity
-                            }
-                            AmenityItem(icon = icon, label = shortLabel)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-            }
-
-            // ── Nearby Landmarks ──────────────────────
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                ) {
-                    Text(
-                        text = "Nearby Landmarks",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OnSurface
-                    )
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        // Mock landmarks
-                        listOf(
-                            "Near ${hotel.city} General Hospital",
-                            "Near Central Market",
-                            "Near University"
-                        ).forEach { landmark ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(Color.White)
-                                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    // 2x2 grid
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        amenities.chunked(2).forEach { row ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Outlined.Place,
-                                        contentDescription = null,
-                                        tint = DeepEmerald,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        text = landmark,
-                                        fontSize = 13.sp,
-                                        color = OnSurface,
-                                        fontWeight = FontWeight.Medium
-                                    )
+                                row.forEach { (icon, label) ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(Color.White)
+                                            .border(1.dp, Divider, RoundedCornerShape(10.dp))
+                                            .padding(12.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                icon,
+                                                contentDescription = null,
+                                                tint = Secondary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Text(
+                                                text = label,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = TextDark
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
 
             // ── Available Rooms ───────────────────────
             item {
-                Text(
-                    text = "Available Rooms",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OnSurface,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Available Rooms",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "2 Adults • Oct 12 - 14",
+                        fontSize = 12.sp,
+                        color = OnSurfaceSecondary
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            items(rooms) { room ->
+                HotelRoomCard(
+                    room = room,
+                    onClick = {
+                        NavigationState.selectedHotelId = hotel.id
+                        NavigationState.selectedRoomId = room.id
+                        navController.navigate(Routes.RoomDetails.createRoute(room.id))
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            val displayRooms = rooms.ifEmpty { MockData.rooms.take(2) }
-            items(displayRooms) { room ->
-                RoomCard(
-                    room = room,
-                    onClick = {
-                        NavigationState.selectedRoomId = room.id
-                        navController.navigate(Routes.RoomDetails.route)
+            // ── Location ──────────────────────────────
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Location",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF1A3A5C),
+                                        Color(0xFF0D2A4A)
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Primary.copy(0.3f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Place,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
-// ── Amenity Item ──────────────────────────────────────────
+// ── Hotel Room Card ───────────────────────────────────────
 @Composable
-fun AmenityItem(icon: ImageVector, label: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(SurfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = OnSurface,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = OnSurface,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-// ── Room Card ─────────────────────────────────────────────
-@Composable
-fun RoomCard(room: Room, onClick: () -> Unit) {
-    val availableCount = if (room.status == RoomStatus.AVAILABLE) 2 else 0
-
-    Card(
+fun HotelRoomCard(
+    room: Room,
+    onClick: () -> Unit
+) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .clickable { onClick() }
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Image
+        Column {
+            // Room image
             Box(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                     .background(
                         brush = Brush.verticalGradient(
-                            colors = listOf(DeepEmerald, Color(0xFF1C3D2E))
+                            colors = listOf(
+                                Color(0xFF1A3A5C),
+                                Color(0xFF0D2A4A)
+                            )
                         )
                     )
             )
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.padding(14.dp)) {
+                // Room name
                 Text(
-                    text = "${room.type.name.lowercase().replaceFirstChar { it.uppercase() }} ${
-                        if (room.type.name == "SUITE") "" else "Room"
-                    }".trim(),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = OnSurface
+                    text = room.type.name.lowercase()
+                        .replaceFirstChar { it.uppercase() } + " " +
+                            if (room.type.name != "SUITE") "Room" else "",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
                 )
+
                 Text(
                     text = room.description,
-                    fontSize = 12.sp,
-                    color = OnSurfaceVariant,
+                    fontSize = 13.sp,
+                    color = OnSurfaceSecondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Tags
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("BREAKFAST INCLUDED", "FREE CANCELLATION").forEach { tag ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Primary.copy(0.1f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = tag,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Secondary
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Price + Select button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    Row(verticalAlignment = Alignment.Bottom) {
+                    Column {
                         Text(
-                            text = "${room.pricePerNight.toLong()} FCFA",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = OnSurface
+                            text = "Price for 2 nights",
+                            fontSize = 11.sp,
+                            color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "/night",
+                            text = "\$${(room.pricePerNight * 2).toInt()}",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextDark
+                        )
+                        Text(
+                            text = "total",
                             fontSize = 11.sp,
-                            color = OnSurfaceVariant
+                            color = OnSurfaceSecondary
                         )
                     }
-                    if (availableCount > 0) {
+
+                    Button(
+                        onClick = onClick,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                    ) {
                         Text(
-                            text = "$availableCount LEFT",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = StatusReserved
+                            text = "Select Room",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
                     }
                 }

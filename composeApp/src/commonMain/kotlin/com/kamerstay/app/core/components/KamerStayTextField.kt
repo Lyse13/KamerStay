@@ -32,7 +32,7 @@ fun KamerStayTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
-            placeholder = { Text(placeholder, color = OnSurfaceVariant.copy(alpha = 0.6f)) },
+            placeholder = { Text(placeholder, color = OnSurfaceSecondary.copy(alpha = 0.6f)) },
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             isError = isError,
@@ -44,13 +44,15 @@ fun KamerStayTextField(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = DeepEmerald,
+                focusedBorderColor = Primary,
                 unfocusedBorderColor = Outline,
-                focusedLabelColor = DeepEmerald,
-                unfocusedLabelColor = OnSurfaceVariant,
-                cursorColor = DeepEmerald,
+                focusedLabelColor = Primary,
+                unfocusedLabelColor = OnSurfaceSecondary,
+                cursorColor = Primary,
                 focusedContainerColor = SurfaceVariant,
                 unfocusedContainerColor = SurfaceVariant,
+                focusedTextColor = OnSurface,
+                unfocusedTextColor = OnSurface,
                 errorBorderColor = ErrorColor,
                 errorLabelColor = ErrorColor
             )

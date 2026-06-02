@@ -5,10 +5,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,66 +23,59 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.core.utils.Constants
-import com.kamerstay.app.model.enums.LandmarkType
-import com.kamerstay.app.model.enums.RoomType
+import com.kamerstay.app.data.state.FilterState
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun FilterScreen(navController: NavController) {
 
-    // ── États des filtres ──────────────────────────
-    var selectedCities by remember { mutableStateOf(setOf("Douala")) }
-    var minPrice by remember { mutableStateOf(10000f) }
-    var maxPrice by remember { mutableStateOf(250000f) }
-    var priceSlider by remember { mutableStateOf(0.3f) }
-    var selectedLandmarks by remember { mutableStateOf(setOf(LandmarkType.UNIVERSITY)) }
-    var selectedAmenities by remember { mutableStateOf(setOf("WiFi", "Climatisation")) }
-    var selectedRoomType by remember { mutableStateOf(RoomType.DOUBLE) }
+    val viewModel = koinViewModel<TravelerViewModel>()
+    val state = viewModel.filterState
 
-    val cities = listOf("Douala", "Yaoundé", "Kribi", "Limbé")
-    val landmarks = listOf(
-        LandmarkType.HOSPITAL to "Hospital",
-        LandmarkType.UNIVERSITY to "University",
-        LandmarkType.STADIUM to "Stadium",
-        LandmarkType.MARKET to "Market",
+    val starRatings = listOf(1, 2, 3, 4, 5)
+
+    val propertyTypes = listOf(
+        Icons.Outlined.Apartment to "Hotel",
+        Icons.Outlined.BeachAccess to "Resort",
+        Icons.Outlined.Villa to "Villa"
     )
+
     val amenities = listOf(
-        Icons.Outlined.Wifi to "High-speed WiFi",
-        Icons.Outlined.AcUnit to "Air Conditioning",
-        Icons.Outlined.Pool to "Swimming Pool",
-        Icons.Outlined.LocalParking to "Free Parking",
+        Icons.Outlined.Wifi to "Wi-Fi",
+        Icons.Outlined.Pool to "Pool",
+        Icons.Outlined.FitnessCenter to "Gym",
+        Icons.Outlined.Spa to "Spa",
+        Icons.Outlined.AcUnit to "AC"
     )
-    val roomTypes = listOf(
-        Icons.Outlined.Person to "Single" to RoomType.SINGLE,
-        Icons.Outlined.People to "Double" to RoomType.DOUBLE,
-        Icons.Outlined.KingBed to "Suite" to RoomType.SUITE,
+
+    val landmarks = listOf(
+        Icons.Outlined.Place to "City Center" to "Within 2km",
+        Icons.Outlined.FlightTakeoff to "Airport" to "Under 15 mins drive"
     )
 
     Scaffold(
-        containerColor = WarmIvory,
+        containerColor = BackgroundLight,
         bottomBar = {
-            // ── Bottom Button ──────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(WarmIvory)
+                    .background(BackgroundLight)
                     .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Button(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = DeepEmerald
-                    )
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
                 ) {
                     Text(
-                        text = "Show 148 results  →",
+                        text = "Apply Filters (24 Hotels)",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        fontWeight = FontWeight.Bold,
+                        color = OnPrimary
                     )
                 }
             }
@@ -98,207 +92,277 @@ fun FilterScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        Icons.Filled.Close,
-                        contentDescription = "Close",
-                        tint = OnSurface
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Secondary
                     )
                 }
                 Text(
                     text = "Filters",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DeepEmerald
+                    color = Secondary
                 )
                 Text(
                     text = "Reset",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = OnSurfaceVariant,
+                    color = Primary,
                     modifier = Modifier.clickable {
-                        selectedCities = setOf()
-                        selectedLandmarks = setOf()
-                        selectedAmenities = setOf()
-                        priceSlider = 0.3f
+                        state.minPrice = 15000f
+                        state.maxPrice = 450000f
+                        state.selectedStars = setOf()
+                        state.selectedPropertyType = ""
+                        state.selectedAmenities = setOf()
+                        state.selectedLandmark = ""
                     }
                 )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // ── Destination ───────────────────────────
-            FilterSection(title = "Destination") {
-                // Grid 2 colonnes
-                for (i in cities.indices step 2) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        CityChip(
-                            city = cities[i],
-                            isSelected = cities[i] in selectedCities,
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                selectedCities = if (cities[i] in selectedCities)
-                                    selectedCities - cities[i]
-                                else selectedCities + cities[i]
-                            }
-                        )
-                        if (i + 1 < cities.size) {
-                            CityChip(
-                                city = cities[i + 1],
-                                isSelected = cities[i + 1] in selectedCities,
-                                modifier = Modifier.weight(1f),
-                                onClick = {
-                                    selectedCities = if (cities[i + 1] in selectedCities)
-                                        selectedCities - cities[i + 1]
-                                    else selectedCities + cities[i + 1]
-                                }
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
-                    if (i + 2 < cities.size) Spacer(modifier = Modifier.height(10.dp))
-                }
-            }
-
-            FilterDivider()
 
             // ── Price Range ───────────────────────────
-            FilterSection(title = "Price range") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        text = "Per night",
-                        fontSize = 12.sp,
-                        color = OnSurfaceVariant
-                    )
-                }
+            FilterSection(title = "Price Range (XAF)") {
 
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Slider(
-                    value = priceSlider,
-                    onValueChange = { priceSlider = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = DeepEmerald,
-                        activeTrackColor = DeepEmerald,
-                        inactiveTrackColor = OutlineVariant
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
+                // Min / Max boxes
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Min
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SurfaceVariant)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(1.dp, Divider, RoundedCornerShape(10.dp))
+                            .background(Color.White)
                             .padding(12.dp)
                     ) {
                         Text(
-                            text = "MINIMUM",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurfaceVariant,
-                            letterSpacing = 0.8.sp
+                            text = "Minimum",
+                            fontSize = 11.sp,
+                            color = OnSurfaceSecondary
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "10,000 XAF",
-                            fontSize = 15.sp,
+                            text = "15,000",
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = OnSurface
+                            color = TextDark
                         )
                     }
-                    // Max
+
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    ) {
+                        HorizontalDivider(
+                            modifier = Modifier.width(20.dp),
+                            color = OnSurfaceSecondary
+                        )
+                    }
+
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SurfaceVariant)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(1.dp, Divider, RoundedCornerShape(10.dp))
+                            .background(Color.White)
                             .padding(12.dp)
                     ) {
                         Text(
-                            text = "MAXIMUM",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurfaceVariant,
-                            letterSpacing = 0.8.sp
+                            text = "Maximum",
+                            fontSize = 11.sp,
+                            color = OnSurfaceSecondary
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "250,000+\nXAF",
-                            fontSize = 15.sp,
+                            text = "450,000",
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = OnSurface,
-                            lineHeight = 18.sp
+                            color = TextDark
                         )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Range slider
+                RangeSlider(
+                    value = state.minPrice..state.maxPrice,
+                    onValueChange = { range ->
+                        state.minPrice = range.start
+                        state.maxPrice = range.endInclusive
+                    },
+                    valueRange = 0f..500000f,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = Secondary,
+                        activeTrackColor = Primary,
+                        inactiveTrackColor = Divider
+                    )
+                )
+            }
+
+            FilterDivider()
+
+            // ── Star Rating ───────────────────────────
+            FilterSection(title = "Star Rating") {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    starRatings.forEach { star ->
+                        val isSelected = star in state.selectedStars
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(if (isSelected) Primary else Color.White)
+                                .border(
+                                    1.dp,
+                                    if (isSelected) Color.Transparent else Divider,
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .clickable {
+                                    state.selectedStars = if (star in state.selectedStars)
+                                        state.selectedStars - star
+                                    else state.selectedStars + star
+                                }
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.StarOutline,
+                                    contentDescription = null,
+                                    tint = if (isSelected) OnPrimary else OnSurfaceSecondary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = star.toString(),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isSelected) OnPrimary else TextDark
+                                )
+                            }
+                        }
                     }
                 }
             }
 
             FilterDivider()
 
-            // ── Near Landmarks ────────────────────────
-            FilterSection(title = "Near Landmarks") {
-                androidx.compose.foundation.layout.FlowRow(
+            // ── Property Type ─────────────────────────
+            FilterSection(title = "Property Type") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    propertyTypes.chunked(2).forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            rowItems.forEach { (icon, label) ->
+                                val isSelected = state.selectedPropertyType == label
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White)
+                                        .border(
+                                            if (isSelected) 2.dp else 1.dp,
+                                            if (isSelected) Primary else Divider,
+                                            RoundedCornerShape(12.dp)
+                                        )
+                                        .clickable {
+                                            state.selectedPropertyType = label
+                                        }
+                                        .padding(20.dp)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(44.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .background(
+                                                    if (isSelected) Primary
+                                                    else BackgroundLight
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                icon,
+                                                contentDescription = null,
+                                                tint = if (isSelected) OnPrimary
+                                                else OnSurfaceSecondary,
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(10.dp))
+                                        Text(
+                                            text = label,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = TextDark
+                                        )
+                                    }
+                                }
+                            }
+                            // Fill empty space if odd number
+                            if (rowItems.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+
+            FilterDivider()
+
+            // ── Popular Amenities ─────────────────────
+            FilterSection(title = "Popular Amenities") {
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    landmarks.forEach { (type, label) ->
-                        val isSelected = type in selectedLandmarks
-                        val icon = when (type) {
-                            LandmarkType.HOSPITAL -> Icons.Outlined.LocalHospital
-                            LandmarkType.UNIVERSITY -> Icons.Outlined.School
-                            LandmarkType.STADIUM -> Icons.Outlined.Stadium
-                            LandmarkType.MARKET -> Icons.Outlined.Store
-                            else -> Icons.Outlined.Place
-                        }
+                    amenities.forEach { (icon, label) ->
+                        val isSelected = label in state.selectedAmenities
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(Color.White)
+                                .background(
+                                    if (isSelected) Primary.copy(0.1f) else Color.White
+                                )
                                 .border(
-                                    width = if (isSelected) 1.5.dp else 1.dp,
-                                    color = if (isSelected) DeepEmerald else OutlineVariant,
-                                    shape = RoundedCornerShape(20.dp)
+                                    1.dp,
+                                    if (isSelected) Primary else Divider,
+                                    RoundedCornerShape(20.dp)
                                 )
                                 .clickable {
-                                    selectedLandmarks = if (type in selectedLandmarks)
-                                        selectedLandmarks - type
-                                    else selectedLandmarks + type
+                                    state.selectedAmenities = if (label in state.selectedAmenities)
+                                        state.selectedAmenities - label
+                                    else state.selectedAmenities + label
                                 }
-                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                                .padding(horizontal = 14.dp, vertical = 9.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
                                 Icon(
                                     icon,
                                     contentDescription = null,
-                                    tint = if (isSelected) DeepEmerald else OnSurfaceVariant,
-                                    modifier = Modifier.size(14.dp)
+                                    tint = if (isSelected) Primary else OnSurfaceSecondary,
+                                    modifier = Modifier.size(15.dp)
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = label,
                                     fontSize = 13.sp,
                                     fontWeight = if (isSelected) FontWeight.SemiBold
                                     else FontWeight.Normal,
-                                    color = if (isSelected) DeepEmerald else OnSurface
+                                    color = if (isSelected) Secondary else TextDark
                                 )
                             }
                         }
@@ -308,161 +372,104 @@ fun FilterScreen(navController: NavController) {
 
             FilterDivider()
 
-            // ── Amenities ─────────────────────────────
-            FilterSection(title = "Amenities") {
-                amenities.forEach { (icon, label) ->
-                    val isChecked = label in selectedAmenities
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                selectedAmenities = if (label in selectedAmenities)
-                                    selectedAmenities - label
-                                else selectedAmenities + label
-                            }
-                            .padding(vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                icon,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = label,
-                                fontSize = 15.sp,
-                                color = OnSurface
-                            )
-                        }
-                        Checkbox(
-                            checked = isChecked,
-                            onCheckedChange = {
-                                selectedAmenities = if (label in selectedAmenities)
-                                    selectedAmenities - label
-                                else selectedAmenities + label
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = DeepEmerald,
-                                uncheckedColor = OutlineVariant,
-                                checkmarkColor = Color.White
-                            )
-                        )
-                    }
-                    if (label != amenities.last().second) {
-                        HorizontalDivider(color = Divider)
-                    }
-                }
-            }
-
-            FilterDivider()
-
-            // ── Room Type ─────────────────────────────
-            FilterSection(title = "Room Type") {
+            // ── Landmarks Proximity ───────────────────
+            FilterSection(title = "Landmarks Proximity") {
+                // View Map button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    roomTypes.forEach { (iconLabel, type) ->
+                    Text(
+                        text = "Landmarks Proximity",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "View Map",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Primary,
+                        modifier = Modifier.clickable { }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Radio options
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White)
+                ) {
+                    landmarks.forEachIndexed { index, (iconLabel, distance) ->
                         val (icon, label) = iconLabel
-                        val isSelected = selectedRoomType == type
-                        Box(
+                        val isSelected = state.selectedLandmark == label
+
+                        Row(
                             modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    if (isSelected) DeepEmerald.copy(alpha = 0.1f)
-                                    else SurfaceVariant
-                                )
-                                .border(
-                                    width = if (isSelected) 1.5.dp else 0.dp,
-                                    color = if (isSelected) DeepEmerald else Color.Transparent,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .clickable { selectedRoomType = type }
-                                .padding(vertical = 16.dp),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .clickable { state.selectedLandmark = label }
+                                .padding(horizontal = 16.dp, vertical = 14.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
                                 Icon(
                                     icon,
                                     contentDescription = null,
-                                    tint = if (isSelected) DeepEmerald else OnSurfaceVariant,
-                                    modifier = Modifier.size(22.dp)
+                                    tint = OnSurfaceSecondary,
+                                    modifier = Modifier.size(20.dp)
                                 )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = label,
-                                    fontSize = 13.sp,
-                                    fontWeight = if (isSelected) FontWeight.SemiBold
-                                    else FontWeight.Normal,
-                                    color = if (isSelected) DeepEmerald else OnSurface
-                                )
+                                Column {
+                                    Text(
+                                        text = label,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = TextDark
+                                    )
+                                    Text(
+                                        text = distance,
+                                        fontSize = 12.sp,
+                                        color = OnSurfaceSecondary
+                                    )
+                                }
+                            }
+
+                            // Radio button
+                            Box(
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .border(
+                                        2.dp,
+                                        if (isSelected) Primary else Divider,
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isSelected) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(12.dp)
+                                            .clip(CircleShape)
+                                            .background(Primary)
+                                    )
+                                }
                             }
                         }
-                    }
-                }
-            }
 
-            FilterDivider()
-
-            // ── Map View ──────────────────────────────
-            FilterSection(title = "") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(SurfaceVariant)
-                        .clickable { },
-                    contentAlignment = Alignment.BottomStart
-                ) {
-                    // Map placeholder
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                Icons.Outlined.Place,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant.copy(0.3f),
-                                modifier = Modifier.size(40.dp)
-                            )
-                            Icon(
-                                Icons.Outlined.Place,
-                                contentDescription = null,
-                                tint = OnSurfaceVariant.copy(0.2f),
-                                modifier = Modifier.size(28.dp)
+                        if (index < landmarks.lastIndex) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = Divider
                             )
                         }
-                    }
-                    // Show Map label
-                    Row(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color.White)
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.Map,
-                            contentDescription = null,
-                            tint = OnSurface,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Show Map View",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = OnSurface
-                        )
                     }
                 }
             }
@@ -472,8 +479,7 @@ fun FilterScreen(navController: NavController) {
     }
 }
 
-// ── Composants réutilisables ──────────────────────────────
-
+// ── Filter Section ────────────────────────────────────────
 @Composable
 fun FilterSection(
     title: String,
@@ -489,55 +495,19 @@ fun FilterSection(
                 text = title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = OnSurface
+                color = TextDark
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
         }
         content()
     }
 }
 
+// ── Filter Divider ────────────────────────────────────────
 @Composable
 fun FilterDivider() {
     HorizontalDivider(
         color = Divider,
         modifier = Modifier.padding(horizontal = 20.dp)
     )
-}
-
-@Composable
-fun CityChip(
-    city: String,
-    isSelected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White)
-            .border(
-                width = if (isSelected) 1.5.dp else 1.dp,
-                color = if (isSelected) DeepEmerald else OutlineVariant,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 12.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Outlined.Place,
-                contentDescription = null,
-                tint = if (isSelected) DeepEmerald else OnSurfaceVariant,
-                modifier = Modifier.size(15.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = city,
-                fontSize = 14.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) DeepEmerald else OnSurface
-            )
-        }
-    }
 }

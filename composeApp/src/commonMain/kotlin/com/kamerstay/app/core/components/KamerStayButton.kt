@@ -15,7 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kamerstay.app.core.theme.ForestGreen
+import com.kamerstay.app.core.theme.OnPrimary
+import com.kamerstay.app.core.theme.Primary
 
 @Composable
 fun KamerStayButton(
@@ -24,8 +25,8 @@ fun KamerStayButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isLoading: Boolean = false,
-    containerColor: Color = ForestGreen,
-    contentColor: Color = Color.White
+    containerColor: Color = Primary,    // #00D5E1 turquoise
+    contentColor: Color = OnPrimary
 ) {
     Button(
         onClick = onClick,
@@ -63,8 +64,8 @@ fun KamerStayOutlinedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    borderColor: Color = ForestGreen,
-    contentColor: Color = ForestGreen
+    borderColor: Color = Primary,
+    contentColor: Color = Primary
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()

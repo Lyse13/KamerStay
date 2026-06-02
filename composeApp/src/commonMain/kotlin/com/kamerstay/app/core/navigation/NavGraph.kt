@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kamerstay.app.features.auth.ForgotPasswordScreen
+import com.kamerstay.app.features.auth.PasswordResetSuccessScreen
 import com.kamerstay.app.features.auth.ResetPasswordScreen
 import com.kamerstay.app.features.auth.SignInScreen
 import com.kamerstay.app.features.auth.SignUpScreen
@@ -66,6 +67,9 @@ fun KamerStayNavGraph(
         }
         composable(Routes.ResetPassword.route) {
             ResetPasswordScreen(navController)
+        }
+        composable(Routes.PasswordResetSuccess.route) {
+            PasswordResetSuccessScreen(navController)
         }
 
         // ── Traveler ──────────────────────────────────

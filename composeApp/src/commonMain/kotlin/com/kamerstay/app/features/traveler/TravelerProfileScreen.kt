@@ -1,6 +1,7 @@
 package com.kamerstay.app.features.traveler
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,35 +9,37 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Help
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun TravelerProfileScreen(navController: NavController) {
 
+    val viewModel = koinViewModel<TravelerViewModel>()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Logout?", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to logout from your account?") },
+            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = TextDark) },
+            text = { Text("Are you sure you want to sign out?", color = OnSurfaceSecondary) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -45,14 +48,13 @@ fun TravelerProfileScreen(navController: NavController) {
                             popUpTo(0) { inclusive = true }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor)
-                ) {
-                    Text("Logout", color = Color.White)
-                }
+                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Sign Out", color = Color.White) }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel", color = DeepEmerald)
+                    Text("Cancel", color = Secondary)
                 }
             },
             containerColor = Color.White,
@@ -61,8 +63,40 @@ fun TravelerProfileScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = WarmIvory,
-        bottomBar = { TravelerBottomNav(navController, currentRoute = "profile") }
+        containerColor = BackgroundLight,
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 0.dp
+            ) {
+                listOf(
+                    Icons.Outlined.Home to "Home",
+                    Icons.Outlined.Explore to "Explore",
+                    Icons.Outlined.BookOnline to "Bookings",
+                    Icons.Outlined.Person to "Profile"
+                ).forEachIndexed { index, (icon, label) ->
+                    NavigationBarItem(
+                        selected = index == 3,
+                        onClick = {
+                            when (index) {
+                                0 -> navController.navigate(Routes.TravelerHome.route)
+                                1 -> navController.navigate(Routes.HotelSearch.route)
+                                2 -> navController.navigate(Routes.BookingHistory.route)
+                            }
+                        },
+                        icon = { Icon(icon, contentDescription = label) },
+                        label = { Text(label, fontSize = 11.sp) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Secondary,
+                            selectedTextColor = Secondary,
+                            indicatorColor = Primary.copy(0.15f),
+                            unselectedIconColor = OnSurfaceSecondary,
+                            unselectedTextColor = OnSurfaceSecondary
+                        )
+                    )
+                }
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -75,244 +109,249 @@ fun TravelerProfileScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Filled.Menu, contentDescription = null, tint = OnSurface)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Secondary
+                        )
                     }
                     Text(
-                        text = "Hotel Manager",
-                        fontSize = 18.sp,
+                        text = "MyStays",
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DeepEmerald
+                        color = Secondary
                     )
                 }
-                // Avatar
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(Color(0xFF8B6914), Color(0xFF5C4A1E))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "JP",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                IconButton(onClick = { navController.navigate(Routes.Settings.route) }) {
+                    Icon(
+                        Icons.Outlined.Settings,
+                        contentDescription = null,
+                        tint = Secondary,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ── Profile Header ────────────────────────
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // ── Profile Card ──────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(20.dp)
             ) {
-                // Avatar large
-                Box(
-                    modifier = Modifier.size(110.dp),
-                    contentAlignment = Alignment.BottomEnd
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF8B6914),
-                                        Color(0xFF5C3D0D)
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "JP",
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                    }
-                    // Badge WarmAmber
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(WarmAmber)
-                            .offset(x = 4.dp, y = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Jean-Paul N.",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = OnSurface
-                )
-                Text(
-                    text = "jean-paul.n@travel.cm",
-                    fontSize = 14.sp,
-                    color = OnSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Badges
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Points
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(DeepEmerald)
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Avatar
+                    Box(modifier = Modifier.size(90.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(85.dp)
+                                .clip(CircleShape)
+                                .background(OnSurfaceSecondary.copy(0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Icon(
-                                Icons.Outlined.LocalOffer,
+                                Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier.size(44.dp)
+                            )
+                        }
+                        // Edit badge
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(Secondary)
+                                .border(2.dp, Color.White, CircleShape)
+                                .align(Alignment.BottomEnd)
+                                .clickable { },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Edit,
                                 contentDescription = null,
                                 tint = Color.White,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "2,450 POINTS",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
                         }
                     }
 
-                    // Gold Member
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(WarmAmber.copy(alpha = 0.15f))
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "Alex Thompson",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "Explorer • Since 2022",
+                        fontSize = 13.sp,
+                        color = OnSurfaceSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Stats
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Outlined.EmojiEvents,
-                                contentDescription = null,
-                                tint = WarmAmber,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = "GOLD\nMEMBER",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF8B6914),
-                                lineHeight = 14.sp
-                            )
-                        }
+                        ProfileStat("12", "Stays")
+                        ProfileStatDivider()
+                        ProfileStat("4", "Reviews")
+                        ProfileStatDivider()
+                        ProfileStat("2.4k", "Points")
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // ── Menu Items ────────────────────────────
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                ProfileMenuItem(
-                    icon = Icons.Outlined.Person,
-                    iconBg = PrimaryContainer,
-                    iconTint = DeepEmerald,
-                    title = "Personal Information",
-                    subtitle = "Manage your identity and details",
+                TravelerProfileItem(
+                    icon = Icons.Outlined.BookOnline,
+                    title = "My Bookings",
+                    subtitle = "Manage your upcoming and past trips",
+                    onClick = { navController.navigate(Routes.BookingHistory.route) }
+                )
+                TravelerProfileItem(
+                    icon = Icons.Outlined.FavoriteBorder,
+                    title = "Saved Places",
+                    subtitle = "Hotels and resorts you've pinned",
                     onClick = { }
                 )
-                ProfileMenuItem(
-                    icon = Icons.Outlined.Payment,
-                    iconBg = WarmAmber.copy(alpha = 0.15f),
-                    iconTint = WarmAmber,
+                TravelerProfileItem(
+                    icon = Icons.Outlined.CreditCard,
                     title = "Payment Methods",
-                    subtitle = "MoMo, Orange, Visa, Mastercard",
+                    subtitle = "MasterCard ending in 4242",
                     onClick = { }
                 )
-                ProfileMenuItem(
-                    icon = Icons.Outlined.Shield,
-                    iconBg = DeepEmerald.copy(alpha = 0.1f),
-                    iconTint = DeepEmerald,
-                    title = "Security",
-                    subtitle = "Password, 2FA, Biometrics",
-                    onClick = {
-                        navController.navigate(Routes.ForgotPassword.route)
-                    }
-                )
-                ProfileMenuItem(
-                    icon = Icons.AutoMirrored.Outlined.Help,
-                    iconBg = SurfaceVariant,
-                    iconTint = OnSurfaceVariant,
-                    title = "Help & Support",
-                    subtitle = "FAQs, Contact Support, Chat",
+                TravelerProfileItem(
+                    icon = Icons.Outlined.HelpOutline,
+                    title = "Help Center",
+                    subtitle = "24/7 support and traveler guides",
                     onClick = { }
                 )
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-                // Logout
+            // ── Account Details ───────────────────────
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                Text(
+                    text = "Account Details",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color.White)
-                        .clickable { showLogoutDialog = true }
-                        .padding(horizontal = 16.dp, vertical = 18.dp)
+                        .padding(16.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.Logout,
-                            contentDescription = null,
-                            tint = ErrorColor,
-                            modifier = Modifier.size(20.dp)
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        AccountDetailRow(
+                            label = "Email Address",
+                            value = "alex.thompson@traveler.com",
+                            hasVerified = true
                         )
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Text(
-                            text = "Logout from Account",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = ErrorColor
+                        HorizontalDivider(color = Divider)
+                        AccountDetailRow(
+                            label = "Phone Number",
+                            value = "+1 (555) 123-4567"
+                        )
+                        HorizontalDivider(color = Divider)
+                        AccountDetailRow(
+                            label = "Address",
+                            value = "San Francisco, California"
                         )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // ── Sign Out ──────────────────────────────
+            Text(
+                text = "Sign Out",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = ErrorColor,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showLogoutDialog = true }
+                    .padding(vertical = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Version 2.4.1 (Build 1204)",
+                fontSize = 12.sp,
+                color = OnSurfaceSecondary.copy(0.5f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-// ── Profile Menu Item ─────────────────────────────────────
+// ── Profile Stat ──────────────────────────────────────────
 @Composable
-fun ProfileMenuItem(
+fun ProfileStat(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Secondary
+        )
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = OnSurfaceSecondary
+        )
+    }
+}
+
+@Composable
+fun ProfileStatDivider() {
+    Box(
+        modifier = Modifier
+            .height(30.dp)
+            .width(1.dp)
+            .background(Divider)
+    )
+}
+
+// ── Traveler Profile Item ─────────────────────────────────
+@Composable
+fun TravelerProfileItem(
     icon: ImageVector,
-    iconBg: Color,
-    iconTint: Color,
     title: String,
     subtitle: String,
     onClick: () -> Unit
@@ -323,7 +362,7 @@ fun ProfileMenuItem(
             .clip(RoundedCornerShape(14.dp))
             .background(Color.White)
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -331,16 +370,16 @@ fun ProfileMenuItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(44.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(iconBg),
+                    .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(20.dp)
+                    tint = Secondary,
+                    modifier = Modifier.size(22.dp)
                 )
             }
             Spacer(modifier = Modifier.width(14.dp))
@@ -349,20 +388,58 @@ fun ProfileMenuItem(
                     text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = OnSurface
+                    color = TextDark
                 )
                 Text(
                     text = subtitle,
                     fontSize = 12.sp,
-                    color = OnSurfaceVariant
+                    color = OnSurfaceSecondary,
+                    lineHeight = 16.sp
                 )
             }
             Icon(
-                Icons.Filled.ChevronRight,
+                Icons.Outlined.ChevronRight,
                 contentDescription = null,
-                tint = OnSurfaceVariant,
-                modifier = Modifier.size(20.dp)
+                tint = OnSurfaceSecondary,
+                modifier = Modifier.size(18.dp)
             )
+        }
+    }
+}
+
+// ── Account Detail Row ────────────────────────────────────
+@Composable
+fun AccountDetailRow(
+    label: String,
+    value: String,
+    hasVerified: Boolean = false
+) {
+    Column {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = OnSurfaceSecondary
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = value,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextDark
+            )
+            if (hasVerified) {
+                Icon(
+                    Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }

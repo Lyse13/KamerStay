@@ -1,0 +1,216 @@
+package com.kamerstay.app.features.auth
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.kamerstay.app.core.navigation.Routes
+import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.viewmodel.AuthViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
+@Composable
+fun VerificationCodeScreen(navController: NavController) {
+
+    val viewModel = koinViewModel<AuthViewModel>()
+    val state = viewModel.verificationCodeState
+
+    LaunchedEffect(Unit) {
+        while (state.timeLeft > 0) {
+            kotlinx.coroutines.delay(1000)
+            state.timeLeft--
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundLight)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable { navController.popBackStack() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Secondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Text(
+                    text = "Verify your email",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextDark
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Code sent to your email",
+                    fontSize = 14.sp,
+                    color = OnSurfaceSecondary
+                )
+                Text(
+                    text = "alex.traveler@example.com",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Primary
+                )
+
+                Spacer(modifier = Modifier.height(36.dp))
+
+                // OTP Boxes
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    repeat(4) { index ->
+                        val char = state.code.getOrNull(index)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(if (char != null) 12.dp else 8.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (char != null) TextDark
+                                        else OnSurfaceSecondary.copy(0.3f)
+                                    )
+                            )
+                        }
+                    }
+                }
+
+                // Hidden input
+                OutlinedTextField(
+                    value = state.code,
+                    onValueChange = { if (it.length <= 4) state.code = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Transparent,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.NumberPassword
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Timer
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Outlined.Timer,
+                        contentDescription = null,
+                        tint = OnSurfaceSecondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Resend code in ", fontSize = 14.sp, color = OnSurfaceSecondary)
+                    val minutes = state.timeLeft / 60
+                    val seconds = state.timeLeft % 60
+                    Text(
+                        text = "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
+            ) {
+                Button(
+                    onClick = { navController.navigate(Routes.ResetPassword.route) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                    enabled = state.code.length == 4
+                ) {
+                    Text(
+                        text = "Verify",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "By clicking Verify, you agree to our Terms of Service and Privacy Policy regarding digital hospitality.",
+                    fontSize = 11.sp,
+                    color = OnSurfaceSecondary.copy(0.5f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    lineHeight = 16.sp
+                )
+            }
+        }
+    }
+}

@@ -2,13 +2,15 @@ package com.kamerstay.app.core.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.kamerstay.app.core.theme.DeepEmerald
-import com.kamerstay.app.core.theme.OnSurfaceVariant
+import com.kamerstay.app.core.theme.OnSurfaceSecondary
+import com.kamerstay.app.core.theme.Primary
+import com.kamerstay.app.core.theme.SurfaceVariant
 
 @Composable
 fun LoadingState(
@@ -21,13 +23,14 @@ fun LoadingState(
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            color = DeepEmerald,
+            color = Primary,
+            trackColor = SurfaceVariant,
             strokeWidth = 3.dp
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = message,
-            color = OnSurfaceVariant
+            color = OnSurfaceSecondary
         )
     }
 }
@@ -46,15 +49,15 @@ fun EmptyState(
     ) {
         Text(
             text = title,
-            style = androidx.compose.material3.MaterialTheme.typography.headlineSmall,
-            color = OnSurfaceVariant
+            style = MaterialTheme.typography.headlineSmall,
+            color = OnSurfaceSecondary
         )
         if (subtitle.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = subtitle,
-                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-                color = OnSurfaceVariant.copy(alpha = 0.7f)
+                style = MaterialTheme.typography.bodyMedium,
+                color = OnSurfaceSecondary.copy(alpha = 0.7f)
             )
         }
         action?.let {

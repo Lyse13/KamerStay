@@ -5,11 +5,11 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -24,480 +25,618 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.viewmodel.ManagerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AddEditRoomScreen(navController: NavController) {
 
-    var roomNumber by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Standard") }
-    var pricePerNight by remember { mutableStateOf("45000") }
-    var capacity by remember { mutableStateOf("2") }
-    var description by remember { mutableStateOf("") }
-    var selectedFeatures by remember { mutableStateOf(setOf<String>()) }
+    val viewModel = koinViewModel<ManagerViewModel>()
+    val state = viewModel.roomFormState
+
     var showCategoryDropdown by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
 
-    val categories = listOf("Standard", "Deluxe", "Suite", "Executive Suite",
-        "Presidential Suite", "Family Room")
+    val categories = listOf(
+        "Standard", "Deluxe", "Suite",
+        "Executive Suite", "Deluxe Suite",
+        "Presidential Suite", "Family Room"
+    )
 
-    val features = listOf(
-        "WiFi", "Climatisation", "King Bed", "Twin Bed",
-        "City View", "Garden View", "Mini-bar", "Balcon",
-        "Bureau de travail", "Baignoire"
+    val amenities = listOf(
+        "Free Wi-Fi" to Icons.Outlined.Wifi,
+        "AC" to Icons.Outlined.AcUnit,
+        "Pool Access" to Icons.Outlined.Pool,
+        "Smart TV" to Icons.Outlined.Tv,
+        "Mini-bar" to Icons.Outlined.LocalBar,
+        "Balcony" to Icons.Outlined.Deck,
+        "King Bed" to Icons.Outlined.Hotel,
+        "City View" to Icons.Outlined.LocationCity,
+        "Breakfast" to Icons.Outlined.FreeBreakfast,
+        "Parking" to Icons.Outlined.LocalParking,
     )
 
     Scaffold(
-        containerColor = WarmIvory,
-        bottomBar = { ManagerBottomNav(navController, currentRoute = "rooms") }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-        ) {
+        containerColor = BackgroundLight,
+        topBar = {
             // ── Top Bar ───────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Filled.Menu, contentDescription = null, tint = OnSurface)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Secondary
+                        )
                     }
                     Text(
-                        text = "Hotel Manager",
+                        text = "Manage Room",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DeepEmerald
+                        color = Secondary
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryContainer),
-                    contentAlignment = Alignment.Center
+
+                // Save Changes button
+                Button(
+                    onClick = {
+                        state.isLoading = true
+                        navController.popBackStack()
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Secondary
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = 16.dp,
+                        vertical = 8.dp
+                    )
                 ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = DeepEmerald,
-                        modifier = Modifier.size(22.dp)
+                    Text(
+                        text = "Save Changes",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
                     )
                 }
             }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    state.isLoading = true
+                    navController.popBackStack()
+                },
+                containerColor = Secondary,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Outlined.Save, contentDescription = "Save")
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-
-                // ── Breadcrumb ────────────────────────
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            // ── Room Photos ───────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Column {
                     Text(
-                        text = "ROOMS",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = OnSurfaceVariant,
-                        letterSpacing = 0.8.sp
-                    )
-                    Icon(
-                        Icons.Filled.ChevronRight,
-                        contentDescription = null,
-                        tint = OnSurfaceVariant,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = "ADD NEW ROOM",
-                        fontSize = 11.sp,
+                        text = "Room Photos",
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OnSurface,
-                        letterSpacing = 0.8.sp
+                        color = TextDark
                     )
-                }
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Room Configuration",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = OnSurface
-                )
-                Text(
-                    text = "Configure room details for Akwa Palace guest inventory.",
-                    fontSize = 13.sp,
-                    color = OnSurfaceVariant,
-                    lineHeight = 18.sp
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // ── Form Card ─────────────────────────
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        // Room Number
-                        AddRoomLabel(text = "Room Number")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = roomNumber,
-                            onValueChange = { roomNumber = it },
-                            placeholder = {
-                                Text("e.g. 304", color = OnSurfaceVariant.copy(0.5f))
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.Tag,
-                                    contentDescription = null,
-                                    tint = OnSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = addRoomTextFieldColors(),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number
-                            ),
-                            singleLine = true
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Room Category
-                        AddRoomLabel(text = "Room Category")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            OutlinedTextField(
-                                value = selectedCategory,
-                                onValueChange = { },
-                                readOnly = true,
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Outlined.Category,
-                                        contentDescription = null,
-                                        tint = OnSurfaceVariant,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                },
-                                trailingIcon = {
-                                    IconButton(onClick = { showCategoryDropdown = true }) {
-                                        Icon(
-                                            Icons.Filled.KeyboardArrowDown,
-                                            contentDescription = null,
-                                            tint = OnSurfaceVariant
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Main large photo
+                        Box(
+                            modifier = Modifier
+                                .weight(2f)
+                                .height(160.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFF1A2A3A),
+                                            Color(0xFF0D1A28)
                                         )
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showCategoryDropdown = true },
-                                shape = RoundedCornerShape(10.dp),
-                                colors = addRoomTextFieldColors(),
-                                singleLine = true
-                            )
-                            DropdownMenu(
-                                expanded = showCategoryDropdown,
-                                onDismissRequest = { showCategoryDropdown = false },
-                                modifier = Modifier.background(Color.White)
-                            ) {
-                                categories.forEach { category ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                text = category,
-                                                color = if (selectedCategory == category)
-                                                    DeepEmerald else OnSurface
-                                            )
-                                        },
-                                        onClick = {
-                                            selectedCategory = category
-                                            showCategoryDropdown = false
-                                        }
                                     )
-                                }
-                            }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Hotel,
+                                contentDescription = null,
+                                tint = Color.White.copy(0.3f),
+                                modifier = Modifier.size(40.dp)
+                            )
                         }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Price per night
-                        AddRoomLabel(text = "Price per night (FCFA)")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = pricePerNight,
-                            onValueChange = { pricePerNight = it },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.Payments,
-                                    contentDescription = null,
-                                    tint = OnSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = addRoomTextFieldColors(),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number
-                            ),
-                            singleLine = true
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Capacity
-                        AddRoomLabel(text = "Guest Capacity")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        // Small photos grid
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            listOf("1", "2", "3", "4").forEach { cap ->
+                            repeat(2) {
                                 Box(
                                     modifier = Modifier
-                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .height(72.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(
-                                            if (capacity == cap) DeepEmerald
-                                            else SurfaceVariant
-                                        )
-                                        .clickable { capacity = cap }
-                                        .padding(vertical = 12.dp),
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(
+                                                    Color(0xFF2A3A4A),
+                                                    Color(0xFF1A2A3A)
+                                                )
+                                            )
+                                        ),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = cap,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (capacity == cap) Color.White
-                                        else OnSurface
+                                    Icon(
+                                        imageVector = Icons.Outlined.Bed,
+                                        contentDescription = null,
+                                        tint = Color.White.copy(0.3f),
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Description
-                        AddRoomLabel(text = "Room Description")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = description,
-                            onValueChange = { description = it },
-                            placeholder = {
-                                Text(
-                                    "Describe the room...",
-                                    color = OnSurfaceVariant.copy(0.5f)
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp),
-                            shape = RoundedCornerShape(10.dp),
-                            colors = addRoomTextFieldColors(),
-                            maxLines = 4
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ── Room Photography ──────────────────
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Text(
-                            text = "Room Photography",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = OnSurface
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            // Upload box
+                            // Add More
                             Box(
                                 modifier = Modifier
-                                    .size(110.dp)
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .fillMaxWidth()
+                                    .height(72.dp)
+                                    .clip(RoundedCornerShape(10.dp))
                                     .border(
                                         1.5.dp,
-                                        OutlineVariant,
-                                        RoundedCornerShape(12.dp)
+                                        Primary.copy(0.5f),
+                                        RoundedCornerShape(10.dp)
                                     )
-                                    .background(SurfaceVariant)
+                                    .background(Primary.copy(0.05f))
                                     .clickable { },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
                                     Icon(
-                                        Icons.Outlined.CameraAlt,
+                                        Icons.Outlined.AddAPhoto,
                                         contentDescription = null,
-                                        tint = OnSurfaceVariant,
-                                        modifier = Modifier.size(28.dp)
+                                        tint = Primary,
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    Spacer(modifier = Modifier.height(6.dp))
                                     Text(
-                                        text = "Upload",
-                                        fontSize = 12.sp,
-                                        color = OnSurfaceVariant
+                                        text = "Add More",
+                                        fontSize = 10.sp,
+                                        color = Primary,
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+            }
 
-                            // Preview image placeholder
+            // ── Room Identification ───────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Text(
+                        text = "Room Identification",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Room Number
+                    RoomFormLabel("Room Number")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = state.roomNumber,
+                        onValueChange = { state.roomNumber = it },
+                        placeholder = {
+                            Text(
+                                "Suite 402",
+                                color = OnSurfaceSecondary.copy(0.5f)
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = roomTextFieldColors(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Room Category
+                    RoomFormLabel("Room Category")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = state.category,
+                            onValueChange = { },
+                            readOnly = true,
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    showCategoryDropdown = true
+                                }) {
+                                    Icon(
+                                        Icons.Filled.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        tint = OnSurfaceSecondary
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showCategoryDropdown = true },
+                            shape = RoundedCornerShape(10.dp),
+                            colors = roomTextFieldColors(),
+                            singleLine = true
+                        )
+                        DropdownMenu(
+                            expanded = showCategoryDropdown,
+                            onDismissRequest = { showCategoryDropdown = false },
+                            modifier = Modifier.background(Color.White)
+                        ) {
+                            categories.forEach { category ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = category,
+                                            color = if (state.category == category)
+                                                Primary else TextDark
+                                        )
+                                    },
+                                    onClick = {
+                                        state.category = category
+                                        showCategoryDropdown = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Room Description
+                    RoomFormLabel("Room Description")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = state.description,
+                        onValueChange = { state.description = it },
+                        placeholder = {
+                            Text(
+                                "Enter a compelling description for guests...",
+                                color = OnSurfaceSecondary.copy(0.5f),
+                                fontSize = 13.sp
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(110.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = roomTextFieldColors(),
+                        maxLines = 4
+                    )
+                }
+            }
+
+            // ── Pricing & Status ──────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SurfaceVariant)
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Pricing & Status",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Primary)
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "Active",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = OnPrimary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    RoomFormLabel("Price per Night")
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Price field
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color.White)
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "$ ",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = OnSurfaceSecondary
+                            )
+                            OutlinedTextField(
+                                value = state.pricePerNight,
+                                onValueChange = { state.pricePerNight = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextDark
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    cursorColor = Primary
+                                ),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Decimal
+                                ),
+                                singleLine = true
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Instant Booking toggle
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color.White)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Instant Booking",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextDark
+                                )
+                                Text(
+                                    text = "Guests don't need approval",
+                                    fontSize = 12.sp,
+                                    color = OnSurfaceSecondary
+                                )
+                            }
+                            Switch(
+                                checked = true,
+                                onCheckedChange = { },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = Primary
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            // ── Amenities ─────────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Text(
+                        text = "Amenities",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Selected amenities
+                        state.selectedFeatures.forEach { feature ->
                             Box(
                                 modifier = Modifier
-                                    .size(110.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFF1A3A2E)),
-                                contentAlignment = Alignment.Center
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Primary)
+                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    val icon = amenities.find { it.first == feature }?.second
+                                    icon?.let {
+                                        Icon(
+                                            it,
+                                            contentDescription = null,
+                                            tint = OnPrimary,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = feature,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = OnPrimary
+                                    )
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = null,
+                                        tint = OnPrimary,
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .clickable {
+                                                state.selectedFeatures =
+                                                    state.selectedFeatures - feature
+                                            }
+                                    )
+                                }
+                            }
+                        }
+
+                        // Unselected amenities
+                        amenities
+                            .filter { it.first !in state.selectedFeatures }
+                            .forEach { (name, icon) ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .border(
+                                            1.dp,
+                                            OnSurfaceSecondary.copy(0.3f),
+                                            RoundedCornerShape(20.dp)
+                                        )
+                                        .background(Color.Transparent)
+                                        .clickable {
+                                            state.selectedFeatures =
+                                                state.selectedFeatures + name
+                                        }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Filled.Add,
+                                            contentDescription = null,
+                                            tint = OnSurfaceSecondary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Text(
+                                            text = name,
+                                            fontSize = 13.sp,
+                                            color = OnSurfaceSecondary
+                                        )
+                                    }
+                                }
+                            }
+
+                        // Add Amenity button
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .border(
+                                    1.5.dp,
+                                    OnSurfaceSecondary.copy(0.4f),
+                                    RoundedCornerShape(20.dp)
+                                )
+                                .clickable { }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Icon(
-                                    Icons.Outlined.Hotel,
+                                    Icons.Filled.Add,
                                     contentDescription = null,
-                                    tint = Color.White.copy(0.5f),
-                                    modifier = Modifier.size(36.dp)
+                                    tint = OnSurfaceSecondary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Add Amenity",
+                                    fontSize = 13.sp,
+                                    color = OnSurfaceSecondary,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ── Room Features ─────────────────────
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Text(
-                            text = "Room Features",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = OnSurface
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        androidx.compose.foundation.layout.FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            features.forEach { feature ->
-                                val isSelected = feature in selectedFeatures
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .background(
-                                            if (isSelected) DeepEmerald.copy(0.1f)
-                                            else SurfaceVariant
-                                        )
-                                        .border(
-                                            if (isSelected) 1.5.dp else 0.dp,
-                                            if (isSelected) DeepEmerald else Color.Transparent,
-                                            RoundedCornerShape(20.dp)
-                                        )
-                                        .clickable {
-                                            selectedFeatures = if (feature in selectedFeatures)
-                                                selectedFeatures - feature
-                                            else selectedFeatures + feature
-                                        }
-                                        .padding(horizontal = 14.dp, vertical = 8.dp)
-                                ) {
-                                    Text(
-                                        text = feature,
-                                        fontSize = 13.sp,
-                                        fontWeight = if (isSelected) FontWeight.SemiBold
-                                        else FontWeight.Normal,
-                                        color = if (isSelected) DeepEmerald else OnSurface
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // ── Save Button ───────────────────────
-                Button(
-                    onClick = {
-                        isLoading = true
-                        navController.popBackStack()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = DeepEmerald
-                    )
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            Icons.Outlined.Save,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Save Room",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
             }
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────
+// ── Room Form Helpers ─────────────────────────────────────
 @Composable
-fun AddRoomLabel(text: String) {
+fun RoomFormLabel(text: String) {
     Text(
         text = text,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
-        color = OnSurface
+        color = TextDark
     )
 }
 
 @Composable
-fun addRoomTextFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = DeepEmerald,
-    unfocusedBorderColor = OutlineVariant,
-    focusedContainerColor = SurfaceVariant,
-    unfocusedContainerColor = SurfaceVariant,
-    cursorColor = DeepEmerald,
-    focusedLabelColor = DeepEmerald
+fun roomTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = Primary,
+    unfocusedBorderColor = Color(0xFFDDE4EA),
+    focusedContainerColor = Color.White,
+    unfocusedContainerColor = Color.White,
+    focusedTextColor = TextDark,
+    unfocusedTextColor = TextDark,
+    cursorColor = Primary
 )

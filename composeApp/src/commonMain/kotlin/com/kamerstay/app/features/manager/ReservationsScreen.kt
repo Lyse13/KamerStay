@@ -1,63 +1,86 @@
 package com.kamerstay.app.features.manager
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BookOnline
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockReservation
-import com.kamerstay.app.data.mock.mockReservations
+import com.kamerstay.app.data.mock.ReservationMockData
+import com.kamerstay.app.data.model.Reservation
+import com.kamerstay.app.viewmodel.ManagerViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
 
 @Composable
 fun ReservationsScreen(navController: NavController) {
 
+    val viewModel = koinViewModel<ManagerViewModel>()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf("All Bookings") }
+    var selectedFilter by remember { mutableStateOf("Filters") }
 
-    val tabs = listOf("All Bookings", "Pending", "Confirmed", "Completed")
+    val filters = listOf("Filters", "Today", "This Week")
 
-    val filteredReservations = mockReservations.filter { r ->
-        val matchesSearch = searchQuery.isEmpty() ||
+    val reservations = ReservationMockData.reservations.filter { r ->
+        searchQuery.isEmpty() ||
                 r.guestName.contains(searchQuery, ignoreCase = true) ||
-                r.roomInfo.contains(searchQuery, ignoreCase = true)
-        val matchesTab = selectedTab == "All Bookings" ||
-                r.status.equals(selectedTab, ignoreCase = true)
-        matchesSearch && matchesTab
+                r.roomType.contains(searchQuery, ignoreCase = true) ||
+                r.bookingId.contains(searchQuery, ignoreCase = true)
     }
 
     Scaffold(
-        containerColor = WarmIvory,
-        bottomBar = { ManagerBottomNav(navController, currentRoute = "reservations") },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { },
-                containerColor = WarmAmber,
-                contentColor = OnSurface,
-                shape = CircleShape
+        containerColor = BackgroundLight,
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color.White,
+                tonalElevation = 0.dp
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add")
+                listOf(
+                    Icons.Outlined.Home to "Home",
+                    Icons.Outlined.Explore to "Explore",
+                    Icons.Filled.BookOnline to "Bookings",
+                    Icons.Outlined.Person to "Profile"
+                ).forEachIndexed { index, (icon, label) ->
+                    NavigationBarItem(
+                        selected = index == 2,
+                        onClick = {
+                            when (index) {
+                                0 -> navController.navigate(Routes.ManagerDashboard.route)
+                                3 -> navController.navigate(Routes.ManagerProfile.route)
+                            }
+                        },
+                        icon = { Icon(icon, contentDescription = label) },
+                        label = { Text(label, fontSize = 11.sp) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Secondary,
+                            selectedTextColor = Secondary,
+                            indicatorColor = Primary.copy(0.15f),
+                            unselectedIconColor = OnSurfaceSecondary,
+                            unselectedTextColor = OnSurfaceSecondary
+                        )
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -65,7 +88,7 @@ fun ReservationsScreen(navController: NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 80.dp)
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             // ── Top Bar ───────────────────────────────
             item {
@@ -73,65 +96,138 @@ fun ReservationsScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
-                            Icon(Icons.Filled.Menu, contentDescription = null, tint = OnSurface)
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Secondary
+                            )
                         }
                         Text(
-                            text = "Hotel Manager",
-                            fontSize = 18.sp,
+                            text = "MyStays",
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DeepEmerald
+                            color = Secondary
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .background(PrimaryContainer),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Outlined.Person,
+                            Icons.Outlined.Notifications,
                             contentDescription = null,
-                            tint = DeepEmerald,
+                            tint = Secondary,
                             modifier = Modifier.size(22.dp)
                         )
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Primary.copy(0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "JD",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Secondary
+                            )
+                        }
                     }
                 }
             }
 
-            // ── Title ─────────────────────────────────
+            // ── Header ────────────────────────────────
             item {
-                Text(
-                    text = "All Reservations",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = OnSurface,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Reservations",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "Manage upcoming guest stays and check-ins",
+                        fontSize = 13.sp,
+                        color = OnSurfaceSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Stats
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(14.dp)
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Total Bookings",
+                                    fontSize = 12.sp,
+                                    color = OnSurfaceSecondary
+                                )
+                                Text(
+                                    text = "124",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextDark
+                                )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White)
+                                .padding(14.dp)
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Pending Approval",
+                                    fontSize = 12.sp,
+                                    color = OnSurfaceSecondary
+                                )
+                                Text(
+                                    text = "12",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextDark
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // ── Search Bar ────────────────────────────
+            // ── Search ────────────────────────────────
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(24.dp))
                         .background(Color.White)
-                        .padding(horizontal = 14.dp, vertical = 13.dp),
+                        .border(1.dp, Divider, RoundedCornerShape(24.dp))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         Icons.Outlined.Search,
                         contentDescription = null,
-                        tint = OnSurfaceVariant,
+                        tint = OnSurfaceSecondary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
@@ -139,47 +235,63 @@ fun ReservationsScreen(navController: NavController) {
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(fontSize = 14.sp, color = OnSurface),
+                        textStyle = TextStyle(fontSize = 14.sp, color = TextDark),
                         decorationBox = { inner ->
                             if (searchQuery.isEmpty()) {
                                 Text(
-                                    "Find specific reservations...",
+                                    "Search guests, room types, or ID...",
                                     fontSize = 14.sp,
-                                    color = OnSurfaceVariant.copy(0.5f)
+                                    color = OnSurfaceSecondary.copy(0.5f)
                                 )
                             }
                             inner()
                         }
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // ── Filter Tabs ───────────────────────────
+            // ── Filter Chips ──────────────────────────
             item {
                 Row(
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    tabs.forEach { tab ->
-                        val isSelected = selectedTab == tab
+                    filters.forEach { filter ->
+                        val isSelected = selectedFilter == filter
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(
-                                    if (isSelected) DeepEmerald else Color.White
+                                    if (isSelected) Secondary else Color.White
                                 )
-                                .clickable { selectedTab = tab }
-                                .padding(horizontal = 18.dp, vertical = 10.dp)
+                                .border(
+                                    if (!isSelected) 1.dp else 0.dp,
+                                    Divider,
+                                    RoundedCornerShape(20.dp)
+                                )
+                                .clickable { selectedFilter = filter }
+                                .padding(horizontal = 16.dp, vertical = 9.dp)
                         ) {
-                            Text(
-                                text = tab,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (isSelected) Color.White else OnSurface
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                if (filter == "Filters") {
+                                    Icon(
+                                        Icons.Outlined.FilterList,
+                                        contentDescription = null,
+                                        tint = if (isSelected) Color.White else OnSurfaceSecondary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                                Text(
+                                    text = filter,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isSelected) Color.White else TextDark
+                                )
+                            }
                         }
                     }
                 }
@@ -187,15 +299,40 @@ fun ReservationsScreen(navController: NavController) {
             }
 
             // ── Reservation Cards ─────────────────────
-            items(filteredReservations) { reservation ->
+            items(reservations) { reservation ->
                 ReservationCard(
                     reservation = reservation,
-                    onClick = {
-                        NavigationState.selectedBookingId = reservation.id
-                        navController.navigate(Routes.ReservationDetails.route)
-                    }
+                    onDetails = {
+                        navController.navigate(
+                            Routes.ReservationDetails.createRoute(reservation.id)
+                        )
+                    },
+                    onApprove = { }
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // ── Load More ─────────────────────────────
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = OnSurfaceSecondary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Load more reservations",
+                        fontSize = 13.sp,
+                        color = OnSurfaceSecondary
+                    )
+                }
             }
         }
     }
@@ -204,29 +341,11 @@ fun ReservationsScreen(navController: NavController) {
 // ── Reservation Card ──────────────────────────────────────
 @Composable
 fun ReservationCard(
-    reservation: MockReservation,
-    onClick: () -> Unit
+    reservation: Reservation,
+    onDetails: () -> Unit,
+    onApprove: () -> Unit
 ) {
-    val (statusBg, statusTextColor) = when (reservation.status) {
-        "Confirmed" -> PrimaryContainer to DeepEmerald
-        "Pending" -> WarmAmber.copy(alpha = 0.15f) to WarmAmber
-        "Completed" -> PrimaryContainer.copy(alpha = 0.5f) to DeepEmerald.copy(alpha = 0.7f)
-        "Cancelled" -> ErrorColor.copy(alpha = 0.12f) to ErrorColor
-        else -> SurfaceVariant to OnSurfaceVariant
-    }
-
-    val actionLabel = when (reservation.status) {
-        "Confirmed" -> "View Details"
-        "Pending" -> "Review Now"
-        "Completed" -> "View Invoice"
-        "Cancelled" -> "Rebook"
-        else -> "View"
-    }
-
-    val actionColor = when (reservation.status) {
-        "Cancelled" -> DeepEmerald
-        else -> OnSurface
-    }
+    val isPending = reservation.status == "Pending"
 
     Box(
         modifier = Modifier
@@ -234,92 +353,214 @@ fun ReservationCard(
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .clickable { onClick() }
-            .padding(16.dp)
     ) {
         Column {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            // Room image
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = reservation.gradientColors
+                        )
+                    )
             ) {
-                // Avatar
+                // Room tag badge
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(reservation.avatarColor),
-                    contentAlignment = Alignment.Center
+                        .padding(10.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Primary.copy(0.85f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = reservation.guestName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OnSurface
+                        text = reservation.roomTag,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = OnPrimary
                     )
-                    Text(
-                        text = reservation.roomInfo,
-                        fontSize = 13.sp,
-                        color = OnSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Outlined.CalendarMonth,
-                            contentDescription = null,
-                            tint = OnSurfaceVariant,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = reservation.dates,
-                            fontSize = 12.sp,
-                            color = OnSurfaceVariant
-                        )
-                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            // Content
+            Column(modifier = Modifier.padding(16.dp)) {
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Status badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(statusBg)
-                        .padding(horizontal = 12.dp, vertical = 5.dp)
+                // Guest info
+                Text(
+                    text = "GUEST",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnSurfaceSecondary,
+                    letterSpacing = 0.8.sp
+                )
+                Text(
+                    text = reservation.guestName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+                Text(
+                    text = reservation.bookingId,
+                    fontSize = 12.sp,
+                    color = OnSurfaceSecondary
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Stay Duration
+                Text(
+                    text = "STAY DURATION",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnSurfaceSecondary,
+                    letterSpacing = 0.8.sp
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    Icon(
+                        Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = OnSurfaceSecondary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = "${reservation.checkIn} - ${reservation.checkOut}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextDark
+                    )
+                }
+                Text(
+                    text = "${reservation.nights} ${if (reservation.nights == 1) "Night" else "Nights"}",
+                    fontSize = 12.sp,
+                    color = OnSurfaceSecondary
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Status
+                Text(
+                    text = "STATUS",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = OnSurfaceSecondary,
+                    letterSpacing = 0.8.sp
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        if (isPending) Icons.Outlined.Schedule
+                        else Icons.Outlined.CheckCircle,
+                        contentDescription = null,
+                        tint = if (isPending) OnSurfaceSecondary else Primary,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Text(
                         text = reservation.status,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = statusTextColor
+                        color = if (isPending) OnSurfaceSecondary else Primary
                     )
                 }
 
-                // Action
-                Text(
-                    text = actionLabel,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = actionColor,
-                    modifier = Modifier.clickable { onClick() }
-                )
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Message icon
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .border(1.dp, Divider, CircleShape)
+                                .background(Color.White)
+                                .clickable { },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                if (isPending) Icons.Outlined.Edit
+                                else Icons.Outlined.MailOutline,
+                                contentDescription = null,
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        if (isPending) {
+                            // Three dots
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .border(1.dp, Divider, CircleShape)
+                                    .background(Color.White)
+                                    .clickable { },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.MoreVert,
+                                    contentDescription = null,
+                                    tint = OnSurfaceSecondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    if (isPending) {
+                        Button(
+                            onClick = onApprove,
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Secondary
+                            ),
+                            contentPadding = PaddingValues(
+                                horizontal = 20.dp,
+                                vertical = 10.dp
+                            )
+                        ) {
+                            Text(
+                                text = "Approve",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
+                    } else {
+                        OutlinedButton(
+                            onClick = onDetails,
+                            shape = RoundedCornerShape(20.dp),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp, Divider
+                            ),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = TextDark
+                            ),
+                            contentPadding = PaddingValues(
+                                horizontal = 20.dp,
+                                vertical = 10.dp
+                            )
+                        ) {
+                            Text(
+                                text = "Details",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextDark
+                            )
+                        }
+                    }
+                }
             }
         }
     }

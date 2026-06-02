@@ -3,15 +3,15 @@ package com.kamerstay.app.features.traveler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,51 +28,69 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.LocalExperience
-import com.kamerstay.app.data.mock.mockExperiences
-import com.kamerstay.app.data.mock.mockExperts
+import com.kamerstay.app.data.mock.GuideMockData
+import com.kamerstay.app.data.model.*
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun LocalTravelGuideScreen(navController: NavController) {
 
+    val viewModel = koinViewModel<TravelerViewModel>()
     var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("ALL GEMS") }
+    var selectedCategory by remember { mutableStateOf("All Guide") }
 
-    val categories = listOf("ALL GEMS", "FOOD", "TRANSPORT", "CULTURE", "NATURE")
+    val categories = listOf(
+        Icons.Outlined.AutoAwesome to "All Guide",
+        Icons.Outlined.Restaurant to "Food & Dining",
+        Icons.Outlined.Place to "Landmarks",
+        Icons.Outlined.ShoppingBag to "Shopping",
+        Icons.Outlined.MusicNote to "Nightlife"
+    )
 
     Scaffold(
-        containerColor = WarmIvory,
+        containerColor = BackgroundLight,
         bottomBar = {
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 0.dp
             ) {
                 listOf(
+                    Icons.Outlined.Home to "Home",
                     Icons.Outlined.Explore to "Explore",
                     Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Filled.People to "Staff",
                     Icons.Outlined.Person to "Profile"
                 ).forEachIndexed { index, (icon, label) ->
                     NavigationBarItem(
-                        selected = index == 2,
+                        selected = index == 1,
                         onClick = {
                             when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
+                                0 -> navController.navigate(Routes.TravelerHome.route)
+                                2 -> navController.navigate(Routes.BookingHistory.route)
                                 3 -> navController.navigate(Routes.TravelerProfile.route)
                             }
                         },
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label, fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = DeepEmerald,
-                            selectedTextColor = DeepEmerald,
-                            indicatorColor = PrimaryContainer,
-                            unselectedIconColor = OnSurfaceVariant,
-                            unselectedTextColor = OnSurfaceVariant
+                            selectedIconColor = Secondary,
+                            selectedTextColor = Secondary,
+                            indicatorColor = Primary.copy(0.15f),
+                            unselectedIconColor = OnSurfaceSecondary,
+                            unselectedTextColor = OnSurfaceSecondary
                         )
                     )
                 }
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { },
+                containerColor = Secondary,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Outlined.Map, contentDescription = "Map")
             }
         }
     ) { paddingValues ->
@@ -87,134 +106,164 @@ fun LocalTravelGuideScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
-                            Icon(Icons.Filled.Menu, contentDescription = null, tint = OnSurface)
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Secondary
+                            )
                         }
-                        Text(
-                            text = "KamerStay",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DeepEmerald
-                        )
+                        Column {
+                            Text(
+                                text = "Terroir Stay",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Secondary
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
+                            .size(40.dp)
                             .clip(CircleShape)
-                            .background(PrimaryContainer),
+                            .border(2.dp, Primary, CircleShape)
+                            .background(Primary.copy(0.15f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "L",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DeepEmerald
+                        Icon(
+                            Icons.Outlined.Person,
+                            contentDescription = null,
+                            tint = Secondary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
             }
 
-            // ── Search Bar ────────────────────────────
+            // ── Header ────────────────────────────────
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
-                        .padding(horizontal = 14.dp, vertical = 13.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = null,
-                        tint = OnSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Local Travel Guide",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(fontSize = 14.sp, color = OnSurface),
-                        decorationBox = { inner ->
-                            if (searchQuery.isEmpty()) {
-                                Text(
-                                    "Search for 'Local Gems'...",
-                                    fontSize = 14.sp,
-                                    color = OnSurfaceVariant.copy(0.5f)
-                                )
-                            }
-                            inner()
-                        }
+                    Text(
+                        text = "Curated local experiences and hidden gems around your stay, handpicked by our expert concierges.",
+                        fontSize = 13.sp,
+                        color = OnSurfaceSecondary,
+                        lineHeight = 18.sp
                     )
-                }
-                Spacer(modifier = Modifier.height(14.dp))
-            }
 
-            // ── Category Chips ────────────────────────
-            item {
-                Row(
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { cat ->
-                        val isSelected = selectedCategory == cat
-                        Box(
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Search + Button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
                             modifier = Modifier
-                                .clip(CircleShape)
-                                .background(
-                                    if (isSelected) DeepEmerald else Color.White
-                                )
-                                .border(
-                                    if (!isSelected) 1.dp else 0.dp,
-                                    OutlineVariant,
-                                    CircleShape
-                                )
-                                .clickable { selectedCategory = cat }
-                                .padding(horizontal = 18.dp, vertical = 9.dp)
+                                .weight(1f)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color.White)
+                                .border(1.dp, Divider, RoundedCornerShape(24.dp))
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            Icon(
+                                Icons.Outlined.Search,
+                                contentDescription = null,
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            BasicTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = TextStyle(fontSize = 13.sp, color = TextDark),
+                                decorationBox = { inner ->
+                                    if (searchQuery.isEmpty()) {
+                                        Text(
+                                            "Search landmarks, din...",
+                                            fontSize = 13.sp,
+                                            color = OnSurfaceSecondary.copy(0.5f)
+                                        )
+                                    }
+                                    inner()
+                                }
+                            )
+                        }
+
+                        Button(
+                            onClick = { },
+                            shape = RoundedCornerShape(24.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = "Search",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = OnPrimary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Category chips
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(categories) { (icon, label) ->
+                            val isSelected = selectedCategory == label
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(
+                                        if (isSelected) Primary else Color.White
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) Color.Transparent else Divider,
+                                        RoundedCornerShape(20.dp)
+                                    )
+                                    .clickable { selectedCategory = label }
+                                    .padding(horizontal = 14.dp, vertical = 9.dp)
                             ) {
-                                if (cat == "FOOD") {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
                                     Icon(
-                                        Icons.Outlined.Restaurant,
+                                        icon,
                                         contentDescription = null,
-                                        tint = if (isSelected) Color.White else OnSurface,
-                                        modifier = Modifier.size(13.dp)
+                                        tint = if (isSelected) OnPrimary else OnSurfaceSecondary,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = label,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (isSelected) OnPrimary else TextDark
                                     )
                                 }
-                                if (cat == "TRANSPORT") {
-                                    Icon(
-                                        Icons.Outlined.DirectionsBus,
-                                        contentDescription = null,
-                                        tint = if (isSelected) Color.White else OnSurface,
-                                        modifier = Modifier.size(13.dp)
-                                    )
-                                }
-                                Text(
-                                    text = cat,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (isSelected) Color.White else OnSurface
-                                )
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-                Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // ── Featured Local Pick ───────────────────
+            // ── Landmarks ─────────────────────────────
             item {
                 Row(
                     modifier = Modifier
@@ -223,362 +272,423 @@ fun LocalTravelGuideScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Column {
+                        Text(
+                            text = "Landmarks",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark
+                        )
+                        Text(
+                            text = "Iconic spots and breathtaking views",
+                            fontSize = 12.sp,
+                            color = OnSurfaceSecondary
+                        )
+                    }
                     Text(
-                        text = "Featured Local\nPick",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = OnSurface,
-                        lineHeight = 26.sp
-                    )
-                    Text(
-                        text = "SEE\nALL",
+                        text = "View all →",
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = WarmAmber,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Primary,
                         modifier = Modifier.clickable { }
                     )
                 }
+
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // Featured Card
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .height(220.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF2D4A1E),
-                                    Color(0xFF1A3A10),
-                                    Color(0xFF0D2208)
-                                )
-                            )
-                        )
-                ) {
-                    // Verified badge
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(12.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(WarmAmber)
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Outlined.Verified,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "VERIFIED BY GUIDES",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
-
-                    // Content at bottom
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "STREET FOOD MASTERY",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(0.7f),
-                            letterSpacing = 0.8.sp
-                        )
-                        Text(
-                            text = "Best Soya in Yaoundé",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Filled.Star,
-                                    contentDescription = null,
-                                    tint = StarRating,
-                                    modifier = Modifier.size(13.dp)
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = "4.9",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Outlined.Place,
-                                    contentDescription = null,
-                                    tint = Color.White.copy(0.7f),
-                                    modifier = Modifier.size(13.dp)
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = "Mvog-Ada Market",
-                                    fontSize = 12.sp,
-                                    color = Color.White.copy(0.7f)
-                                )
-                            }
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            // ── Local Experiences ─────────────────────
-            item {
-                Text(
-                    text = "Local Experiences",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = OnSurface,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
+            items(GuideMockData.landmarks) { landmark ->
+                LandmarkCard(landmark = landmark)
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            items(mockExperiences.size) { index ->
-                val exp = mockExperiences[index]
-                ExperienceCard(experience = exp)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // ── Meet Local Experts ────────────────────
+            // ── Food & Dining ─────────────────────────
             item {
-                Text(
-                    text = "Meet Local Experts",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = OnSurface,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Food & Dining",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "Best local flavors and fine dining",
+                        fontSize = 12.sp,
+                        color = OnSurfaceSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    mockExperts.forEach { expert ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(70.dp)
-                                    .then(
-                                        if (expert.hasBorder) Modifier.border(
-                                            2.5.dp, WarmAmber, CircleShape
-                                        ) else Modifier
-                                    )
-                                    .padding(if (expert.hasBorder) 3.dp else 0.dp)
-                                    .clip(CircleShape)
-                                    .background(expert.avatarColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = expert.initials,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = Color.White
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = expert.name,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnSurface
-                            )
-                            Text(
-                                text = expert.city,
-                                fontSize = 11.sp,
-                                color = OnSurfaceVariant
-                            )
-                        }
+                    items(GuideMockData.foodPlaces) { place ->
+                        FoodCard(place = place)
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+
+                Spacer(modifier = Modifier.height(20.dp))
             }
+
+            // ── Premium Shopping ──────────────────────
+            item {
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Premium Shopping",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            items(GuideMockData.shoppingPlaces) { place ->
+                ShoppingCard(place = place)
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // ── Nightlife ─────────────────────────────
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Nightlife",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    Text(
+                        text = "The city comes alive after dark.",
+                        fontSize = 12.sp,
+                        color = OnSurfaceSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            items(GuideMockData.nightlifePlaces) { place ->
+                NightlifeCard(place = place)
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 }
 
-// ── Experience Card ───────────────────────────────────────
+// ── Landmark Card ─────────────────────────────────────────
 @Composable
-fun ExperienceCard(experience: LocalExperience) {
-    Card(
+fun LandmarkCard(landmark: Landmark) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .clickable { }
     ) {
         Column {
             // Image
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .height(160.dp)
+                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
                     .background(
-                        brush = Brush.verticalGradient(
-                            colors = experience.gradientColors
-                        )
+                        brush = Brush.verticalGradient(colors = landmark.gradientColors)
                     )
             ) {
-                // Expert badge
-                if (experience.isExpert) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(10.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(DeepEmerald.copy(alpha = 0.85f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Outlined.Shield,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(10.dp)
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "EXPERT",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
-
-                // Favorite button
+                // Rating badge
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(10.dp)
-                        .then(
-                            if (!experience.isExpert) Modifier else Modifier.padding(top = 36.dp)
-                        )
-                        .size(32.dp)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(20.dp))
                         .background(Color.White)
-                        .clickable { },
-                    contentAlignment = Alignment.Center
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Icon(
-                        Icons.Outlined.FavoriteBorder,
-                        contentDescription = null,
-                        tint = ErrorColor,
-                        modifier = Modifier.size(16.dp)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Star,
+                            contentDescription = null,
+                            tint = StarRating,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "${landmark.rating} (${landmark.reviewCount})",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextDark
+                        )
+                    }
                 }
             }
 
-            // Info
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = experience.title,
-                        fontSize = 17.sp,
+                        text = landmark.name,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OnSurface,
+                        color = TextDark,
                         modifier = Modifier.weight(1f)
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = StarRating,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text(
-                            text = experience.rating.toString(),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurface
-                        )
-                    }
+                    Text(
+                        text = landmark.price,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Secondary
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(experience.tagColor.copy(alpha = 0.12f))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = experience.tag,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = experience.tagColor
-                        )
-                    }
-                    Text(
-                        text = experience.distance,
-                        fontSize = 12.sp,
-                        color = OnSurfaceVariant
-                    )
-                }
+                Text(
+                    text = landmark.description,
+                    fontSize = 13.sp,
+                    color = OnSurfaceSecondary,
+                    lineHeight = 18.sp,
+                    maxLines = 2
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Button(
-                    onClick = { },
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = { },
+                        modifier = Modifier.weight(1f).height(42.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Secondary)
+                    ) {
+                        Icon(
+                            Icons.Outlined.Navigation,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Get Directions",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(1.dp, Divider, RoundedCornerShape(10.dp))
+                            .background(Color.White)
+                            .clickable { },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.BookmarkBorder,
+                            contentDescription = null,
+                            tint = OnSurfaceSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── Food Card ─────────────────────────────────────────────
+@Composable
+fun FoodCard(place: FoodPlace) {
+    Box(
+        modifier = Modifier
+            .width(180.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .clickable { }
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+                    .background(
+                        brush = Brush.verticalGradient(colors = place.gradientColors)
+                    )
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (experience.actionLabel == "BOOK EXPERIENCE")
-                            DeepEmerald else Color.Transparent
-                    ),
-                    border = if (experience.actionLabel != "BOOK EXPERIENCE")
-                        androidx.compose.foundation.BorderStroke(1.dp, OutlineVariant)
-                    else null
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(place.tagColor)
+                        .padding(horizontal = 6.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = experience.actionLabel,
-                        fontSize = 13.sp,
+                        text = place.tag,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (experience.actionLabel == "BOOK EXPERIENCE")
-                            Color.White else OnSurface,
-                        letterSpacing = 0.5.sp
+                        color = Color.White
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = place.name,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        Icons.Outlined.Place,
+                        contentDescription = null,
+                        tint = OnSurfaceSecondary,
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = place.location,
+                        fontSize = 11.sp,
+                        color = OnSurfaceSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = { },
+                    modifier = Modifier.fillMaxWidth().height(36.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = "Book Table",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
                     )
                 }
             }
         }
+    }
+}
+
+// ── Shopping Card ─────────────────────────────────────────
+@Composable
+fun ShoppingCard(place: ShoppingPlace) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .height(180.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(
+                brush = Brush.verticalGradient(colors = place.gradientColors)
+            )
+            .clickable { }
+    ) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = place.name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = place.description,
+                fontSize = 12.sp,
+                color = Color.White.copy(0.7f),
+                lineHeight = 17.sp,
+                maxLines = 3
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Start Shopping",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextDark
+                )
+            }
+        }
+    }
+}
+
+// ── Nightlife Card ────────────────────────────────────────
+@Composable
+fun NightlifeCard(place: NightlifePlace) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .clickable { }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(
+                    brush = Brush.verticalGradient(colors = place.gradientColors)
+                )
+        )
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = place.name,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextDark
+            )
+            Text(
+                text = place.subtitle,
+                fontSize = 12.sp,
+                color = OnSurfaceSecondary
+            )
+        }
+
+        Icon(
+            Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            tint = OnSurfaceSecondary,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

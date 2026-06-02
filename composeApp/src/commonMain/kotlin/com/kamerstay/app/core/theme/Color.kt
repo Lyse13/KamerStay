@@ -2,61 +2,69 @@ package com.kamerstay.app.core.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ── Primary ──────────────────────────────────────
-val DeepEmerald = Color(0xFF004D40)
-val OnPrimary = Color(0xFFFFFFFF)
-val PrimaryContainer = Color(0xFFCCE8E4)
-val OnPrimaryContainer = Color(0xFF00201B)
+// ── Primary — Dark Turquoise #00D5E1 ──────────────────────
+val Primary = Color(0xFF00D5E1)
+val OnPrimary = Color(0xFF002021)
+val PrimaryContainer = Color(0xFF7DE5FA)
+val OnPrimaryContainer = Color(0xFF001F24)
 
-// ── Secondary (Amber) ─────────────────────────────
-val WarmAmber = Color(0xFFFFC107)
-val OnSecondary = Color(0xFF1A1C1E)
-val SecondaryContainer = Color(0xFFFFECB3)
-val OnSecondaryContainer = Color(0xFF1A1C1E)
+// ── Secondary — Prussian Blue #003761 ─────────────────────
+val Secondary = Color(0xFF003761)
+val OnSecondary = Color(0xFFFFFFFF)
+val SecondaryContainer = Color(0xFF72F3FA)
 
-// ── Surface / Background ──────────────────────────
-val WarmIvory = Color(0xFFFDF9F0)
-val SurfaceVariant = Color(0xFFF7F3EA)
-val OnSurface = Color(0xFF1A1C1E)
-val OnSurfaceVariant = Color(0xFF44474E)
+// ── Dark Navy — #092031 ───────────────────────────────────
+val DarkNavy = Color(0xFF092031)
 
-// ── Outline ───────────────────────────────────────
-val Outline = Color(0xFF707973)
-val OutlineVariant = Color(0xFFC1C9C3)
+// ── Electric Blue — #72F3FA ───────────────────────────────
+val ElectricBlue = Color(0xFF72F3FA)
 
-// ── Error ─────────────────────────────────────────
-val ErrorColor = Color(0xFFBA1A1A)
-val OnError = Color(0xFFFFFFFF)
-val ErrorContainer = Color(0xFFFFDAD6)
+// ── Sky Blue — #7DE5FA ────────────────────────────────────
+val SkyBlue = Color(0xFF7DE5FA)
 
-// ── Status Colors ─────────────────────────────────
-val StatusAvailable = Color(0xFF2E7D32)
-val StatusReserved = Color(0xFFF57C00)
-val StatusOccupied = Color(0xFFBA1A1A)
-val StatusCleaning = Color(0xFF1565C0)
+// ── Surface / Background ──────────────────────────────────
+val BackgroundLight = Color(0xFFF0FAFB)
+val SurfaceVariant = Color(0xFF0D2A3D)
+val OnSurface = Color(0xFFFFFFFF)
+val OnSurfaceVariant = Color(0xFF7DE5FA)
+val TextDark = Color(0xFF1A1A2E)
+val OnSurfaceSecondary = Color(0xFFB0C4CB)
 
-// ── Booking Status ────────────────────────────────
-val StatusPending = Color(0xFFF57C00)
-val StatusConfirmed = Color(0xFF2E7D32)
-val StatusCancelled = Color(0xFFBA1A1A)
-val StatusCompleted = Color(0xFF004D40)
+// ── Outline ───────────────────────────────────────────────
+val Outline = Color(0xFF1A4A6B)
+val OutlineVariant = Color(0xFF0D3050)
 
-// ── Extra ─────────────────────────────────────────
-val VerifiedBadge = Color(0xFFFFC107)
-val StarRating = Color(0xFFFFC107)
-val Divider = Color(0xFFE8EDE9)
-val CardShadow = Color(0x0D004D40)
+// ── Error ─────────────────────────────────────────────────
+val ErrorColor = Color(0xFFCF6679)
+val OnError = Color(0xFF370B1E)
+val ErrorContainer = Color(0xFF4E0028)
 
-// ── Brand Extension Colors ───────────────────────
+// ── Status Colors ─────────────────────────────────────────
+val StatusAvailable = Primary
+val StatusReserved = ElectricBlue
+val StatusOccupied = ErrorColor
+val StatusCleaning = SkyBlue
 
-// Rich Gold
-val RichGold = Color(0xFF785900)
+// ── Booking Status ────────────────────────────────────────
+val StatusPending = ElectricBlue
+val StatusConfirmed = Primary
+val StatusCancelled = ErrorColor
+val StatusCompleted = Secondary
 
-// Deep Forest Green
-val ForestGreen = Color(0xFF00342B)
+// ── Extra ─────────────────────────────────────────────────
+val StarRating = Primary
+val VerifiedBadge = Primary
+val Divider = Color(0xFF0D3050)
+val CardShadow = Color(0x1A00D5E1)
 
-// Burnt Clay
-val BurntClay = Color(0xFF5A1300)
+// ── Logo Triangle Colors ──────────────────────────────────
+val TriangleBack = Color(0xFF8A9BAD)
+val TriangleFront = Color(0xFFDDE4EA)
+val TriangleShadow = Color(0xFF6B7D8D)
 
-// Stone Gray Green
-val StoneGrayGreen = Color(0xFF3F4945)
+// ── Aliases pour compatibilité ────────────────────────────
+val DeepEmerald = Secondary
+val WarmAmber = Primary
+val WarmIvory = DarkNavy
+val DeepBlue = Secondary
+val BackgroundDark = DarkNavy

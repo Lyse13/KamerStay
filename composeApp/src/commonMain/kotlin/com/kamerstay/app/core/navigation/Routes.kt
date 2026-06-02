@@ -16,6 +16,7 @@ sealed class Routes(val route: String) {
     data object ForgotPassword : Routes("forgot_password")
     data object VerificationCode : Routes("verification_code")
     data object ResetPassword : Routes("reset_password")
+    data object PasswordResetSuccess : Routes("password_reset_success")
 
     data object RoomDetails : Routes("room_details/{roomId}") {
         fun createRoute(roomId: String) = "room_details/$roomId"

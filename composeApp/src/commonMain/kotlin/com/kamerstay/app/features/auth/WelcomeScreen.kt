@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -32,8 +31,8 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import kamerstay.composeapp.generated.resources.Res
 import kamerstay.composeapp.generated.resources.hotel_hero
-import kamerstay.composeapp.generated.resources.logo_icon
 import org.jetbrains.compose.resources.painterResource
+
 
 @Composable
 fun WelcomeScreen(navController: NavController) {
@@ -41,17 +40,18 @@ fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(WarmIvory)
+            .background(DarkNavy)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
+            // ── Hero Section ──────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(380.dp)
+                    .height(420.dp)
             ) {
                 Image(
                     painter = painterResource(Res.drawable.hotel_hero),
@@ -59,196 +59,279 @@ fun WelcomeScreen(navController: NavController) {
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+
+                // Overlay gradient
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 0.2f),
-                                    Color.Black.copy(alpha = 0.5f)
+                                    DarkNavy.copy(alpha = 0.3f),
+                                    DarkNavy.copy(alpha = 0.85f)
                                 )
                             )
                         )
                 )
 
-                Image(
-                    painter = painterResource(Res.drawable.logo_icon),
-                    contentDescription = "KamerStay Logo",
-                    modifier = Modifier.size(36.dp).clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "KamerStay",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y = (-32).dp)
-                    .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                    .background(Color.White)
-                    .padding(horizontal = 24.dp, vertical = 28.dp)
-            ) {
-                Column {
+                // ── Top Bar ───────────────────────────
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Outlined.Verified,
+                            Icons.Outlined.Menu,
                             contentDescription = null,
-                            tint = BurntClay,
-                            modifier = Modifier.size(14.dp)
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "VERIFIED LISTINGS ONLY",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = BurntClay,
-                            letterSpacing = 1.5.sp
+                            text = "MyStays",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Primary
                         )
                     }
+                    // Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(SurfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.Person,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
-
+                // ── Hero Content ──────────────────────
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(horizontal = 24.dp, vertical = 32.dp)
+                ) {
                     Text(
                         text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = ForestGreen)) {
-                                append("Experience\n")
+                            withStyle(SpanStyle(color = Color.White)) {
+                                append("Find your next ")
                             }
-                            withStyle(SpanStyle(color = RichGold)) {
-                                append("Cameroonian\n")
+                            withStyle(SpanStyle(color = Primary)) {
+                                append("stay\n")
                             }
-                            withStyle(SpanStyle(color = ForestGreen)) {
-                                append("Hospitality")
+                            withStyle(SpanStyle(color = Color.White)) {
+                                append("in Cameroon")
                             }
                         },
-                        fontSize = 32.sp,
+                        fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        lineHeight = 38.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Book verified hotels near your favorite landmarks with ease. From the coast\n of Douala to the hills of Yaoundé.",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = StoneGrayGreen,
-                        lineHeight = 22.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    KamerStayButton(
-                        text = "Sign Up  →",
-                        onClick = { navController.navigate(Routes.SignUp.route) }
+                        lineHeight = 36.sp
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    KamerStayOutlinedButton(
-                        text = "Sign In",
-                        onClick = { navController.navigate(Routes.SignIn.route) }
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        WelcomeFeature(
-                            icon = Icons.Outlined.Place,
-                            label = "LOCAL\nLANDMARKS"
-                        )
-                        WelcomeFeature(
-                            icon = Icons.Outlined.Shield,
-                            label = "SECURE\nPAY"
-                        )
-                        WelcomeFeature(
-                            icon = Icons.Outlined.SupportAgent,
-                            label = "24/7\nSUPPORT"
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(28.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Privacy Policy",
-                            fontSize = 12.sp,
-                            color = OnSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "  •  ",
-                            fontSize = 12.sp,
-                            color = OnSurfaceVariant
-                        )
-                        Text(
-                            text = "Terms of Service",
-                            fontSize = 12.sp,
-                            color = OnSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
-                        text = "© 2025 KamerStay. Built with Modern African Hospitality.",
-                        fontSize = 11.sp,
-                        color = OnSurfaceVariant.copy(alpha = 0.6f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        text = "Experience the perfect blend of digital convenience and authentic Cameroonian hospitality. From coastal resorts in Kribi to urban luxury in Yaoundé.",
+                        fontSize = 14.sp,
+                        color = OnSurfaceSecondary,
+                        lineHeight = 20.sp
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Sign In Button
+                    Button(
+                        onClick = { navController.navigate(Routes.SignIn.route) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Primary
+                        )
+                    ) {
+                        Text(
+                            text = "Sign In  →",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = OnPrimary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Register Button
+                    OutlinedButton(
+                        onClick = { navController.navigate(Routes.SignUp.route) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.5.dp, Primary
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Primary
+                        )
+                    ) {
+                        Text(
+                            text = "Register",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Primary
+                        )
+                    }
                 }
+            }
+
+            // ── Popular Destinations ──────────────────
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DarkNavy)
+                    .padding(horizontal = 20.dp, vertical = 24.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Popular Destinations",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "View all",
+                            fontSize = 14.sp,
+                            color = Primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            Icons.Outlined.ArrowForward,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Destination cards
+                val destinations = listOf(
+                    Triple("Kribi Resorts", "Pristine beaches and Atlantic luxury", "COASTAL BLISS"),
+                    Triple("Yaoundé Heights", "Urban elegance in the capital", ""),
+                    Triple("Buea Escapes", "Mountain serenity and nature trails", ""),
+                    Triple("Douala Central", "Business hub with premium comfort", ""),
+                )
+
+                destinations.forEach { (name, desc, badge) ->
+                    DestinationCard(
+                        name = name,
+                        description = desc,
+                        badge = badge
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Footer
+                Text(
+                    text = "© 2025 MyStays · Smart Hotel Booking for Cameroon",
+                    fontSize = 11.sp,
+                    color = OnSurfaceSecondary.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
+// ── Destination Card ──────────────────────────────────────
 @Composable
-private fun WelcomeFeature(
-    icon: ImageVector,
-    label: String
+fun DestinationCard(
+    name: String,
+    description: String,
+    badge: String = ""
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(160.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(SurfaceVariant)
+    ) {
+        // Gradient overlay
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(PrimaryContainer),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            DarkNavy.copy(alpha = 0.85f)
+                        )
+                    )
+                )
+        )
+
+        // Badge
+        if (badge.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .padding(12.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Primary.copy(alpha = 0.15f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .align(Alignment.TopStart)
+            ) {
+                Text(
+                    text = badge,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Primary,
+                    letterSpacing = 0.8.sp
+                )
+            }
+        }
+
+        // Text content
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = DeepEmerald,
-                modifier = Modifier.size(22.dp)
+            Text(
+                text = name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Text(
+                text = description,
+                fontSize = 13.sp,
+                color = OnSurfaceSecondary
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = OnSurfaceVariant,
-            textAlign = TextAlign.Center,
-            letterSpacing = 0.8.sp,
-            lineHeight = 13.sp
-        )
     }
 }
 

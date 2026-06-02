@@ -18,10 +18,18 @@ import com.kamerstay.app.model.enums.RoomStatus
 @Composable
 fun RoomStatusBadge(status: RoomStatus) {
     val (bg, text, label) = when (status) {
-        RoomStatus.AVAILABLE -> Triple(StatusAvailable.copy(0.12f), StatusAvailable, "Disponible")
-        RoomStatus.RESERVED -> Triple(StatusReserved.copy(0.12f), StatusReserved, "Réservée")
-        RoomStatus.OCCUPIED -> Triple(StatusOccupied.copy(0.12f), StatusOccupied, "Occupée")
-        RoomStatus.CLEANING -> Triple(StatusCleaning.copy(0.12f), StatusCleaning, "Nettoyage")
+        RoomStatus.AVAILABLE -> Triple(
+            StatusAvailable.copy(0.15f), StatusAvailable, "Disponible"
+        )
+        RoomStatus.RESERVED -> Triple(
+            StatusReserved.copy(0.15f), StatusReserved, "Réservée"
+        )
+        RoomStatus.OCCUPIED -> Triple(
+            StatusOccupied.copy(0.15f), StatusOccupied, "Occupée"
+        )
+        RoomStatus.CLEANING -> Triple(
+            StatusCleaning.copy(0.15f), StatusCleaning, "Nettoyage"
+        )
     }
     StatusChip(label = label, backgroundColor = bg, textColor = text)
 }
@@ -29,12 +37,24 @@ fun RoomStatusBadge(status: RoomStatus) {
 @Composable
 fun BookingStatusBadge(status: BookingStatus) {
     val (bg, text, label) = when (status) {
-        BookingStatus.PENDING -> Triple(StatusPending.copy(0.12f), StatusPending, "En attente")
-        BookingStatus.CONFIRMED -> Triple(StatusConfirmed.copy(0.12f), StatusConfirmed, "Confirmée")
-        BookingStatus.CANCELLED -> Triple(StatusCancelled.copy(0.12f), StatusCancelled, "Annulée")
-        BookingStatus.COMPLETED -> Triple(StatusCompleted.copy(0.12f), StatusCompleted, "Terminée")
-        BookingStatus.CHECKED_IN -> Triple(DeepEmerald.copy(0.12f), DeepEmerald, "Enregistré")
-        BookingStatus.CHECKED_OUT -> Triple(Outline.copy(0.12f), Outline, "Parti")
+        BookingStatus.PENDING -> Triple(
+            StatusPending.copy(0.15f), StatusPending, "En attente"
+        )
+        BookingStatus.CONFIRMED -> Triple(
+            StatusConfirmed.copy(0.15f), StatusConfirmed, "Confirmée"
+        )
+        BookingStatus.CANCELLED -> Triple(
+            StatusCancelled.copy(0.15f), StatusCancelled, "Annulée"
+        )
+        BookingStatus.COMPLETED -> Triple(
+            Secondary.copy(0.15f), Secondary, "Terminée"  // ← DeepBlue
+        )
+        BookingStatus.CHECKED_IN -> Triple(
+            Primary.copy(0.15f), Primary, "Enregistré"    // ← turquoise
+        )
+        BookingStatus.CHECKED_OUT -> Triple(
+            Outline.copy(0.15f), Outline, "Parti"
+        )
     }
     StatusChip(label = label, backgroundColor = bg, textColor = text)
 }
@@ -43,8 +63,8 @@ fun BookingStatusBadge(status: BookingStatus) {
 fun VerifiedBadge() {
     StatusChip(
         label = "✓ Vérifié",
-        backgroundColor = WarmAmber.copy(alpha = 0.15f),
-        textColor = Color(0xFF8B6914)
+        backgroundColor = Primary.copy(alpha = 0.15f),  // ← turquoise
+        textColor = OnPrimary                            // ← #002021
     )
 }
 

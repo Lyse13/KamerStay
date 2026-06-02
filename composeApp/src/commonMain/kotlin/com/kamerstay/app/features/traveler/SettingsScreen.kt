@@ -1,6 +1,7 @@
 package com.kamerstay.app.features.traveler
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,8 +9,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Logout
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,13 +31,14 @@ import com.kamerstay.app.core.theme.*
 fun SettingsScreen(navController: NavController) {
 
     var notificationsEnabled by remember { mutableStateOf(true) }
+    var darkModeEnabled by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Log Out?", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to log out?") },
+            title = { Text("Log Out?", fontWeight = FontWeight.Bold, color = TextDark) },
+            text = { Text("Are you sure you want to log out?", color = OnSurfaceSecondary) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -45,12 +47,13 @@ fun SettingsScreen(navController: NavController) {
                             popUpTo(0) { inclusive = true }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor)
+                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor),
+                    shape = RoundedCornerShape(10.dp)
                 ) { Text("Log Out", color = Color.White) }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Cancel", color = DeepEmerald)
+                    Text("Cancel", color = Secondary)
                 }
             },
             containerColor = Color.White,
@@ -59,35 +62,36 @@ fun SettingsScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = WarmIvory,
+        containerColor = BackgroundLight,
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
+                containerColor = DeepBlue,
                 tonalElevation = 0.dp
             ) {
                 listOf(
-                    Icons.Outlined.Search to "Explore",
+                    Icons.Outlined.Home to "Home",
+                    Icons.Outlined.Search to "Search",
                     Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Notifications to "Alerts",
-                    Icons.Filled.Settings to "Settings"
+                    Icons.Outlined.Person to "Profile"
                 ).forEachIndexed { index, (icon, label) ->
                     NavigationBarItem(
                         selected = index == 3,
                         onClick = {
                             when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
-                                2 -> navController.navigate(Routes.Notifications.route)
+                                0 -> navController.navigate(Routes.TravelerHome.route)
+                                1 -> navController.navigate(Routes.HotelSearch.route)
+                                2 -> navController.navigate(Routes.BookingHistory.route)
+                                3 -> navController.navigate(Routes.TravelerProfile.route)
                             }
                         },
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label, fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = DeepEmerald,
-                            selectedTextColor = DeepEmerald,
-                            indicatorColor = PrimaryContainer,
-                            unselectedIconColor = OnSurfaceVariant,
-                            unselectedTextColor = OnSurfaceVariant
+                            selectedIconColor = Color.White,
+                            selectedTextColor = Color.White,
+                            indicatorColor = Color.White.copy(0.15f),
+                            unselectedIconColor = Color.White.copy(0.5f),
+                            unselectedTextColor = Color.White.copy(0.5f)
                         )
                     )
                 }
@@ -105,38 +109,32 @@ fun SettingsScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Filled.Menu, contentDescription = null, tint = OnSurface)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Secondary
+                        )
                     }
                     Text(
-                        text = "KamerStay",
-                        fontSize = 18.sp,
+                        text = "Settings",
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DeepEmerald
+                        color = TextDark
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "S",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DeepEmerald
-                    )
-                }
+                Icon(
+                    Icons.Outlined.Notifications,
+                    contentDescription = null,
+                    tint = Secondary,
+                    modifier = Modifier.size(24.dp)
+                )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
 
@@ -144,88 +142,39 @@ fun SettingsScreen(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(14.dp))
                         .background(Color.White)
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(16.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // Avatar
-                        Box(modifier = Modifier.size(90.dp)) {
-                            Box(
-                                modifier = Modifier
-                                    .size(82.dp)
-                                    .clip(CircleShape)
-                                    .background(WarmAmber.copy(alpha = 0.15f))
-                                    .align(Alignment.Center),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(70.dp)
-                                        .clip(CircleShape)
-                                        .background(DeepEmerald),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "SE",
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                            // Edit badge
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(DeepEmerald)
-                                    .align(Alignment.BottomEnd),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = "Samuel Eto'o Junior",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = OnSurface
-                        )
-                        Text(
-                            text = "samuel.j@example.cm",
-                            fontSize = 13.sp,
-                            color = OnSurfaceVariant
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        Button(
-                            onClick = { },
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = WarmAmber
-                            ),
-                            contentPadding = PaddingValues(
-                                horizontal = 24.dp,
-                                vertical = 10.dp
-                            )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(CircleShape)
+                                .background(OnSurfaceSecondary.copy(0.2f)),
+                            contentAlignment = Alignment.Center
                         ) {
+                            Icon(
+                                Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                        Column {
                             Text(
-                                text = "EDIT PROFILE",
-                                fontSize = 13.sp,
+                                text = "Jean-Pierre Dupont",
+                                fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = OnSurface,
-                                letterSpacing = 1.sp
+                                color = TextDark
+                            )
+                            Text(
+                                text = "Premium Member",
+                                fontSize = 13.sp,
+                                color = OnSurfaceSecondary
                             )
                         }
                     }
@@ -233,151 +182,93 @@ fun SettingsScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // ── Account Section ───────────────────
-                SettingsSectionLabel(text = "ACCOUNT")
+                // ── Account & Security ────────────────
+                SettingsSectionHeader("ACCOUNT & SECURITY")
                 Spacer(modifier = Modifier.height(8.dp))
 
-                SettingsGroup {
-                    SettingsItem(
+                SettingsCard {
+                    SettingsRowItem(
                         icon = Icons.Outlined.Shield,
-                        label = "Security",
+                        label = "Account Security",
                         onClick = { navController.navigate(Routes.ForgotPassword.route) }
                     )
-                    SettingsDivider()
-                    SettingsItem(
-                        icon = Icons.Outlined.Payments,
-                        label = "Payment Methods",
-                        onClick = { }
-                    )
-                    SettingsDivider()
-                    SettingsItem(
-                        icon = Icons.Outlined.Link,
-                        label = "Linked Accounts",
-                        onClick = { }
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // ── Preferences Section ───────────────
-                SettingsSectionLabel(text = "PREFERENCES")
+                // ── Preferences ───────────────────────
+                SettingsSectionHeader("PREFERENCES")
                 Spacer(modifier = Modifier.height(8.dp))
 
-                SettingsGroup {
-                    // Notifications toggle
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(SurfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Notifications,
-                                    contentDescription = null,
-                                    tint = OnSurfaceVariant,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Text(
-                                text = "Notifications",
-                                fontSize = 15.sp,
-                                color = OnSurface
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    if (notificationsEnabled) WarmAmber
-                                    else OutlineVariant
-                                )
-                                .clickable { notificationsEnabled = !notificationsEnabled }
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = if (notificationsEnabled) "ON" else "OFF",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (notificationsEnabled) OnSurface else Color.White
-                            )
-                        }
-                    }
-
-                    SettingsDivider()
-
-                    // Language
-                    SettingsItemWithValue(
-                        icon = Icons.Outlined.Translate,
+                SettingsCard {
+                    SettingsRowWithValue(
+                        icon = Icons.Outlined.Language,
                         label = "Language",
-                        value = "English (CM)",
-                        onClick = { }
-                    )
+                        value = "English"
+                    ) { }
 
-                    SettingsDivider()
+                    SettingsRowDivider()
 
-                    // Currency
-                    SettingsItemWithValue(
+                    SettingsRowWithValue(
                         icon = Icons.Outlined.Payments,
                         label = "Currency",
-                        value = "XAF (FCFA)",
-                        onClick = { }
+                        value = "USD (\$)"
+                    ) { }
+
+                    SettingsRowDivider()
+
+                    SettingsToggleRow(
+                        icon = Icons.Outlined.Notifications,
+                        label = "Push Notifications",
+                        checked = notificationsEnabled,
+                        onToggle = { notificationsEnabled = it }
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsToggleRow(
+                        icon = Icons.Outlined.DarkMode,
+                        label = "Dark Mode",
+                        checked = darkModeEnabled,
+                        onToggle = { darkModeEnabled = it }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // ── Support Section ───────────────────
-                SettingsSectionLabel(text = "SUPPORT")
+                // ── Support ───────────────────────────
+                SettingsSectionHeader("SUPPORT")
                 Spacer(modifier = Modifier.height(8.dp))
 
-                SettingsGroup {
-                    SettingsItemWithTrailing(
-                        icon = Icons.Outlined.Help,
+                SettingsCard {
+                    SettingsRowItem(
+                        icon = Icons.Outlined.HelpOutline,
                         label = "Help Center",
-                        trailingIcon = Icons.Outlined.OpenInNew,
                         onClick = { }
                     )
-                    SettingsDivider()
-                    SettingsItem(
-                        icon = Icons.Outlined.PrivacyTip,
-                        label = "Privacy Policy",
-                        onClick = { }
-                    )
-                    SettingsDivider()
-                    SettingsItem(
+
+                    SettingsRowDivider()
+
+                    SettingsRowItem(
                         icon = Icons.Outlined.Description,
                         label = "Terms of Service",
                         onClick = { }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-                // ── Logout ────────────────────────────
-                Row(
+                // ── Logout Button ─────────────────────
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showLogoutDialog = true },
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .clip(RoundedCornerShape(14.dp))
+                        .border(1.dp, ErrorColor.copy(0.3f), RoundedCornerShape(14.dp))
+                        .background(ErrorColor.copy(0.04f))
+                        .clickable { showLogoutDialog = true }
+                        .padding(vertical = 18.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.Logout,
-                        contentDescription = null,
-                        tint = ErrorColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Log Out",
                         fontSize = 16.sp,
@@ -386,12 +277,12 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Version 2.4.1 (Stable)",
+                    text = "Version 2.4.1 (Build 882)",
                     fontSize = 12.sp,
-                    color = OnSurfaceVariant.copy(0.5f),
+                    color = OnSurfaceSecondary.copy(0.5f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -402,21 +293,21 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────
+// ── Settings Components ───────────────────────────────────
 
 @Composable
-fun SettingsSectionLabel(text: String) {
+fun SettingsSectionHeader(text: String) {
     Text(
         text = text,
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
-        color = WarmAmber,
+        color = OnSurfaceSecondary,
         letterSpacing = 1.sp
     )
 }
 
 @Composable
-fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
+fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -426,7 +317,7 @@ fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun SettingsDivider() {
+fun SettingsRowDivider() {
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 16.dp),
         color = Divider
@@ -434,7 +325,7 @@ fun SettingsDivider() {
 }
 
 @Composable
-fun SettingsItem(
+fun SettingsRowItem(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit
@@ -443,39 +334,45 @@ fun SettingsItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(SurfaceVariant),
+                    .size(38.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = OnSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    tint = Secondary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
-            Text(text = label, fontSize = 15.sp, color = OnSurface)
+            Text(
+                text = label,
+                fontSize = 15.sp,
+                color = TextDark
+            )
         }
         Icon(
-            Icons.Filled.ChevronRight,
+            Icons.Outlined.ChevronRight,
             contentDescription = null,
-            tint = OnSurfaceVariant,
+            tint = OnSurfaceSecondary,
             modifier = Modifier.size(18.dp)
         )
     }
 }
 
 @Composable
-fun SettingsItemWithValue(
+fun SettingsRowWithValue(
     icon: ImageVector,
     label: String,
     value: String,
@@ -485,75 +382,100 @@ fun SettingsItemWithValue(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(SurfaceVariant),
+                    .size(38.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = OnSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    tint = Secondary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
-            Text(text = label, fontSize = 15.sp, color = OnSurface)
+            Text(
+                text = label,
+                fontSize = 15.sp,
+                color = TextDark
+            )
         }
-        Text(
-            text = value,
-            fontSize = 13.sp,
-            color = OnSurfaceVariant,
-            fontWeight = FontWeight.Medium
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = value,
+                fontSize = 14.sp,
+                color = OnSurfaceSecondary
+            )
+            Icon(
+                Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = OnSurfaceSecondary,
+                modifier = Modifier.size(16.dp)
+            )
+        }
     }
 }
 
 @Composable
-fun SettingsItemWithTrailing(
+fun SettingsToggleRow(
     icon: ImageVector,
     label: String,
-    trailingIcon: ImageVector,
-    onClick: () -> Unit
+    checked: Boolean,
+    onToggle: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
             Box(
                 modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(SurfaceVariant),
+                    .size(38.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
-                    tint = OnSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    tint = Secondary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(14.dp))
-            Text(text = label, fontSize = 15.sp, color = OnSurface)
+            Text(
+                text = label,
+                fontSize = 15.sp,
+                color = TextDark
+            )
         }
-        Icon(
-            trailingIcon,
-            contentDescription = null,
-            tint = OnSurfaceVariant,
-            modifier = Modifier.size(18.dp)
+        Switch(
+            checked = checked,
+            onCheckedChange = { onToggle(it) },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = Primary,
+                uncheckedThumbColor = Color.White,
+                uncheckedTrackColor = OnSurfaceSecondary.copy(0.3f)
+            )
         )
     }
 }

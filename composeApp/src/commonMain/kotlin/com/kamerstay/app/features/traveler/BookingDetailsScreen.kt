@@ -1,6 +1,7 @@
 package com.kamerstay.app.features.traveler
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,7 +9,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BookOnline
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,40 +27,44 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun BookingDetailsScreen(
     navController: NavController,
     bookingId: String
 ) {
+    val viewModel = koinViewModel<TravelerViewModel>()
     var showCancelDialog by remember { mutableStateOf(false) }
 
-    // Cancel confirmation dialog
+    val amenities = listOf(
+        Icons.Outlined.Wifi to "Free Wi-Fi",
+        Icons.Outlined.Pool to "Infinity Pool",
+        Icons.Outlined.Spa to "Luxury Spa",
+        Icons.Outlined.FreeBreakfast to "Breakfast Included"
+    )
+
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
             title = {
-                Text(
-                    text = "Cancel Booking?",
-                    fontWeight = FontWeight.Bold
-                )
+                Text("Cancel Booking?", fontWeight = FontWeight.Bold, color = TextDark)
             },
             text = {
                 Text(
-                    text = "Are you sure you want to cancel this booking? Free cancellation ends on Nov 10, 2023.",
-                    color = OnSurfaceVariant
+                    "Are you sure you want to cancel this booking? Free cancellation ends on Nov 10, 2023.",
+                    color = OnSurfaceSecondary
                 )
             },
             confirmButton = {
-                TextButton(
-                    onClick = { showCancelDialog = false }
-                ) {
+                TextButton(onClick = { showCancelDialog = false }) {
                     Text("Yes, Cancel", color = ErrorColor, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showCancelDialog = false }) {
-                    Text("Keep Booking", color = DeepEmerald)
+                    Text("Keep Booking", color = Secondary)
                 }
             },
             containerColor = Color.White,
@@ -66,35 +73,35 @@ fun BookingDetailsScreen(
     }
 
     Scaffold(
-        containerColor = WarmIvory,
+        containerColor = BackgroundLight,
         bottomBar = {
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 0.dp
             ) {
                 listOf(
-                    Icons.Outlined.Search to "Explore",
+                    Icons.Outlined.Home to "Home",
+                    Icons.Outlined.Explore to "Explore",
                     Icons.Filled.BookOnline to "Bookings",
-                    Icons.Outlined.FavoriteBorder to "Saved",
                     Icons.Outlined.Person to "Profile"
                 ).forEachIndexed { index, (icon, label) ->
                     NavigationBarItem(
-                        selected = index == 1,
+                        selected = index == 2,
                         onClick = {
                             when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
+                                0 -> navController.navigate(Routes.TravelerHome.route)
+                                1 -> navController.navigate(Routes.HotelSearch.route)
                                 3 -> navController.navigate(Routes.TravelerProfile.route)
                             }
                         },
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label, fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = DeepEmerald,
-                            selectedTextColor = DeepEmerald,
-                            indicatorColor = PrimaryContainer,
-                            unselectedIconColor = OnSurfaceVariant,
-                            unselectedTextColor = OnSurfaceVariant
+                            selectedIconColor = Secondary,
+                            selectedTextColor = Secondary,
+                            indicatorColor = Primary.copy(0.15f),
+                            unselectedIconColor = OnSurfaceSecondary,
+                            unselectedTextColor = OnSurfaceSecondary
                         )
                     )
                 }
@@ -119,526 +126,480 @@ fun BookingDetailsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.Filled.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = OnSurface
+                            tint = Secondary
                         )
                     }
                     Text(
-                        text = "Bookings",
+                        text = "Booking Details",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OnSurface
+                        color = Secondary
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = DeepEmerald,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                Icon(
+                    Icons.Outlined.Share,
+                    contentDescription = null,
+                    tint = Secondary,
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // ── Reservation ID Card ───────────────────
+            // ── Hero Image ────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                    .height(220.dp)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF0D3A5C),
+                                Color(0xFF1A6B8A)
+                            )
+                        )
+                    )
+            ) {
+                // Confirmed badge
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Primary)
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.CheckCircle,
+                            contentDescription = null,
+                            tint = OnPrimary,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = "Confirmed",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = OnPrimary
+                        )
+                    }
+                }
+            }
+
+            // ── Main Card ─────────────────────────────
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .offset(y = (-20).dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
                     .padding(20.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column {
-                        Text(
-                            text = "RESERVATION ID",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurfaceVariant,
-                            letterSpacing = 0.8.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "#BK-8829-\n24",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = OnSurface,
-                            lineHeight = 28.sp
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(StatusConfirmed.copy(alpha = 0.12f))
-                                .padding(horizontal = 10.dp, vertical = 6.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Outlined.CheckCircle,
-                                    contentDescription = null,
-                                    tint = StatusConfirmed,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "Confirmed",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = StatusConfirmed
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Booked on Oct 24,\n2023",
-                            fontSize = 12.sp,
-                            color = OnSurfaceVariant,
-                            textAlign = TextAlign.End,
-                            lineHeight = 16.sp
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ── Hotel Card ────────────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-            ) {
                 Column {
-                    // Image
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF8B6914),
-                                        Color(0xFF5C3D0D),
-                                        Color(0xFF3D2808),
-                                    )
-                                )
-                            )
+                    // Hotel name + location
+                    Text(
+                        text = "The Azure Vista Resort",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // Verified badge
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(10.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(WarmAmber)
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Outlined.Verified,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(11.dp)
-                                )
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Text(
-                                    text = "VERIFIED HOTEL",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
+                        Icon(
+                            Icons.Outlined.Place,
+                            contentDescription = null,
+                            tint = OnSurfaceSecondary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "Santorini, Greece",
+                            fontSize = 13.sp,
+                            color = OnSurfaceSecondary
+                        )
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 14.dp),
+                        color = Divider
+                    )
+
+                    // Dates
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "CHECK-IN",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = OnSurfaceSecondary,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "Oct 24, 2024",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextDark
+                            )
+                            Text(
+                                text = "From 3:00 PM",
+                                fontSize = 12.sp,
+                                color = OnSurfaceSecondary
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "CHECK-OUT",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = OnSurfaceSecondary,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "Oct 29, 2024",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextDark
+                            )
+                            Text(
+                                text = "Before 11:00 AM",
+                                fontSize = 12.sp,
+                                color = OnSurfaceSecondary
+                            )
                         }
                     }
 
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        // Hotel name + stars
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 14.dp),
+                        color = Divider
+                    )
+
+                    // Room type
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Primary.copy(0.1f)),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Palais de la\nRenaissance",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = OnSurface,
-                                lineHeight = 26.sp,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Row {
-                                repeat(5) {
-                                    Icon(
-                                        Icons.Outlined.StarOutline,
-                                        contentDescription = null,
-                                        tint = StarRating,
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                Icons.Outlined.Place,
+                                Icons.Outlined.Hotel,
                                 contentDescription = null,
-                                tint = OnSurfaceVariant,
-                                modifier = Modifier.size(13.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "Quartier du Lac, Yaoundé, Cameroon",
-                                fontSize = 12.sp,
-                                color = OnSurfaceVariant
+                                tint = Secondary,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Contact info
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Outlined.Phone,
-                                    contentDescription = null,
-                                    tint = OnSurfaceVariant,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Column {
-                                    Text(
-                                        text = "Phone",
-                                        fontSize = 10.sp,
-                                        color = OnSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "+237 222 456 789",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = OnSurface
-                                    )
-                                }
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Outlined.Email,
-                                    contentDescription = null,
-                                    tint = OnSurfaceVariant,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Column {
-                                    Text(
-                                        text = "Email",
-                                        fontSize = 10.sp,
-                                        color = OnSurfaceVariant
-                                    )
-                                    Text(
-                                        text = "frontdesk@palais",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = OnSurface
-                                    )
-                                }
-                            }
+                        Column {
+                            Text(
+                                text = "Deluxe Ocean Suite",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextDark
+                            )
+                            Text(
+                                text = "2 Adults • King Bed • Private Balcony",
+                                fontSize = 12.sp,
+                                color = OnSurfaceSecondary
+                            )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // ── Check-in / Check-out ──────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                DetailInfoCard(
-                    label = "CHECK-IN",
-                    title = "14 Nov",
-                    subtitle = "After 2:00 PM",
-                    modifier = Modifier.weight(1f)
-                )
-                DetailInfoCard(
-                    label = "CHECK-OUT",
-                    title = "18 Nov",
-                    subtitle = "Before 11:00 AM",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // ── Room Type ─────────────────────────────
-            DetailInfoCard(
-                label = "ROOM TYPE",
-                title = "Executive Suite",
-                subtitle = "2 Adults, 1 Child",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // ── Payment Summary ───────────────────────
+            // ── Stay Amenities ────────────────────────
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Outlined.Payments,
-                        contentDescription = null,
-                        tint = OnSurface,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Payment Summary",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OnSurface
-                    )
+                Text(
+                    text = "Stay Amenities",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 2x2 grid
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    amenities.chunked(2).forEach { row ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            row.forEach { (icon, label) ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(Color.White)
+                                        .padding(12.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            icon,
+                                            contentDescription = null,
+                                            tint = Primary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            text = label,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = Secondary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                PriceRow(
-                    label = "Executive Suite (4 nights)",
-                    amount = "480,000 XAF"
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                PriceRow(
-                    label = "City Tax & Service Fee",
-                    amount = "12,500 XAF"
-                )
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    color = Divider
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Total Price",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OnSurface
-                    )
-                    Text(
-                        text = "492,500 XAF",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = OnSurface
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Deposit + Balance
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Deposit paid
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(SurfaceVariant)
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "DEPOSIT PAID",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnSurfaceVariant,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "98,500 XAF",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = OnSurface
-                        )
-                    }
-                    // Balance due
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(ErrorColor.copy(alpha = 0.08f))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "BALANCE DUE",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = ErrorColor,
-                            letterSpacing = 0.5.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "394,000\nXAF",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = ErrorColor,
-                            lineHeight = 20.sp
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Info note
-                Row(
+                // ── Payment Summary ───────────────────
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(SurfaceVariant)
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.Top
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Divider, RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .padding(16.dp)
                 ) {
-                    Icon(
-                        Icons.Outlined.Info,
-                        contentDescription = null,
-                        tint = OnSurfaceVariant,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Please note that the remaining balance of 394,000 XAF is payable directly at the hotel front desk upon arrival in cash or by credit card.",
-                        fontSize = 12.sp,
-                        color = OnSurfaceVariant,
-                        lineHeight = 17.sp
-                    )
+                    Column {
+                        Text(
+                            text = "Payment Summary",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextDark
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        BookingPriceRow("5 nights × \$420", "\$2,100.00")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        BookingPriceRow("Service fee", "\$45.00")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        BookingPriceRow("Taxes", "\$128.00")
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            color = Divider
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Total",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextDark
+                            )
+                            Text(
+                                text = "\$2,273.00",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Secondary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Deposit box
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(BackgroundLight)
+                                .padding(14.dp)
+                        ) {
+                            Column {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Deposit due now",
+                                        fontSize = 13.sp,
+                                        color = OnSurfaceSecondary
+                                    )
+                                    Text(
+                                        text = "\$450.00",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = TextDark
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Pay the deposit now to secure your booking. The remaining balance will be charged 48h before arrival.",
+                                    fontSize = 11.sp,
+                                    color = OnSurfaceSecondary,
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Pay Deposit Button
+                        Button(
+                            onClick = { },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Secondary
+                            )
+                        ) {
+                            Icon(
+                                Icons.Outlined.CreditCard,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Pay Deposit",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Secure SSL Encrypted Payment",
+                            fontSize = 11.sp,
+                            color = OnSurfaceSecondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // ── Contact Hotel Button ──────────────────
-            Button(
-                onClick = { },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(54.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DeepEmerald
-                )
-            ) {
-                Icon(
-                    Icons.Outlined.Chat,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                // ── Location ──────────────────────────
                 Text(
-                    text = "Contact Hotel",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    text = "Location",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF1A3A5C),
+                                    Color(0xFF0D2A4A)
+                                )
+                            )
+                        )
+                ) {
+                    // Location card
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White)
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Primary.copy(0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Navigation,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = "The Azure Vista",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextDark
+                                )
+                                Text(
+                                    text = "Oia 847 02, Greece",
+                                    fontSize = 12.sp,
+                                    color = OnSurfaceSecondary
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // ── Cancel Booking ────────────────────
+                Text(
+                    text = "Cancel Booking",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = ErrorColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showCancelDialog = true }
+                        .padding(vertical = 8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // ── Cancel Booking ────────────────────────
-            Text(
-                text = "Cancel Booking",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = ErrorColor,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showCancelDialog = true }
-                    .padding(vertical = 8.dp)
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Free cancellation ends on Nov 10, 2023. Terms apply.",
-                fontSize = 11.sp,
-                color = OnSurfaceVariant.copy(0.6f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-// ── Detail Info Card ──────────────────────────────────────
+// ── Price Row ─────────────────────────────────────────────
 @Composable
-fun DetailInfoCard(
-    label: String,
-    title: String,
-    subtitle: String,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .padding(16.dp)
+fun BookingPriceRow(label: String, amount: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
-            Text(
-                text = label,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = OnSurfaceVariant,
-                letterSpacing = 0.8.sp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = OnSurface
-            )
-            Text(
-                text = subtitle,
-                fontSize = 12.sp,
-                color = OnSurfaceVariant
-            )
-        }
+        Text(text = label, fontSize = 14.sp, color = OnSurfaceSecondary)
+        Text(
+            text = amount,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = TextDark
+        )
     }
 }

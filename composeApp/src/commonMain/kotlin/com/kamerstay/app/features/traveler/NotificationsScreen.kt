@@ -3,16 +3,12 @@ package com.kamerstay.app.features.traveler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,68 +18,55 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockNotification
-import com.kamerstay.app.data.mock.mockNotifications
+import com.kamerstay.app.data.mock.NotificationsMockData
+import com.kamerstay.app.data.model.AppNotification
+import com.kamerstay.app.data.model.NotificationType
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun NotificationsScreen(navController: NavController) {
 
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf("All") }
-
-    val tabs = listOf("All", "Bookings", "Payments", "Promos")
-
-    val filteredNotifications = mockNotifications.filter { n ->
-        val matchesSearch = searchQuery.isEmpty() ||
-                n.title.contains(searchQuery, ignoreCase = true) ||
-                n.message.contains(searchQuery, ignoreCase = true)
-        val matchesTab = selectedTab == "All" ||
-                (selectedTab == "Bookings" && n.type == "BOOKING") ||
-                (selectedTab == "Payments" && n.type == "PAYMENT") ||
-                (selectedTab == "Promos" && n.type == "PROMO")
-        matchesSearch && matchesTab
-    }
+    val viewModel = koinViewModel<TravelerViewModel>()
+    val newCount = NotificationsMockData.todayNotifications.count { !it.isRead }
 
     Scaffold(
-        containerColor = WarmIvory,
+        containerColor = BackgroundLight,
         bottomBar = {
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 0.dp
             ) {
                 listOf(
-                    Icons.Outlined.Search to "Explore",
+                    Icons.Outlined.Home to "Home",
+                    Icons.Outlined.Search to "Search",
                     Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Filled.Notifications to "Alerts",
-                    Icons.Outlined.Settings to "Settings"
+                    Icons.Outlined.Person to "Profile"
                 ).forEachIndexed { index, (icon, label) ->
                     NavigationBarItem(
-                        selected = index == 2,
+                        selected = false,
                         onClick = {
                             when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.Settings.route)
+                                0 -> navController.navigate(Routes.TravelerHome.route)
+                                1 -> navController.navigate(Routes.HotelSearch.route)
+                                2 -> navController.navigate(Routes.BookingHistory.route)
+                                3 -> navController.navigate(Routes.TravelerProfile.route)
                             }
                         },
                         icon = { Icon(icon, contentDescription = label) },
                         label = { Text(label, fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = DeepEmerald,
-                            selectedTextColor = DeepEmerald,
-                            indicatorColor = PrimaryContainer,
-                            unselectedIconColor = OnSurfaceVariant,
-                            unselectedTextColor = OnSurfaceVariant
+                            selectedIconColor = Secondary,
+                            selectedTextColor = Secondary,
+                            indicatorColor = Primary.copy(0.15f),
+                            unselectedIconColor = OnSurfaceSecondary,
+                            unselectedTextColor = OnSurfaceSecondary
                         )
                     )
                 }
@@ -102,151 +85,220 @@ fun NotificationsScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .padding(horizontal = 20.dp, vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { }) {
-                            Icon(Icons.Filled.Menu, contentDescription = null, tint = OnSurface)
+                            Icon(
+                                Icons.Outlined.Menu,
+                                contentDescription = null,
+                                tint = Secondary
+                            )
                         }
                         Text(
-                            text = "KamerStay",
-                            fontSize = 18.sp,
+                            text = "MyStays",
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DeepEmerald
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Mark all as read",
-                            fontSize = 13.sp,
-                            color = OnSurfaceVariant,
-                            modifier = Modifier.clickable { }
+                            color = Secondary
                         )
                     }
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
+                            .size(40.dp)
                             .clip(CircleShape)
-                            .background(PrimaryContainer),
+                            .background(Primary.copy(0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "L",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = DeepEmerald
+                        Icon(
+                            Icons.Outlined.Notifications,
+                            contentDescription = null,
+                            tint = Secondary,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
             }
 
-            // ── Search Bar ────────────────────────────
+            // ── Header ────────────────────────────────
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
-                        .padding(horizontal = 14.dp, vertical = 13.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = null,
-                        tint = OnSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    Text(
+                        text = "Notifications",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextDark
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(fontSize = 14.sp, color = OnSurface),
-                        decorationBox = { inner ->
-                            if (searchQuery.isEmpty()) {
-                                Text(
-                                    "Search alerts...",
-                                    fontSize = 14.sp,
-                                    color = OnSurfaceVariant.copy(0.5f)
-                                )
-                            }
-                            inner()
-                        }
+                    Text(
+                        text = "Stay updated with your latest booking activity",
+                        fontSize = 13.sp,
+                        color = OnSurfaceSecondary
                     )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // ── Filter Tabs ───────────────────────────
-            item {
-                Row(
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    tabs.forEach { tab ->
-                        val isSelected = selectedTab == tab
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(
-                                    if (isSelected) DeepEmerald else Color.White
-                                )
-                                .border(
-                                    if (!isSelected) 1.dp else 0.dp,
-                                    OutlineVariant,
-                                    CircleShape
-                                )
-                                .clickable { selectedTab = tab }
-                                .padding(horizontal = 20.dp, vertical = 10.dp)
-                        ) {
-                            Text(
-                                text = tab,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = if (isSelected) Color.White else OnSurface
-                            )
-                        }
-                    }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // ── Notifications ─────────────────────────
-            items(filteredNotifications) { notification ->
-                NotificationCard(notification = notification)
+            // ── Today ─────────────────────────────────
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Today",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary
+                    )
+                    if (newCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Primary.copy(0.15f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "$newCount New",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Primary
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            items(NotificationsMockData.todayNotifications) { notification ->
+                NotificationItem(
+                    notification = notification,
+                    onAction = { }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            // ── Earlier ───────────────────────────────
+            item {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "Earlier",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            items(NotificationsMockData.earlierNotifications) { notification ->
+                NotificationItem(
+                    notification = notification,
+                    onAction = { }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+
+            // ── Rewards Banner ────────────────────────
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Secondary, DeepBlue)
+                            )
+                        )
+                        .padding(20.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Unlock Rewards",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "You're only one stay away from Gold Status membership benefits.",
+                                fontSize = 13.sp,
+                                color = Color.White.copy(0.8f),
+                                lineHeight = 18.sp
+                            )
+                            Spacer(modifier = Modifier.height(14.dp))
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Primary)
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = "View Progress",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = OnPrimary
+                                )
+                            }
+                        }
+
+                        // Decorative shield icon
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .align(Alignment.CenterVertically),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Shield,
+                                contentDescription = null,
+                                tint = Color.White.copy(0.15f),
+                                modifier = Modifier.size(70.dp)
+                            )
+                            Icon(
+                                Icons.Outlined.Star,
+                                contentDescription = null,
+                                tint = Primary.copy(0.6f),
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
-// ── Notification Card ─────────────────────────────────────
+// ── Notification Item ─────────────────────────────────────
 @Composable
-fun NotificationCard(notification: MockNotification) {
+fun NotificationItem(
+    notification: AppNotification,
+    onAction: () -> Unit
+) {
     val (iconBg, iconTint, icon) = when (notification.type) {
-        "BOOKING" -> Triple(
-            PrimaryContainer,
-            DeepEmerald,
-            Icons.Outlined.CalendarMonth
+        NotificationType.BOOKING -> Triple(
+            Primary.copy(0.12f), Secondary, Icons.Outlined.CalendarMonth
         )
-        "PAYMENT" -> Triple(
-            WarmAmber.copy(alpha = 0.15f),
-            WarmAmber,
-            Icons.Outlined.Wallet
+        NotificationType.CHECK_IN -> Triple(
+            Primary.copy(0.12f), Secondary, Icons.Outlined.Key
         )
-        "PROMO" -> Triple(
-            ErrorColor.copy(alpha = 0.1f),
-            ErrorColor,
-            Icons.Outlined.Tag
+        NotificationType.ALERT -> Triple(
+            ErrorColor.copy(0.1f), ErrorColor, Icons.Outlined.Warning
         )
-        else -> Triple(
-            SurfaceVariant,
-            OnSurfaceVariant,
-            Icons.Outlined.Notifications
+        NotificationType.PROMO -> Triple(
+            ElectricBlue.copy(0.12f), Secondary, Icons.Outlined.AutoAwesome
+        )
+        NotificationType.PAYMENT -> Triple(
+            OnSurfaceSecondary.copy(0.1f), OnSurfaceSecondary, Icons.Outlined.Receipt
         )
     }
 
@@ -254,14 +306,14 @@ fun NotificationCard(notification: MockNotification) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(Color.White)
             .then(
-                if (!notification.isRead) Modifier.border(
-                    1.dp, DeepEmerald.copy(alpha = 0.3f), RoundedCornerShape(16.dp)
+                if (notification.isAlert) Modifier.border(
+                    1.dp, ErrorColor.copy(0.3f), RoundedCornerShape(14.dp)
                 ) else Modifier
             )
-            .padding(16.dp)
+            .padding(14.dp)
     ) {
         Column {
             Row(
@@ -296,76 +348,43 @@ fun NotificationCard(notification: MockNotification) {
                             text = notification.title,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = OnSurface
+                            color = if (notification.isAlert) ErrorColor else TextDark,
+                            modifier = Modifier.weight(1f)
                         )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = notification.time,
+                            fontSize = 11.sp,
+                            color = OnSurfaceSecondary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Text(
+                        text = notification.message,
+                        fontSize = 13.sp,
+                        color = OnSurfaceSecondary,
+                        lineHeight = 18.sp
+                    )
+
+                    // Action button
+                    if (notification.hasAction && notification.actionLabel.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = onAction,
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
                             Text(
-                                text = notification.time,
-                                fontSize = 11.sp,
-                                color = OnSurfaceVariant
+                                text = notification.actionLabel,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
                             )
-                            if (!notification.isRead) {
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(DeepEmerald)
-                                )
-                            }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Message with highlight
-                    if (notification.highlightText.isNotEmpty()) {
-                        Text(
-                            text = buildAnnotatedString {
-                                val msg = notification.message
-                                val idx = msg.indexOf(notification.highlightText)
-                                if (idx >= 0) {
-                                    append(msg.substring(0, idx))
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = OnSurface)) {
-                                        append(notification.highlightText)
-                                    }
-                                    append(msg.substring(idx + notification.highlightText.length))
-                                } else {
-                                    append(msg)
-                                }
-                            },
-                            fontSize = 13.sp,
-                            color = OnSurfaceVariant,
-                            lineHeight = 18.sp
-                        )
-                    } else {
-                        Text(
-                            text = notification.message,
-                            fontSize = 13.sp,
-                            color = OnSurfaceVariant,
-                            lineHeight = 18.sp
-                        )
-                    }
                 }
-            }
-
-            // Promo image
-            if (notification.hasImage) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color(0xFF2A1A0D),
-                                    Color(0xFF1A0D06)
-                                )
-                            )
-                        )
-                )
             }
         }
     }

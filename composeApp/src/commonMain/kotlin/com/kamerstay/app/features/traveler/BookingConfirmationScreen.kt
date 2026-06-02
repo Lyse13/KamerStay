@@ -2,6 +2,7 @@ package com.kamerstay.app.features.traveler
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,17 +32,20 @@ import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.MockData
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
 
 @Composable
 fun BookingConfirmationScreen(
     navController: NavController,
     bookingId: String
 ) {
+    val viewModel = koinViewModel<TravelerViewModel>()
     val hotel = MockData.getHotelById(NavigationState.selectedHotelId) ?: MockData.hotels.first()
-    val room = MockData.rooms.find { it.id == NavigationState.selectedRoomId } ?: MockData.rooms.first()
-    val depositPaid = room.pricePerNight * 3 * 0.20
+    val room = MockData.rooms.find { it.id == NavigationState.selectedRoomId }
+        ?: MockData.rooms.first()
 
-    // Animation check
     val scale = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         scale.animateTo(
@@ -54,47 +57,23 @@ fun BookingConfirmationScreen(
         )
     }
 
-    Scaffold(
-        containerColor = WarmIvory,
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Search to "Explore",
-                    Icons.Filled.BookOnline to "Bookings",
-                    Icons.Outlined.FavoriteBorder to "Saved",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = DeepEmerald,
-                            selectedTextColor = DeepEmerald,
-                            indicatorColor = PrimaryContainer,
-                            unselectedIconColor = OnSurfaceVariant,
-                            unselectedTextColor = OnSurfaceVariant
-                        )
-                    )
-                }
-            }
-        }
-    ) { paddingValues ->
+    val amenities = listOf(
+        Icons.Outlined.Wifi to "Free Wi-Fi",
+        Icons.Outlined.Pool to "Infinity Pool",
+        Icons.Outlined.LocalParking to "Valet Parking",
+        Icons.Outlined.FreeBreakfast to "Breakfast Incl."
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundLight)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .padding(bottom = 16.dp)
         ) {
             // ── Top Bar ───────────────────────────────
             Row(
@@ -106,72 +85,51 @@ fun BookingConfirmationScreen(
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = OnSurface
+                        Icons.Outlined.Close,
+                        contentDescription = "Close",
+                        tint = Secondary
                     )
                 }
                 Text(
-                    text = "KamerStay Bookings",
+                    text = "MyStays",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = DeepEmerald
+                    color = Secondary
                 )
             }
 
-            HorizontalDivider(color = Divider)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
             // ── Success Icon ──────────────────────────
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Box(
                     modifier = Modifier
                         .scale(scale.value)
-                        .size(90.dp)
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Primary),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Glow effect
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
-                            .background(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(
-                                        PrimaryContainer,
-                                        Color.Transparent
-                                    )
-                                )
-                            )
+                    Icon(
+                        Icons.Outlined.CheckCircle,
+                        contentDescription = null,
+                        tint = OnPrimary,
+                        modifier = Modifier.size(44.dp)
                     )
-                    // Circle
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                            .clip(CircleShape)
-                            .background(DeepEmerald),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Booking Confirmed!",
+                    text = "Pack your bags!",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = OnSurface,
+                    color = TextDark,
                     textAlign = TextAlign.Center
                 )
 
@@ -181,348 +139,333 @@ fun BookingConfirmationScreen(
                     text = buildAnnotatedString {
                         append("Your stay at ")
                         withStyle(SpanStyle(
-                            color = DeepEmerald,
+                            color = Secondary,
                             fontWeight = FontWeight.SemiBold
                         )) {
                             append(hotel.name)
                         }
-                        append(" is secured.")
+                        append(" is confirmed and ready for your arrival.")
                     },
-                    fontSize = 15.sp,
-                    color = OnSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    fontSize = 14.sp,
+                    color = OnSurfaceSecondary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
                 )
-            }
 
-            Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // ── Booking Reference Card ────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-                    .padding(20.dp)
-            ) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Column {
-                            Text(
-                                text = "BOOKING REFERENCE",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnSurfaceVariant,
-                                letterSpacing = 0.8.sp
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "#BK-8829-24",
-                                fontSize = 22.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = OnSurface
-                            )
-                        }
+                // ── Hotel Card ────────────────────────
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                ) {
+                    Column {
+                        // Room image
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(WarmAmber.copy(alpha = 0.15f))
-                                .padding(horizontal = 10.dp, vertical = 5.dp)
-                        ) {
-                            Text(
-                                text = "CONFIRMED",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF8B6914)
-                            )
-                        }
-                    }
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0xFF1A2A3A),
+                                            Color(0xFF0D1A28)
+                                        )
+                                    )
+                                )
+                        )
 
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        color = Divider
-                    )
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            // Confirmed badge
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(Primary.copy(0.12f))
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                            ) {
+                                Text(
+                                    text = "CONFIRMED",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Primary
+                                )
+                            }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
+                            Spacer(modifier = Modifier.height(10.dp))
+
                             Text(
-                                text = "CHECK-IN",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnSurfaceVariant,
-                                letterSpacing = 0.8.sp
+                                text = hotel.name,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextDark
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Oct 12, 2024",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = OnSurface
-                            )
-                        }
-                        Column {
-                            Text(
-                                text = "CHECK-OUT",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnSurfaceVariant,
-                                letterSpacing = 0.8.sp
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Oct 15, 2024",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = OnSurface
-                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Place,
+                                    contentDescription = null,
+                                    tint = OnSurfaceSecondary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = hotel.address,
+                                    fontSize = 13.sp,
+                                    color = OnSurfaceSecondary
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            // Dates
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "CHECK-IN",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = OnSurfaceSecondary,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                    Text(
+                                        text = "Oct 24, 2024",
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = "CHECK-OUT",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = OnSurfaceSecondary,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                    Text(
+                                        text = "Oct 28, 2024",
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextDark
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Stay Details ──────────────────────────
-            Text(
-                text = "Stay Details",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = OnSurface,
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Room Type
-            StayDetailRow(
-                icon = Icons.Outlined.Hotel,
-                label = "Room Type",
-                value = "${room.type.name.lowercase().replaceFirstChar { it.uppercase() }} Suite – City View"
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Deposit Paid
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(SurfaceVariant)
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                // ── Booking Reference Card ────────────
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .padding(20.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Outlined.Payments,
-                            contentDescription = null,
-                            tint = OnSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
-                            Text(
-                                text = "Deposit Paid",
-                                fontSize = 13.sp,
-                                color = OnSurfaceVariant
-                            )
-                            Text(
-                                text = "${depositPaid.toLong()} XAF",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = OnSurface
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(StatusAvailable.copy(alpha = 0.12f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "VERIFIED",
-                            fontSize = 10.sp,
+                            text = "BOOKING REFERENCE",
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = StatusAvailable
+                            color = Primary,
+                            letterSpacing = 0.8.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "MS-8829-X",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Secondary
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // QR code placeholder
+                        Box(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .border(1.dp, Divider, RoundedCornerShape(12.dp))
+                                .background(BackgroundLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                // QR arrows decoration
+                                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                                    Icon(
+                                        Icons.Outlined.ArrowBack,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Icon(
+                                        Icons.Outlined.ArrowForward,
+                                        contentDescription = null,
+                                        tint = Primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Icon(
+                                    Icons.Outlined.QrCode,
+                                    contentDescription = null,
+                                    tint = OnSurfaceSecondary,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Text(
+                            text = "Show this at check-in",
+                            fontSize = 12.sp,
+                            color = OnSurfaceSecondary
                         )
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Map placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(140.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF2C4A3E),
-                                Color(0xFF1A2E28)
-                            )
-                        )
-                    )
-            ) {
-                // Map grid lines simulation
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.BottomStart
+                // ── Amenities ─────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(12.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color.White)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Outlined.Place,
-                                contentDescription = null,
-                                tint = OnSurface,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = hotel.address,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnSurface
-                            )
+                    amenities.chunked(2).forEach { rowItems ->
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            rowItems.forEach { (icon, label) ->
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White)
+                                        .padding(12.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            icon,
+                                            contentDescription = null,
+                                            tint = Secondary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = label,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = TextDark
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
-                onClick = { navController.navigate(Routes.BookingVoucher.route) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SurfaceVariant)
-            ) {
-                Icon(Icons.Outlined.QrCode, contentDescription = null, tint = OnSurface,
-                    modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("View Booking Voucher", fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold, color = OnSurface)
-            }
+                // ── View Voucher Button ───────────────
+                Button(
+                    onClick = { navController.navigate(Routes.BookingVoucher.route) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Secondary
+                    )
+                ) {
+                    Icon(
+                        Icons.Outlined.Receipt,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "View Voucher",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            // ── Action Buttons ────────────────────────
-            Button(
-                onClick = { navController.navigate(Routes.BookingHistory.route) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .height(54.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DeepEmerald
-                )
-            ) {
-                Icon(
-                    Icons.Outlined.History,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "View Booking History",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Back to Home
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
+                // ── Go to Home Button ─────────────────
+                OutlinedButton(
+                    onClick = {
                         navController.navigate(Routes.TravelerHome.route) {
                             popUpTo(Routes.TravelerHome.route) { inclusive = true }
                         }
-                    }
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Outlined.Home,
-                    contentDescription = null,
-                    tint = OnSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Back to Home",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = OnSurfaceVariant
-                )
-            }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = TextDark
+                    )
+                ) {
+                    Icon(
+                        Icons.Outlined.Home,
+                        contentDescription = null,
+                        tint = TextDark,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Go to Home",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextDark
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
+                Spacer(modifier = Modifier.height(20.dp))
 
-// ── Stay Detail Row ───────────────────────────────────────
-@Composable
-fun StayDetailRow(
-    icon: ImageVector,
-    label: String,
-    value: String
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceVariant)
-            .padding(16.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = OnSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
+                // ── Footer note ───────────────────────
                 Text(
-                    text = label,
+                    text = buildAnnotatedString {
+                        append("A confirmation email has been sent to ")
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = TextDark)) {
+                            append("traveler@example.com")
+                        }
+                        append(". Need to make changes? You can manage your booking in the ")
+                        withStyle(SpanStyle(
+                            color = Primary,
+                            fontWeight = FontWeight.SemiBold
+                        )) {
+                            append("Profile")
+                        }
+                        append(" section.")
+                    },
                     fontSize = 12.sp,
-                    color = OnSurfaceVariant
-                )
-                Text(
-                    text = value,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = OnSurface
+                    color = OnSurfaceSecondary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
                 )
             }
         }
