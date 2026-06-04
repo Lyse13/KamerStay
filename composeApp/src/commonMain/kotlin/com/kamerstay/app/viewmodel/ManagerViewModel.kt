@@ -22,8 +22,8 @@ import com.kamerstay.app.data.state.AmenitiesState
 import com.kamerstay.app.data.state.AnalyticsState
 import com.kamerstay.app.data.state.ManageHotelState
 import com.kamerstay.app.data.state.ManagerPersonalInfoState
-import com.kamerstay.app.data.state.RegisterHotelState
 import com.kamerstay.app.data.state.ManagerSettingsState
+import com.kamerstay.app.data.state.RegisterHotelState
 import com.kamerstay.app.data.state.RevenueReportState
 import com.kamerstay.app.data.state.SupportState
 import com.kamerstay.app.data.state.VerificationState
