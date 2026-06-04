@@ -4,10 +4,24 @@ sealed class Routes(val route: String) {
 
     data object Splash : Routes("splash")
     data object Welcome : Routes("welcome")
+    data object RoleSelection : Routes("role_selection")
     data object SignIn : Routes("sign_in")
     data object SignUp : Routes("sign_up")
     data object TravelerHome : Routes("traveler_home")
     data object HotelSearch : Routes("hotel_search")
+    data object Wishlist : Routes("wishlist")
+    data object NoResult : Routes("no_result")
+    data object PaymentMethods : Routes("payment_methods")
+    data object PaymentFailed : Routes("payment_failed")
+    data object ManagerVerification : Routes("manager_verification")
+    data object ManagerPersonalInfo : Routes("manager_personal_info")
+    data object HotelAmenities : Routes("hotel_amenities")
+    data object RevenueReport : Routes("revenue_report")
+    data object WriteReview : Routes("write_review")
+    data object ManagerSupport : Routes("manager_support")
+    data object TravelerSupport : Routes("traveler_support")
+    data object BookingReview : Routes("booking_review")
+
     data object HotelDetails : Routes("hotel_details/{hotelId}") {
         fun createRoute(hotelId: String) = "hotel_details/$hotelId"
     }
@@ -36,10 +50,12 @@ sealed class Routes(val route: String) {
     }
     data object TravelerProfile : Routes("traveler_profile")
     data object ManagerDashboard : Routes("manager_dashboard")
-//    data object RegisterHotel : Routes("register_hotel")
-//    data object ManageHotel : Routes("manage_hotel/{hotelId}") {
-//        fun createRoute(hotelId: String) = "manage_hotel/$hotelId"
-//    }
+    data object MapLocation : Routes("map_location")
+    data object RegisterHotel : Routes("register_hotel")
+    data object RevenueAnalytics : Routes("revenue_analytics")
+    data object ManageHotel : Routes("manage_hotel/{hotelId}") {
+        fun createRoute(hotelId: String) = "manage_hotel/$hotelId"
+    }
     data object RoomManagement : Routes("room_management/{hotelId}") {
         fun createRoute(hotelId: String) = "room_management/$hotelId"
     }
@@ -48,6 +64,7 @@ sealed class Routes(val route: String) {
             "add_edit_room/$hotelId?roomId=${roomId ?: ""}"
     }
     data object Reservations : Routes("reservations")
+    data object HotelReviews : Routes("hotel_reviews")
     data object ReservationDetails : Routes("reservation_details/{reservationId}") {
         fun createRoute(reservationId: String) = "reservation_details/$reservationId"
     }
@@ -57,12 +74,20 @@ sealed class Routes(val route: String) {
     data object CheckOut : Routes("check_out/{reservationId}") {
         fun createRoute(reservationId: String) = "check_out/$reservationId"
     }
+    data object AddEditStaff : Routes("add_edit_staff/{staffId}") {
+        fun createRoute(staffId: String = "") = "add_edit_staff/$staffId"
+    }
     data object ManagerProfile : Routes("manager_profile")
     data object Notifications : Routes("notifications")
-//    data object MapLocation : Routes("map_location")
     data object Settings : Routes("settings")
 
     data object StaffManagement : Routes("staff_management")
     data object BookingVoucher : Routes("booking_voucher")
     data object LocalGuide : Routes("local_guide")
+    data object PrivacyTerms : Routes("privacy_terms")
+    data object ManagerSettings : Routes("manager_settings")
+    data object TravelerPaymentMethods : Routes("traveler_payment_methods")
+    data object BookingCancellation : Routes("booking_cancellation/{bookingId}") {
+        fun createRoute(bookingId: String) = "booking_cancellation/$bookingId"
+    }
 }

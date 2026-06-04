@@ -66,7 +66,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                             Icon(
                                 Icons.Filled.Menu,
                                 contentDescription = null,
@@ -84,12 +84,13 @@ fun ManagerDashboardScreen(navController: NavController) {
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(Secondary),
+                            .background(Secondary)
+                            .clickable { navController.navigate(Routes.Notifications.route) },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Outlined.Person,
-                            contentDescription = null,
+                            Icons.Outlined.Notifications,
+                            contentDescription = "Notifications",
                             tint = Color.White,
                             modifier = Modifier.size(22.dp)
                         )
@@ -111,6 +112,65 @@ fun ManagerDashboardScreen(navController: NavController) {
                         fontSize = 13.sp,
                         color = OnSurfaceSecondary
                     )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                        // ← Bouton existant — Analytics
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Primary.copy(0.1f))
+                                .clickable { navController.navigate(Routes.RevenueAnalytics.route) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.BarChart,
+                                    contentDescription = null,
+                                    tint = Secondary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "View Analytics →",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Secondary
+                                )
+                            }
+                        }
+
+                        // ← AJOUTEZ ce bouton Report
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Primary.copy(0.1f))
+                                .clickable { navController.navigate(Routes.RevenueReport.route) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Description,
+                                    contentDescription = null,
+                                    tint = Secondary,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Full Report →",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Secondary
+                                )
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
             }

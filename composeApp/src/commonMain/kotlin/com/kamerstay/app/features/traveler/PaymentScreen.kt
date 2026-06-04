@@ -502,6 +502,19 @@ fun PaymentScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        TextButton(
+                            onClick = { navController.navigate(Routes.PaymentFailed.route) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Simulate Failed Payment",
+                                fontSize = 12.sp,
+                                color = ErrorColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
                         Text(
                             text = "Cancellation is free until 24h before stay.",
                             fontSize = 12.sp,

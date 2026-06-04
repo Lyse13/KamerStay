@@ -26,7 +26,7 @@ import kotlinx.coroutines.delay
 fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
-        delay(3000)
+        delay(5000)
         navController.navigate(Routes.Welcome.route) {
             popUpTo(Routes.Splash.route) { inclusive = true }
         }
@@ -51,7 +51,7 @@ fun SplashScreen(navController: NavController) {
             .background(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        SurfaceVariant,  // centre légèrement plus clair
+                        Primary,  // centre légèrement plus clair
                         DarkNavy,           // #092031 bords
                     ),
                     radius = 1200f

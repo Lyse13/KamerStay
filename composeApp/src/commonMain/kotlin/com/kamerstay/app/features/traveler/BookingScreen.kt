@@ -120,19 +120,14 @@ fun BookingScreen(
                     }
                     Button(
                         onClick = {
-                            NavigationState.selectedBookingId = "BK-${hotel.id}-${room.id}"
-                            navController.navigate(
-                                Routes.Payment.createRoute(
-                                    NavigationState.selectedBookingId
-                                )
-                            )
+                            navController.navigate(Routes.BookingReview.route)
                         },
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Primary),
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp)
                     ) {
                         Text(
-                            text = "Confirmer & Payer",
+                            text = "Review Booking →",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = OnPrimary

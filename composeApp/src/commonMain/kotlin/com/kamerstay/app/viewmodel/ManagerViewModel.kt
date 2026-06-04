@@ -17,11 +17,31 @@ import com.kamerstay.app.data.model.DepartureGuest
 import com.kamerstay.app.data.model.ManagerRoom
 import com.kamerstay.app.data.model.Reservation
 import com.kamerstay.app.data.model.StaffMember
+import com.kamerstay.app.data.state.AddEditStaffState
+import com.kamerstay.app.data.state.AmenitiesState
+import com.kamerstay.app.data.state.AnalyticsState
+import com.kamerstay.app.data.state.ManageHotelState
+import com.kamerstay.app.data.state.ManagerPersonalInfoState
+import com.kamerstay.app.data.state.RegisterHotelState
+import com.kamerstay.app.data.state.ManagerSettingsState
+import com.kamerstay.app.data.state.RevenueReportState
+import com.kamerstay.app.data.state.SupportState
+import com.kamerstay.app.data.state.VerificationState
 
 class ManagerViewModel : ViewModel() {
     val roomFormState = RoomFormState()
     val checkInState = CheckInState()
     val checkOutState = CheckOutState()
+    val addEditStaffState = AddEditStaffState()
+    val registerHotelState = RegisterHotelState()
+    val manageHotelState = ManageHotelState()
+    val analyticsState = AnalyticsState()
+    val verificationState = VerificationState()
+    val managerPersonalInfoState = ManagerPersonalInfoState()
+    val amenitiesState = AmenitiesState()
+    val revenueReportState = RevenueReportState()
+    val supportState = SupportState()
+    val managerSettingsState = ManagerSettingsState()
 
     // ── Reservations ──────────────────────────
     var reservations by mutableStateOf<List<Reservation>>(ReservationMockData.reservations)

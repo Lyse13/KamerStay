@@ -40,7 +40,7 @@ fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkNavy)
+            .background(BackgroundLight)
     ) {
         Column(
             modifier = Modifier
@@ -83,36 +83,28 @@ fun WelcomeScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Outlined.Menu,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "MyStays",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Primary
-                        )
-                    }
-                    // Avatar
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(SurfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Person,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                    Text(
+                        text = "MyStays",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary
+                    )
+
+//                    // Avatar
+//                    Box(
+//                        modifier = Modifier
+//                            .size(38.dp)
+//                            .clip(RoundedCornerShape(50))
+//                            .background(SurfaceVariant),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Icon(
+//                            Icons.Outlined.Person,
+//                            contentDescription = null,
+//                            tint = Primary,
+//                            modifier = Modifier.size(22.dp)
+//                        )
+//                    }
                 }
 
                 // ── Hero Content ──────────────────────
@@ -149,9 +141,8 @@ fun WelcomeScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Sign In Button
                     Button(
-                        onClick = { navController.navigate(Routes.SignIn.route) },
+                        onClick = { navController.navigate(Routes.RoleSelection.route) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
@@ -160,37 +151,51 @@ fun WelcomeScreen(navController: NavController) {
                             containerColor = Primary
                         )
                     ) {
-                        Text(
-                            text = "Sign In  →",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = OnPrimary
-                        )
+                        Text("Get Started →")
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Register Button
-                    OutlinedButton(
-                        onClick = { navController.navigate(Routes.SignUp.route) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.5.dp, Primary
-                        ),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Primary
-                        )
-                    ) {
-                        Text(
-                            text = "Register",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Primary
-                        )
-                    }
+//                    // Sign In Button
+//                    Button(
+//                        onClick = { navController.navigate(Routes.SignIn.route) },
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(52.dp),
+//                        shape = RoundedCornerShape(10.dp),
+//                        colors = ButtonDefaults.buttonColors(
+//                            containerColor = Primary
+//                        )
+//                    ) {
+//                        Text(
+//                            text = "Sign In  →",
+//                            fontSize = 16.sp,
+//                            fontWeight = FontWeight.SemiBold,
+//                            color = OnPrimary
+//                        )
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(12.dp))
+//
+//                    // Register Button
+//                    OutlinedButton(
+//                        onClick = { navController.navigate(Routes.SignUp.route) },
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(52.dp),
+//                        shape = RoundedCornerShape(10.dp),
+//                        border = androidx.compose.foundation.BorderStroke(
+//                            1.5.dp, Primary
+//                        ),
+//                        colors = ButtonDefaults.outlinedButtonColors(
+//                            contentColor = Primary
+//                        )
+//                    ) {
+//                        Text(
+//                            text = "Register",
+//                            fontSize = 16.sp,
+//                            fontWeight = FontWeight.SemiBold,
+//                            color = Primary
+//                        )
+//                    }
                 }
             }
 
@@ -198,7 +203,7 @@ fun WelcomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(DarkNavy)
+                    .background(BackgroundLight)
                     .padding(horizontal = 20.dp, vertical = 24.dp)
             ) {
                 // Header
@@ -211,7 +216,7 @@ fun WelcomeScreen(navController: NavController) {
                         text = "Popular Destinations",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = TextDark
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -255,7 +260,7 @@ fun WelcomeScreen(navController: NavController) {
                 Text(
                     text = "© 2025 MyStays · Smart Hotel Booking for Cameroon",
                     fontSize = 11.sp,
-                    color = OnSurfaceSecondary.copy(alpha = 0.5f),
+                    color = DarkNavy,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )

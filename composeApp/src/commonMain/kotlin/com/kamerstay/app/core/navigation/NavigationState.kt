@@ -4,4 +4,5 @@ object NavigationState {
     var selectedHotelId: String = ""
     var selectedRoomId: String = ""
     var selectedBookingId: String = ""
+    var selectedStaffId: String = ""
 }

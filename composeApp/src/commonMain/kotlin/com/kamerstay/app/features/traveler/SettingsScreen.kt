@@ -192,6 +192,14 @@ fun SettingsScreen(navController: NavController) {
                         label = "Account Security",
                         onClick = { navController.navigate(Routes.ForgotPassword.route) }
                     )
+
+                    SettingsRowDivider()
+
+                    SettingsRowItem(
+                        icon = Icons.Outlined.Payments,
+                        label = "Payment Methods",
+                        onClick = { navController.navigate(Routes.TravelerPaymentMethods.route) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -237,22 +245,30 @@ fun SettingsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // ── Support ───────────────────────────
-                SettingsSectionHeader("SUPPORT")
+                SettingsSectionHeader("SUPPORT AND HELP")
                 Spacer(modifier = Modifier.height(8.dp))
 
                 SettingsCard {
                     SettingsRowItem(
-                        icon = Icons.Outlined.HelpOutline,
-                        label = "Help Center",
-                        onClick = { }
+                        icon = Icons.Outlined.Description,
+                        label = "Terms of Service",
+                        onClick = { navController.navigate(Routes.PrivacyTerms.route) }
                     )
 
                     SettingsRowDivider()
 
                     SettingsRowItem(
-                        icon = Icons.Outlined.Description,
-                        label = "Terms of Service",
-                        onClick = { }
+                        icon = Icons.Outlined.Shield,
+                        label = "Privacy Policy",
+                        onClick = { navController.navigate(Routes.PrivacyTerms.route) }
+                    )
+
+                    SettingsRowDivider()
+
+                    SettingsRowItem(
+                        icon = Icons.Outlined.HelpOutline,
+                        label = "Help Center",
+                        onClick = { navController.navigate(Routes.TravelerSupport.route) }
                     )
                 }
 

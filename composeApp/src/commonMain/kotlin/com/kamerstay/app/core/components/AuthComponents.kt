@@ -24,7 +24,6 @@ fun SignUpLabel(text: String) {
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
         color = TextDark,
-        modifier = Modifier.fillMaxWidth()
     )
 }
 

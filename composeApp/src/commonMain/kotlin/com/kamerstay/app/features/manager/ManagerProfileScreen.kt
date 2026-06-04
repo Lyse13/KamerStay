@@ -226,7 +226,7 @@ fun ManagerProfileScreen(navController: NavController) {
                         ManagerProfileItem(
                             icon = Icons.Outlined.Person,
                             title = "Personal Information",
-                            onClick = { }
+                            onClick = { navController.navigate(Routes.ManagerPersonalInfo.route) }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -244,7 +244,7 @@ fun ManagerProfileScreen(navController: NavController) {
                         ManagerProfileItem(
                             icon = Icons.Outlined.Payments,
                             title = "Payment Methods",
-                            onClick = { }
+                            onClick = { navController.navigate(Routes.PaymentMethods.route) }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -253,7 +253,7 @@ fun ManagerProfileScreen(navController: NavController) {
                         ManagerProfileItem(
                             icon = Icons.Outlined.Badge,
                             title = "Professional Credentials",
-                            onClick = { }
+                            onClick = { navController.navigate(Routes.ManagerVerification.route) }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
@@ -262,16 +262,30 @@ fun ManagerProfileScreen(navController: NavController) {
                         ManagerProfileItem(
                             icon = Icons.Outlined.Language,
                             title = "Language Preferences",
-                            onClick = { }
+                            onClick = { navController.navigate(Routes.ManagerSettings.route) }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             color = Divider
                         )
                         ManagerProfileItem(
+                            icon = Icons.Outlined.Hotel,
+                            title = "Hotel Amenities",
+                            onClick = { navController.navigate(Routes.HotelAmenities.route) }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = Divider
+                        )
+                        ManagerProfileItem(
+                            icon = Icons.Outlined.PrivacyTip,
+                            title = "Privacy & Terms",
+                            onClick = { navController.navigate(Routes.PrivacyTerms.route) }
+                        )
+                        ManagerProfileItem(
                             icon = Icons.Outlined.HelpOutline,
                             title = "Help & Support",
-                            onClick = { }
+                            onClick = { navController.navigate(Routes.ManagerSupport.route) }
                         )
                     }
                 }

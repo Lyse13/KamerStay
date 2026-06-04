@@ -234,19 +234,19 @@ fun TravelerProfileScreen(navController: NavController) {
                     icon = Icons.Outlined.FavoriteBorder,
                     title = "Saved Places",
                     subtitle = "Hotels and resorts you've pinned",
-                    onClick = { }
+                    onClick = { navController.navigate(Routes.Wishlist.route) }
                 )
                 TravelerProfileItem(
                     icon = Icons.Outlined.CreditCard,
                     title = "Payment Methods",
                     subtitle = "MasterCard ending in 4242",
-                    onClick = { }
+                    onClick = { navController.navigate(Routes.TravelerPaymentMethods.route) }
                 )
                 TravelerProfileItem(
                     icon = Icons.Outlined.HelpOutline,
                     title = "Help Center",
                     subtitle = "24/7 support and traveler guides",
-                    onClick = { }
+                    onClick = { navController.navigate(Routes.TravelerSupport.route) }
                 )
             }
 

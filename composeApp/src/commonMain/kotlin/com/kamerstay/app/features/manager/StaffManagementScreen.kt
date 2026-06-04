@@ -83,7 +83,7 @@ fun StaffManagementScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { },
+                onClick = { navController.navigate(Routes.AddEditStaff.createRoute()) },
                 containerColor = Secondary,
                 contentColor = Color.White,
                 shape = CircleShape

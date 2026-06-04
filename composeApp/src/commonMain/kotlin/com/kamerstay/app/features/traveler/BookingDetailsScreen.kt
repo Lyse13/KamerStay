@@ -58,7 +58,10 @@ fun BookingDetailsScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showCancelDialog = false }) {
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    navController.navigate(Routes.BookingCancellation.createRoute(bookingId))
+                }) {
                     Text("Yes, Cancel", color = ErrorColor, fontWeight = FontWeight.SemiBold)
                 }
             },
@@ -460,7 +463,7 @@ fun BookingDetailsScreen(
 
                         // Pay Deposit Button
                         Button(
-                            onClick = { },
+                            onClick = { navController.navigate(Routes.Payment.route) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),

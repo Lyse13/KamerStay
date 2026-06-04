@@ -38,6 +38,32 @@ fun ReservationDetailsScreen(
 ) {
     val viewModel = koinViewModel<ManagerViewModel>()
     val reservation = ReservationMockData.getById(reservationId)
+    var showCancelDialog by remember { mutableStateOf(false) }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("Cancel Reservation?", fontWeight = FontWeight.Bold, color = TextDark) },
+            text = {
+                Text(
+                    "Are you sure you want to cancel this reservation? The guest will be notified.",
+                    color = OnSurfaceSecondary
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text("Yes, Cancel", color = ErrorColor, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text("Keep", color = Secondary)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     Scaffold(
         containerColor = BackgroundLight,
@@ -613,7 +639,7 @@ fun ReservationDetailsScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { }
+                                .clickable { showCancelDialog = true }
                                 .padding(horizontal = 16.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {

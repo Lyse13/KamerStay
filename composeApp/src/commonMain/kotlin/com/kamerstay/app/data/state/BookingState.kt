@@ -35,6 +35,8 @@ class PaymentState {
 class SearchState {
     var query by mutableStateOf("")
     var city by mutableStateOf("")
+    var viewMode by mutableStateOf("List")
+    var destination by mutableStateOf("Abidjan, Ivory Coast")
     var minPrice by mutableStateOf(0)
     var maxPrice by mutableStateOf(500000)
     var guestCount by mutableStateOf(1)

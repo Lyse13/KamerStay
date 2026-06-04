@@ -85,7 +85,7 @@ fun LocalTravelGuideScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { },
+                onClick = { navController.navigate(Routes.MapLocation.route) },
                 containerColor = Secondary,
                 contentColor = Color.White,
                 shape = CircleShape
@@ -473,7 +473,7 @@ fun LandmarkCard(landmark: Landmark) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
-                        onClick = { },
+                        onClick = { navController.navigate(Routes.MapLocation.route) },
                         modifier = Modifier.weight(1f).height(42.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Secondary)
