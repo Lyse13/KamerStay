@@ -298,7 +298,10 @@ fun LocalTravelGuideScreen(navController: NavController) {
             }
 
             items(GuideMockData.landmarks) { landmark ->
-                LandmarkCard(landmark = landmark)
+                LandmarkCard(
+                    landmark = landmark,
+                    onGetDirections = { navController.navigate(Routes.MapLocation.route) }
+                )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -386,7 +389,7 @@ fun LocalTravelGuideScreen(navController: NavController) {
 
 // ── Landmark Card ─────────────────────────────────────────
 @Composable
-fun LandmarkCard(landmark: Landmark) {
+fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -473,7 +476,7 @@ fun LandmarkCard(landmark: Landmark) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
-                        onClick = { navController.navigate(Routes.MapLocation.route) },
+                        onClick = { onGetDirections() },
                         modifier = Modifier.weight(1f).height(42.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Secondary)
