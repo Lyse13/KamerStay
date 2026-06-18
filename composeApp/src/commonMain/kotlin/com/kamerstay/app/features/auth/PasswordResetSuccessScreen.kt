@@ -34,7 +34,7 @@ fun PasswordResetSuccessScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -51,7 +51,7 @@ fun PasswordResetSuccessScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -81,7 +81,7 @@ fun PasswordResetSuccessScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(28.dp)
                 ) {
                     Column(
@@ -127,7 +127,7 @@ fun PasswordResetSuccessScreen(navController: NavController) {
                             text = "Success!",
                             fontSize = 28.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark,
+                            color = LocalAppColors.current.textPrimary,
                             textAlign = TextAlign.Center
                         )
 
@@ -188,7 +188,7 @@ fun PasswordResetSuccessScreen(navController: NavController) {
                             },
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { navController.navigate(Routes.Welcome.route) }
                         )
                     }
                 }
@@ -222,8 +222,8 @@ fun PasswordResetSuccessScreen(navController: NavController) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "© 2024 MyStays Concierge. All travel rights reserved.",
-                        fontSize = 11.sp,
+                        text = "© 2024 KamerStay Concierge. All travel rights reserved.",
+                        fontSize = 12.sp,
                         color = OnSurfaceSecondary.copy(0.6f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -237,15 +237,20 @@ fun PasswordResetSuccessScreen(navController: NavController) {
                             .forEachIndexed { index, label ->
                                 Text(
                                     text = label,
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = Secondary,
                                     fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.clickable { }
+                                    modifier = Modifier.clickable {
+                                        when (label) {
+                                            "Privacy Policy", "Terms of Service" -> navController.navigate(Routes.PrivacyTerms.route)
+                                            "Help Center" -> navController.navigate(Routes.HelpCenter.route)
+                                        }
+                                    }
                                 )
                                 if (index < 2) {
                                     Text(
                                         "  ·  ",
-                                        fontSize = 11.sp,
+                                        fontSize = 12.sp,
                                         color = OnSurfaceSecondary.copy(0.4f)
                                     )
                                 }
@@ -267,7 +272,7 @@ fun SuccessInfoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.Top) {
@@ -291,7 +296,7 @@ fun SuccessInfoCard(
                     text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

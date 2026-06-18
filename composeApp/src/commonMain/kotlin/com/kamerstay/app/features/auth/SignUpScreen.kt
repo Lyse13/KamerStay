@@ -106,7 +106,7 @@ fun SignUpScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -131,7 +131,7 @@ fun SignUpScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "MyStays",
+                        text = "KamerStay",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -163,7 +163,7 @@ fun SignUpScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(horizontal = 24.dp, vertical = 32.dp)
             ) {
                 Column {
@@ -338,9 +338,9 @@ fun SignUpScreen(navController: NavController) {
                     // ── Create Account Button ──────────
                     Button(
                         onClick = {
-                            state.submitted = true         // ← state
+                            state.submitted = true
                             if (viewModel.validateAndSignUp()) {
-                                state.isLoading = true     // ← state
+                                state.isLoading = true
                                 navController.navigate(Routes.TravelerHome.route) {
                                     popUpTo(Routes.Welcome.route) { inclusive = true }
                                 }
@@ -398,8 +398,8 @@ fun SignUpScreen(navController: NavController) {
 
             // ── Footer ────────────────────────────────
             Text(
-                text = "© 2024 MyStays Hospitality Group. All rights reserved.",
-                fontSize = 11.sp,
+                text = "© 2024 KamerStay Hospitality Group. All rights reserved.",
+                fontSize = 12.sp,
                 color = OnSurfaceSecondary.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier

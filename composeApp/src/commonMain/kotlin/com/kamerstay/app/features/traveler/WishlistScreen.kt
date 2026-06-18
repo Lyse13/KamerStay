@@ -18,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +27,9 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
+import com.kamerstay.app.core.components.EmptyWishlist
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.data.model.WishlistHotel
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -36,36 +41,9 @@ fun WishlistScreen(navController: NavController) {
     val state = viewModel.wishlistState
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Search to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Notifications to "Alerts",
-                    Icons.Outlined.Settings to "Settings"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.Settings.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 2)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -93,7 +71,7 @@ fun WishlistScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "StayCameroon",
+                            text = APP_NAME,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -123,7 +101,7 @@ fun WishlistScreen(navController: NavController) {
                         text = "Your Wishlist",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Found ${state.favoriteCount} properties you loved",
@@ -152,50 +130,9 @@ fun WishlistScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Empty state
             if (state.hotels.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.FavoriteBorder,
-                                contentDescription = null,
-                                tint = OnSurfaceSecondary.copy(0.3f),
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Text(
-                                text = "No saved properties yet",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnSurfaceSecondary
-                            )
-                            Text(
-                                text = "Tap the heart icon on any hotel to save it here",
-                                fontSize = 13.sp,
-                                color = OnSurfaceSecondary.copy(0.6f),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                            Button(
-                                onClick = { navController.navigate(Routes.HotelSearch.route) },
-                                shape = RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                            ) {
-                                Text(
-                                    text = "Explore Hotels",
-                                    color = OnPrimary,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-                    }
+                    EmptyWishlist(onExplore = { navController.navigate(Routes.HotelSearch.route) })
                 }
             }
         }
@@ -214,7 +151,7 @@ fun WishlistHotelCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .clickable { onBook() }
     ) {
         Column {
@@ -230,6 +167,14 @@ fun WishlistHotelCard(
                         )
                     )
             ) {
+                if (hotel.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = hotel.imageUrl,
+                        contentDescription = hotel.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 // Favorite button
                 Box(
                     modifier = Modifier
@@ -237,7 +182,7 @@ fun WishlistHotelCard(
                         .padding(12.dp)
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .clickable { onFavoriteToggle() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -262,7 +207,7 @@ fun WishlistHotelCard(
                         text = hotel.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     // Rating badge
@@ -325,7 +270,7 @@ fun WishlistHotelCard(
                     Column {
                         Text(
                             text = "Price per night",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                         Text(

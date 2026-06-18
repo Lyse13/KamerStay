@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,18 +25,24 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.data.model.CurrencyOption
+import com.kamerstay.app.data.model.LanguageOption
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun SettingsScreen(navController: NavController) {
 
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var darkModeEnabled by remember { mutableStateOf(false) }
+    val viewModel = koinViewModel<TravelerViewModel>()
+    val settings = viewModel.travelerSettingsState
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // ── Logout dialog ─────────────────────────────────────
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Log Out?", fontWeight = FontWeight.Bold, color = TextDark) },
+            title = { Text("Log Out?", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = { Text("Are you sure you want to log out?", color = OnSurfaceSecondary) },
             confirmButton = {
                 Button(
@@ -56,46 +61,43 @@ fun SettingsScreen(navController: NavController) {
                     Text("Cancel", color = Secondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
+    // ── Language picker dialog ────────────────────────────
+    if (settings.showLanguagePicker) {
+        OptionsPickerDialog(
+            title = "Language",
+            options = settings.availableLanguages.map { it.label },
+            selectedOption = settings.selectedLanguage.label,
+            onSelect = { label ->
+                settings.selectedLanguage = settings.availableLanguages.first { it.label == label }
+                settings.showLanguagePicker = false
+            },
+            onDismiss = { settings.showLanguagePicker = false }
+        )
+    }
+
+    // ── Currency picker dialog ────────────────────────────
+    if (settings.showCurrencyPicker) {
+        OptionsPickerDialog(
+            title = "Currency",
+            options = settings.availableCurrencies.map { it.label },
+            selectedOption = settings.selectedCurrency.label,
+            onSelect = { label ->
+                settings.selectedCurrency = settings.availableCurrencies.first { it.label == label }
+                settings.showCurrencyPicker = false
+            },
+            onDismiss = { settings.showCurrencyPicker = false }
+        )
+    }
+
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = DeepBlue,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Search to "Search",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White,
-                            selectedTextColor = Color.White,
-                            indicatorColor = Color.White.copy(0.15f),
-                            unselectedIconColor = Color.White.copy(0.5f),
-                            unselectedTextColor = Color.White.copy(0.5f)
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 3)
         }
     ) { paddingValues ->
         Column(
@@ -125,7 +127,7 @@ fun SettingsScreen(navController: NavController) {
                         text = "Settings",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
                 Icon(
@@ -143,7 +145,7 @@ fun SettingsScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Row(
@@ -169,7 +171,7 @@ fun SettingsScreen(navController: NavController) {
                                 text = "Jean-Pierre Dupont",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "Premium Member",
@@ -188,13 +190,11 @@ fun SettingsScreen(navController: NavController) {
 
                 SettingsCard {
                     SettingsRowItem(
-                        icon = Icons.Outlined.Shield,
-                        label = "Account Security",
-                        onClick = { navController.navigate(Routes.ForgotPassword.route) }
+                        icon = Icons.Outlined.Lock,
+                        label = "Change Password",
+                        onClick = { navController.navigate(Routes.ChangePassword.route) }
                     )
-
                     SettingsRowDivider()
-
                     SettingsRowItem(
                         icon = Icons.Outlined.Payments,
                         label = "Payment Methods",
@@ -212,24 +212,24 @@ fun SettingsScreen(navController: NavController) {
                     SettingsRowWithValue(
                         icon = Icons.Outlined.Language,
                         label = "Language",
-                        value = "English"
-                    ) { }
+                        value = settings.selectedLanguage.label
+                    ) { settings.showLanguagePicker = true }
 
                     SettingsRowDivider()
 
                     SettingsRowWithValue(
                         icon = Icons.Outlined.Payments,
                         label = "Currency",
-                        value = "USD (\$)"
-                    ) { }
+                        value = settings.selectedCurrency.label
+                    ) { settings.showCurrencyPicker = true }
 
                     SettingsRowDivider()
 
                     SettingsToggleRow(
                         icon = Icons.Outlined.Notifications,
                         label = "Push Notifications",
-                        checked = notificationsEnabled,
-                        onToggle = { notificationsEnabled = it }
+                        checked = settings.notificationsEnabled,
+                        onToggle = { settings.notificationsEnabled = it }
                     )
 
                     SettingsRowDivider()
@@ -237,8 +237,8 @@ fun SettingsScreen(navController: NavController) {
                     SettingsToggleRow(
                         icon = Icons.Outlined.DarkMode,
                         label = "Dark Mode",
-                        checked = darkModeEnabled,
-                        onToggle = { darkModeEnabled = it }
+                        checked = settings.darkModeEnabled,
+                        onToggle = { settings.darkModeEnabled = it }
                     )
                 }
 
@@ -254,17 +254,13 @@ fun SettingsScreen(navController: NavController) {
                         label = "Terms of Service",
                         onClick = { navController.navigate(Routes.PrivacyTerms.route) }
                     )
-
                     SettingsRowDivider()
-
                     SettingsRowItem(
                         icon = Icons.Outlined.Shield,
                         label = "Privacy Policy",
                         onClick = { navController.navigate(Routes.PrivacyTerms.route) }
                     )
-
                     SettingsRowDivider()
-
                     SettingsRowItem(
                         icon = Icons.Outlined.HelpOutline,
                         label = "Help Center",
@@ -309,13 +305,82 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
+// ── Options picker dialog (langue / devise) ───────────────
+@Composable
+fun OptionsPickerDialog(
+    title: String,
+    options: List<String>,
+    selectedOption: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = LocalAppColors.current.surface,
+        shape = RoundedCornerShape(16.dp),
+        title = {
+            Text(
+                text = title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = LocalAppColors.current.textPrimary
+            )
+        },
+        text = {
+            Column {
+                options.forEach { option ->
+                    val isSelected = option == selectedOption
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isSelected) Primary.copy(0.08f) else Color.Transparent)
+                            .clickable { onSelect(option) }
+                            .padding(horizontal = 12.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = option,
+                            fontSize = 15.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) Secondary else LocalAppColors.current.textPrimary
+                        )
+                        if (isSelected) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(Primary),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = OnSurfaceSecondary)
+            }
+        }
+    )
+}
+
 // ── Settings Components ───────────────────────────────────
 
 @Composable
 fun SettingsSectionHeader(text: String) {
     Text(
         text = text,
-        fontSize = 11.sp,
+        fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
         color = OnSurfaceSecondary,
         letterSpacing = 1.sp
@@ -328,7 +393,7 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
     ) { content() }
 }
 
@@ -365,25 +430,11 @@ fun SettingsRowItem(
                     .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = Secondary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
             }
-            Text(
-                text = label,
-                fontSize = 15.sp,
-                color = TextDark
-            )
+            Text(text = label, fontSize = 15.sp, color = LocalAppColors.current.textPrimary)
         }
-        Icon(
-            Icons.Outlined.ChevronRight,
-            contentDescription = null,
-            tint = OnSurfaceSecondary,
-            modifier = Modifier.size(18.dp)
-        )
+        Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = OnSurfaceSecondary, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -413,34 +464,16 @@ fun SettingsRowWithValue(
                     .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = Secondary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
             }
-            Text(
-                text = label,
-                fontSize = 15.sp,
-                color = TextDark
-            )
+            Text(text = label, fontSize = 15.sp, color = LocalAppColors.current.textPrimary)
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = value,
-                fontSize = 14.sp,
-                color = OnSurfaceSecondary
-            )
-            Icon(
-                Icons.Outlined.ChevronRight,
-                contentDescription = null,
-                tint = OnSurfaceSecondary,
-                modifier = Modifier.size(16.dp)
-            )
+            Text(text = value, fontSize = 14.sp, color = OnSurfaceSecondary)
+            Icon(Icons.Outlined.ChevronRight, contentDescription = null, tint = OnSurfaceSecondary, modifier = Modifier.size(16.dp))
         }
     }
 }
@@ -470,18 +503,9 @@ fun SettingsToggleRow(
                     .background(Primary.copy(0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = Secondary,
-                    modifier = Modifier.size(20.dp)
-                )
+                Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
             }
-            Text(
-                text = label,
-                fontSize = 15.sp,
-                color = TextDark
-            )
+            Text(text = label, fontSize = 15.sp, color = LocalAppColors.current.textPrimary)
         }
         Switch(
             checked = checked,

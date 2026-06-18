@@ -26,13 +26,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import com.kamerstay.app.core.components.HotelCardSkeleton
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.model.Hotel
 import com.kamerstay.app.viewmodel.TravelerViewModel
+import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -42,6 +47,12 @@ fun TravelerHomeScreen(navController: NavController) {
     val state = viewModel.searchState
     val hotels = viewModel.hotels
 
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(1200L)
+        isLoading = false
+    }
+
     val featuredCities = listOf(
         "Douala" to listOf(Color(0xFF1A2A3A), Color(0xFF0D1A28)),
         "Yaoundé" to listOf(Color(0xFF1A3A2E), Color(0xFF0D2218)),
@@ -50,47 +61,16 @@ fun TravelerHomeScreen(navController: NavController) {
     )
 
     val filterChips = listOf(
-        Icons.Outlined.Verified to "Verified Hotels",
-        Icons.Outlined.Place to "Near Landmarks",
-        Icons.Outlined.Hotel to "Suites",
-        Icons.Outlined.Pool to "With Pool"
+        Triple(Icons.Outlined.Verified, "Verified Hotels",  { viewModel.filterState.clearAll(); viewModel.filterState.isVerifiedOnly = true }),
+        Triple(Icons.Outlined.Place,    "Near Landmarks",   { viewModel.filterState.clearAll(); viewModel.filterState.selectedLandmark = "City Center" }),
+        Triple(Icons.Outlined.Hotel,    "Suites",           { viewModel.filterState.clearAll(); viewModel.filterState.selectedPropertyType = "Suite" }),
+        Triple(Icons.Outlined.Pool,     "With Pool",        { viewModel.filterState.clearAll(); viewModel.filterState.selectedAmenities = setOf("Pool") })
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Search to "Search",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 0,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 0)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -120,7 +100,7 @@ fun TravelerHomeScreen(navController: NavController) {
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -152,7 +132,7 @@ fun TravelerHomeScreen(navController: NavController) {
                         text = "Where are you going?",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
                 Spacer(modifier = Modifier.height(14.dp))
@@ -165,7 +145,7 @@ fun TravelerHomeScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .border(1.dp, Divider, RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -184,7 +164,7 @@ fun TravelerHomeScreen(navController: NavController) {
                             viewModel.searchHotels()
                         },
                         modifier = Modifier.weight(1f),
-                        textStyle = TextStyle(fontSize = 14.sp, color = TextDark),
+                        textStyle = TextStyle(fontSize = 14.sp, color = LocalAppColors.current.textPrimary),
                         decorationBox = { inner ->
                             if (state.query.isEmpty()) {
                                 Text(
@@ -201,7 +181,7 @@ fun TravelerHomeScreen(navController: NavController) {
                         modifier = Modifier
                             .size(38.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(BackgroundLight)
+                            .background(LocalAppColors.current.background)
                             .clickable { navController.navigate(Routes.Filter.route) },
                         contentAlignment = Alignment.Center
                     ) {
@@ -222,12 +202,15 @@ fun TravelerHomeScreen(navController: NavController) {
                     contentPadding = PaddingValues(horizontal = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(filterChips) { (icon, label) ->
+                    items(filterChips) { (icon, label, applyFilter) ->
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(Secondary)
-                                .clickable { navController.navigate(Routes.HotelSearch.route) }
+                                .clickable {
+                                    applyFilter()
+                                    navController.navigate(Routes.HotelSearch.route)
+                                }
                                 .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Row(
@@ -266,7 +249,7 @@ fun TravelerHomeScreen(navController: NavController) {
                         text = "Featured Cities",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "View All",
@@ -415,22 +398,33 @@ fun TravelerHomeScreen(navController: NavController) {
                         text = "Recommended for you",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
-                        text = "Sort by Price",
+                        text = when (viewModel.priceSortAscending) {
+                            true  -> "Price ↑"
+                            false -> "Price ↓"
+                            null  -> "Sort by Price"
+                        },
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         color = Secondary,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { viewModel.togglePriceSort() }
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            items(hotels.take(3)) { hotel ->
+            if (isLoading) {
+                items(3) {
+                    HotelCardSkeleton()
+                    Spacer(Modifier.height(16.dp))
+                }
+            } else items(viewModel.displayedHotels.take(3)) { hotel ->
                 HomeHotelCard(
                     hotel = hotel,
+                    isInWishlist = viewModel.wishlistState.isInWishlist(hotel.id),
+                    onFavoriteToggle = { viewModel.wishlistState.toggleFromHotel(hotel) },
                     onClick = {
                         NavigationState.selectedHotelId = hotel.id
                         navController.navigate(
@@ -446,13 +440,13 @@ fun TravelerHomeScreen(navController: NavController) {
 
 // ── Home Hotel Card ───────────────────────────────────────
 @Composable
-fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
+fun HomeHotelCard(hotel: Hotel, isInWishlist: Boolean, onFavoriteToggle: () -> Unit, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .clickable { onClick() }
     ) {
         Column {
@@ -468,6 +462,15 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                         )
                     )
             ) {
+                val heroUrl = hotel.imageUrls.firstOrNull() ?: ""
+                if (heroUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = heroUrl,
+                        contentDescription = hotel.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 // Verified badge
                 if (hotel.isVerified) {
                     Box(
@@ -489,7 +492,7 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                             )
                             Text(
                                 text = "Verified",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = OnPrimary
                             )
@@ -504,12 +507,12 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                         .padding(10.dp)
                         .size(34.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
-                        .clickable { },
+                        .background(LocalAppColors.current.surface)
+                        .clickable { onFavoriteToggle() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Outlined.FavoriteBorder,
+                        if (isInWishlist) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = null,
                         tint = ErrorColor,
                         modifier = Modifier.size(16.dp)
@@ -528,7 +531,7 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                         text = hotel.name,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -547,7 +550,7 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                             text = hotel.rating.toString(),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -585,12 +588,12 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(BackgroundLight)
+                                    .background(LocalAppColors.current.background)
                                     .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
                                     text = amenity,
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = OnSurfaceSecondary
                                 )
                             }
@@ -615,11 +618,11 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                             text = "${hotel.pricePerNight.toInt()} FCFA",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "per night",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                     }
@@ -638,52 +641,6 @@ fun HomeHotelCard(hotel: Hotel, onClick: () -> Unit) {
                     }
                 }
             }
-        }
-    }
-}
-
-// ── Traveler Bottom Nav ───────────────────────────────────
-@Composable
-fun TravelerBottomNav(
-    navController: NavController,
-    currentRoute: String
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp
-    ) {
-        listOf(
-            Triple("home", "Home", Icons.Outlined.Home to Icons.Filled.Home),
-            Triple("search", "Search", Icons.Outlined.Search to Icons.Filled.Search),
-            Triple("bookings", "Bookings", Icons.Outlined.BookOnline to Icons.Filled.BookOnline),
-            Triple("profile", "Profile", Icons.Outlined.Person to Icons.Filled.Person)
-        ).forEach { (route, label, icons) ->
-            val (unselected, selected) = icons
-            NavigationBarItem(
-                selected = currentRoute == route,
-                onClick = {
-                    when (route) {
-                        "home" -> navController.navigate(Routes.TravelerHome.route)
-                        "search" -> navController.navigate(Routes.HotelSearch.route)
-                        "bookings" -> navController.navigate(Routes.BookingHistory.route)
-                        "profile" -> navController.navigate(Routes.TravelerProfile.route)
-                    }
-                },
-                icon = {
-                    Icon(
-                        if (currentRoute == route) selected else unselected,
-                        contentDescription = label
-                    )
-                },
-                label = { Text(label, fontSize = 11.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Secondary,
-                    selectedTextColor = Secondary,
-                    indicatorColor = Primary.copy(0.15f),
-                    unselectedIconColor = OnSurfaceSecondary,
-                    unselectedTextColor = OnSurfaceSecondary
-                )
-            )
         }
     }
 }

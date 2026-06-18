@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +30,7 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.DashboardMockData
 import com.kamerstay.app.data.model.RecentActivity
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun ManagerDashboardScreen(navController: NavController) {
@@ -36,8 +39,10 @@ fun ManagerDashboardScreen(navController: NavController) {
     val barHeights = DashboardMockData.revenueBarHeights
 
     Scaffold(
-        containerColor = BackgroundLight,
-        bottomBar = { ManagerBottomNav(navController, currentRoute = "dashboard") },
+        containerColor = LocalAppColors.current.background,
+        bottomBar = {
+            ManagerBottomNavBar(navController = navController, currentRoute = "dashboard")
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate(Routes.AddEditRoom.createRoute("1")) },
@@ -74,7 +79,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -85,7 +90,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             .size(42.dp)
                             .clip(CircleShape)
                             .background(Secondary)
-                            .clickable { navController.navigate(Routes.Notifications.route) },
+                            .clickable { navController.navigate(Routes.ManagerNotifications.route) },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -105,7 +110,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         text = "Hello, Manager",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Here's what's happening at your property today.",
@@ -170,6 +175,32 @@ fun ManagerDashboardScreen(navController: NavController) {
                                 )
                             }
                         }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFF57C00).copy(0.1f))
+                                .clickable { navController.navigate(Routes.Promotions.route) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.LocalOffer,
+                                    contentDescription = null,
+                                    tint = Color(0xFFF57C00),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Promotions →",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFFF57C00)
+                                )
+                            }
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
@@ -182,7 +213,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     Column {
@@ -235,7 +266,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             text = "\$4,280",
                             fontSize = 30.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -346,7 +377,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -379,7 +410,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                                     text = "90%",
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Occupancy",
@@ -441,7 +472,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         text = "Recent Activity",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "View all",
@@ -463,7 +494,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         activities.forEachIndexed { index, activity ->
@@ -491,7 +522,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(16.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -515,7 +546,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                                     text = "12",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Rooms to clean",
@@ -531,7 +562,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(16.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -555,7 +586,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                                     text = "45",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Breakfasts served",
@@ -586,6 +617,12 @@ fun ManagerDashboardScreen(navController: NavController) {
                             )
                         )
                 ) {
+                    AsyncImage(
+                        model = "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&fit=crop&auto=format",
+                        contentDescription = "Grand Vista Hotel",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -644,7 +681,7 @@ fun ActivityRow(activity: RecentActivity) {
                 text = activity.title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = TextDark,
+                color = LocalAppColors.current.textPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -667,7 +704,7 @@ fun ActivityRow(activity: RecentActivity) {
             ) {
                 Text(
                     text = activity.badge,
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = activity.badgeTextColor
                 )
@@ -675,54 +712,8 @@ fun ActivityRow(activity: RecentActivity) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = activity.time,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 color = OnSurfaceSecondary
-            )
-        }
-    }
-}
-
-// ── Manager Bottom Nav ────────────────────────────────────
-@Composable
-fun ManagerBottomNav(
-    navController: NavController,
-    currentRoute: String
-) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp
-    ) {
-        listOf(
-            Triple("dashboard", "Overview", Icons.Outlined.Dashboard to Icons.Filled.Dashboard),
-            Triple("rooms", "Rooms", Icons.Outlined.Hotel to Icons.Filled.Hotel),
-            Triple("reservations", "Reservations", Icons.Outlined.BookOnline to Icons.Filled.BookOnline),
-            Triple("profile", "Profile", Icons.Outlined.Person to Icons.Filled.Person)
-        ).forEach { (route, label, icons) ->
-            val (unselected, selected) = icons
-            NavigationBarItem(
-                selected = currentRoute == route,
-                onClick = {
-                    when (route) {
-                        "dashboard" -> navController.navigate(Routes.ManagerDashboard.route)
-                        "rooms" -> navController.navigate(Routes.RoomManagement.createRoute("1"))
-                        "reservations" -> navController.navigate(Routes.Reservations.route)
-                        "profile" -> navController.navigate(Routes.ManagerProfile.route)
-                    }
-                },
-                icon = {
-                    Icon(
-                        if (currentRoute == route) selected else unselected,
-                        contentDescription = label
-                    )
-                },
-                label = { Text(label, fontSize = 11.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Secondary,
-                    selectedTextColor = Secondary,
-                    indicatorColor = Primary.copy(0.15f),
-                    unselectedIconColor = OnSurfaceSecondary,
-                    unselectedTextColor = OnSurfaceSecondary
-                )
             )
         }
     }

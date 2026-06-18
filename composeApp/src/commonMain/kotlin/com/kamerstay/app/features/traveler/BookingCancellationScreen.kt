@@ -42,12 +42,12 @@ fun BookingCancellationScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .navigationBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -89,7 +89,7 @@ fun BookingCancellationScreen(
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Secondary)
                 }
-                Text("Cancel Booking", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text("Cancel Booking", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
             }
 
             Column(
@@ -125,11 +125,11 @@ fun BookingCancellationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("BOOKING SUMMARY", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
+                        Text("BOOKING SUMMARY", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
                         HorizontalDivider(color = Divider)
                         CancellationRow("Booking ID", state.summary.bookingId)
                         CancellationRow("Hotel", state.summary.hotelName)
@@ -139,7 +139,7 @@ fun BookingCancellationScreen(
                         CancellationRow("Guests", state.summary.guests)
                         HorizontalDivider(color = Divider)
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Total Paid", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            Text("Total Paid", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
                             Text(state.summary.totalPaid, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Secondary)
                         }
                     }
@@ -150,11 +150,11 @@ fun BookingCancellationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("CANCELLATION POLICY", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
+                        Text("CANCELLATION POLICY", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
                         HorizontalDivider(color = Divider)
                         state.policies.forEach { policy ->
                             val (icon, color) = when (policy.type) {
@@ -172,17 +172,17 @@ fun BookingCancellationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("REFUND ESTIMATE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
+                        Text("REFUND ESTIMATE", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
                         HorizontalDivider(color = Divider)
                         CancellationRow("Amount paid", state.refund.totalPaid)
                         CancellationRow(state.refund.feeLabel, state.refund.cancellationFee)
                         HorizontalDivider(color = Divider)
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Estimated refund", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            Text("Estimated refund", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
                             Text(state.refund.estimatedRefund, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, color = Primary)
                         }
                         Text(state.refund.refundNote, fontSize = 12.sp, color = OnSurfaceSecondary, lineHeight = 16.sp)
@@ -201,8 +201,8 @@ private fun CancellationSuccessContent(navController: NavController, refundAmoun
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
-            .padding(horizontal = 40.dp),
+            .background(LocalAppColors.current.background)
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -218,21 +218,63 @@ private fun CancellationSuccessContent(navController: NavController, refundAmoun
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("Booking Cancelled", fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, color = TextDark, textAlign = TextAlign.Center)
+        Text(
+            "Booking Cancelled",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = LocalAppColors.current.textPrimary,
+            textAlign = TextAlign.Center
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Your booking has been cancelled. A refund of $refundAmount will be processed within 5-7 business days.",
+            text = "Your booking has been cancelled. A refund of $refundAmount will be processed to your original payment method.",
             fontSize = 14.sp,
             color = OnSurfaceSecondary,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Refund highlight pill
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(Primary.copy(0.1f))
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Outlined.Payments, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+                Text(
+                    text = "Refund: $refundAmount",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Primary
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(36.dp))
 
         Button(
+            onClick = { navController.navigate(Routes.RefundTracking.route) },
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Primary)
+        ) {
+            Icon(Icons.Outlined.TrackChanges, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Track My Refund", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedButton(
             onClick = {
                 navController.navigate(Routes.BookingHistory.route) {
                     popUpTo(Routes.BookingHistory.route) { inclusive = true }
@@ -240,9 +282,10 @@ private fun CancellationSuccessContent(navController: NavController, refundAmoun
             },
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Secondary)
+            border = androidx.compose.foundation.BorderStroke(1.dp, Secondary),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Secondary)
         ) {
-            Text("Back to Bookings", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text("Back to Bookings", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Secondary)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -262,7 +305,7 @@ private fun CancellationSuccessContent(navController: NavController, refundAmoun
 private fun CancellationRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, fontSize = 14.sp, color = OnSurfaceSecondary)
-        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalAppColors.current.textPrimary)
     }
 }
 
@@ -270,6 +313,6 @@ private fun CancellationRow(label: String, value: String) {
 private fun PolicyItem(icon: ImageVector, iconColor: Color, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(18.dp))
-        Text(text, fontSize = 13.sp, color = TextDark, lineHeight = 18.sp, modifier = Modifier.weight(1f))
+        Text(text, fontSize = 13.sp, color = LocalAppColors.current.textPrimary, lineHeight = 18.sp, modifier = Modifier.weight(1f))
     }
 }

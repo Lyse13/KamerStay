@@ -30,11 +30,47 @@ import com.kamerstay.app.data.model.StaffMember
 import com.kamerstay.app.data.model.StaffStatus
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.EmptyStaffList
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 @Composable
 fun StaffManagementScreen(navController: NavController) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
     var searchQuery by remember { mutableStateOf("") }
+    var staffToDelete by remember { mutableStateOf<StaffMember?>(null) }
+
+    if (staffToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { staffToDelete = null },
+            title = {
+                Text(
+                    "Remove staff member?",
+                    fontWeight = FontWeight.Bold,
+                    color = LocalAppColors.current.textPrimary
+                )
+            },
+            text = {
+                Text(
+                    "${staffToDelete!!.name} will be permanently removed from the team.",
+                    color = OnSurfaceSecondary
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { staffToDelete = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Remove", color = Color.White) }
+            },
+            dismissButton = {
+                TextButton(onClick = { staffToDelete = null }) {
+                    Text("Cancel", color = OnSurfaceSecondary)
+                }
+            },
+            containerColor = LocalAppColors.current.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     val staff = StaffMockData.staffMembers.filter { member ->
         searchQuery.isEmpty() ||
@@ -43,43 +79,9 @@ fun StaffManagementScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Login to "Check-in",
-                    Icons.Outlined.Logout to "Check-out",
-                    Icons.Outlined.People to "Staff"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.Reservations.route)
-                                1 -> navController.navigate(
-                                    Routes.CheckIn.createRoute("")
-                                )
-                                2 -> navController.navigate(
-                                    Routes.CheckOut.createRoute("")
-                                )
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "profile")
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -120,14 +122,14 @@ fun StaffManagementScreen(navController: NavController) {
                             text = "Reservation Management",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                         Icon(
                             Icons.Outlined.MoreVert,
                             contentDescription = null,
-                            tint = TextDark
+                            tint = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -156,7 +158,7 @@ fun StaffManagementScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(24.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .border(1.dp, Divider, RoundedCornerShape(24.dp))
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -172,7 +174,7 @@ fun StaffManagementScreen(navController: NavController) {
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(fontSize = 14.sp, color = TextDark),
+                            textStyle = TextStyle(fontSize = 14.sp, color = LocalAppColors.current.textPrimary),
                             decorationBox = { inner ->
                                 if (searchQuery.isEmpty()) {
                                     Text(
@@ -233,13 +235,21 @@ fun StaffManagementScreen(navController: NavController) {
             }
 
             // ── Staff Cards ───────────────────────────
-            items(staff) { member ->
-                StaffCard(
-                    member = member,
-                    onEdit = { },
-                    onDetails = { }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+            if (staff.isEmpty()) {
+                item {
+                    EmptyStaffList(
+                        onAdd = { navController.navigate(Routes.AddEditStaff.createRoute()) }
+                    )
+                }
+            } else {
+                items(staff) { member ->
+                    StaffCard(
+                        member = member,
+                        onEdit = { navController.navigate(Routes.AddEditStaff.createRoute()) },
+                        onDelete = { staffToDelete = member }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
 
             // ── Add New Member ────────────────────────
@@ -254,8 +264,8 @@ fun StaffManagementScreen(navController: NavController) {
                             Divider,
                             RoundedCornerShape(16.dp)
                         )
-                        .background(Color.White)
-                        .clickable { }
+                        .background(LocalAppColors.current.surface)
+                        .clickable { navController.navigate(Routes.AddEditStaff.createRoute()) }
                         .padding(28.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -271,7 +281,7 @@ fun StaffManagementScreen(navController: NavController) {
                             text = "Add New Member",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -287,19 +297,19 @@ fun StaffStatCard(
     label: String,
     value: String,
     dotColor: Color?,
-    valueColor: Color = TextDark,
+    valueColor: Color = LocalAppColors.current.textPrimary,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(14.dp)
     ) {
         Column {
             Text(
                 text = label,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = OnSurfaceSecondary,
                 letterSpacing = 0.5.sp
@@ -331,7 +341,7 @@ fun StaffStatCard(
 fun StaffCard(
     member: StaffMember,
     onEdit: () -> Unit,
-    onDetails: () -> Unit
+    onDelete: () -> Unit
 ) {
     val statusColor = when (member.status) {
         StaffStatus.ACTIVE -> Primary
@@ -350,7 +360,7 @@ fun StaffCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column {
@@ -401,7 +411,7 @@ fun StaffCard(
                         text = member.name,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Box(
@@ -412,7 +422,7 @@ fun StaffCard(
                     ) {
                         Text(
                             text = member.role,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary,
                             letterSpacing = 0.5.sp
@@ -438,8 +448,16 @@ fun StaffCard(
                 IconButton(onClick = onEdit) {
                     Icon(
                         Icons.Outlined.Edit,
-                        contentDescription = null,
+                        contentDescription = "Edit",
                         tint = OnSurfaceSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Outlined.DeleteOutline,
+                        contentDescription = "Delete",
+                        tint = ErrorColor,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -450,25 +468,12 @@ fun StaffCard(
                 color = Divider
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = statusLabel,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = statusColor
-                )
-                Text(
-                    text = "Details",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = OnSurfaceSecondary,
-                    modifier = Modifier.clickable { onDetails() }
-                )
-            }
+            Text(
+                text = statusLabel,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = statusColor
+            )
         }
     }
 }

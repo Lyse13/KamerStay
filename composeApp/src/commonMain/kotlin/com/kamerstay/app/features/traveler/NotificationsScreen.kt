@@ -24,53 +24,22 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.NotificationsMockData
 import com.kamerstay.app.data.model.AppNotification
 import com.kamerstay.app.data.model.NotificationType
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun NotificationsScreen(navController: NavController) {
 
     val viewModel = koinViewModel<TravelerViewModel>()
-    val newCount = NotificationsMockData.todayNotifications.count { !it.isRead }
+    val newCount = viewModel.todayNotifications.count { !it.isRead }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Search to "Search",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = -1)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -90,7 +59,7 @@ fun NotificationsScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.TravelerProfile.route) }) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = null,
@@ -98,24 +67,18 @@ fun NotificationsScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Primary.copy(0.1f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Notifications,
-                            contentDescription = null,
-                            tint = Secondary,
-                            modifier = Modifier.size(22.dp)
+                    TextButton(onClick = { viewModel.markAllNotificationsRead() }) {
+                        Text(
+                            text = "Mark all read",
+                            fontSize = 13.sp,
+                            color = if (newCount > 0) Primary else OnSurfaceSecondary,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
@@ -128,7 +91,7 @@ fun NotificationsScreen(navController: NavController) {
                         text = "Notifications",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Stay updated with your latest booking activity",
@@ -173,10 +136,18 @@ fun NotificationsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(10.dp))
             }
 
-            items(NotificationsMockData.todayNotifications) { notification ->
+            items(viewModel.todayNotifications) { notification ->
                 NotificationItem(
                     notification = notification,
-                    onAction = { }
+                    onAction = {
+                        when (notification.type) {
+                            NotificationType.BOOKING   -> navController.navigate(Routes.BookingHistory.route)
+                            NotificationType.CHECK_IN  -> navController.navigate(Routes.BookingHistory.route)
+                            NotificationType.PAYMENT   -> navController.navigate(Routes.TravelerPaymentMethods.route)
+                            NotificationType.PROMO     -> navController.navigate(Routes.HotelSearch.route)
+                            NotificationType.ALERT     -> navController.navigate(Routes.BookingHistory.route)
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -188,16 +159,24 @@ fun NotificationsScreen(navController: NavController) {
                     text = "Earlier",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark,
+                    color = LocalAppColors.current.textPrimary,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
 
-            items(NotificationsMockData.earlierNotifications) { notification ->
+            items(viewModel.earlierNotifications) { notification ->
                 NotificationItem(
                     notification = notification,
-                    onAction = { }
+                    onAction = {
+                        when (notification.type) {
+                            NotificationType.BOOKING   -> navController.navigate(Routes.BookingHistory.route)
+                            NotificationType.CHECK_IN  -> navController.navigate(Routes.BookingHistory.route)
+                            NotificationType.PAYMENT   -> navController.navigate(Routes.TravelerPaymentMethods.route)
+                            NotificationType.PROMO     -> navController.navigate(Routes.HotelSearch.route)
+                            NotificationType.ALERT     -> navController.navigate(Routes.BookingHistory.route)
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
             }
@@ -238,6 +217,7 @@ fun NotificationsScreen(navController: NavController) {
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(20.dp))
                                     .background(Primary)
+                                    .clickable { navController.navigate(Routes.TravelerProfile.route) }
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Text(
@@ -307,7 +287,7 @@ fun NotificationItem(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .then(
                 if (notification.isAlert) Modifier.border(
                     1.dp, ErrorColor.copy(0.3f), RoundedCornerShape(14.dp)
@@ -348,12 +328,12 @@ fun NotificationItem(
                             text = notification.title,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (notification.isAlert) ErrorColor else TextDark,
+                            color = if (notification.isAlert) ErrorColor else LocalAppColors.current.textPrimary,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
                             text = notification.time,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                     }

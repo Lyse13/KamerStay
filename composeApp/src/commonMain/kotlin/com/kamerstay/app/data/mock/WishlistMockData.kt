@@ -13,7 +13,8 @@ object WishlistMockData {
             region = "Littoral",
             rating = 4.9,
             pricePerNight = 85000,
-            gradientColors = listOf(Color(0xFF0D4A6A), Color(0xFF1A2A3A))
+            gradientColors = listOf(Color(0xFF0D4A6A), Color(0xFF1A2A3A)),
+            imageUrl = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&fit=crop&auto=format"
         ),
         WishlistHotel(
             id = "2",
@@ -22,7 +23,8 @@ object WishlistMockData {
             region = "Centre",
             rating = 4.7,
             pricePerNight = 120000,
-            gradientColors = listOf(Color(0xFF1A3A2E), Color(0xFF0D2218))
+            gradientColors = listOf(Color(0xFF1A3A2E), Color(0xFF0D2218)),
+            imageUrl = "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&fit=crop&auto=format"
         ),
         WishlistHotel(
             id = "3",
@@ -31,7 +33,8 @@ object WishlistMockData {
             region = "South",
             rating = 4.8,
             pricePerNight = 65000,
-            gradientColors = listOf(Color(0xFF2A1A0D), Color(0xFF1A0D06))
+            gradientColors = listOf(Color(0xFF2A1A0D), Color(0xFF1A0D06)),
+            imageUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&fit=crop&auto=format"
         )
     )
 }

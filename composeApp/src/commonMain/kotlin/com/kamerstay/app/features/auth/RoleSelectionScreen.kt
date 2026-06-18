@@ -24,13 +24,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 
 @Composable
 fun RoleSelectionScreen(navController: NavController) {
 
     var selectedRole by remember { mutableStateOf("") }
 
-    Scaffold(containerColor = BackgroundLight) { paddingValues ->
+    Scaffold(containerColor = LocalAppColors.current.background) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -62,7 +63,7 @@ fun RoleSelectionScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    text = "Terroir Travel",
+                    text = APP_NAME,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -77,7 +78,7 @@ fun RoleSelectionScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(24.dp)
             ) {
                 Column {
@@ -86,7 +87,7 @@ fun RoleSelectionScreen(navController: NavController) {
                         text = "Welcome to the future of hospitality.",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -109,7 +110,7 @@ fun RoleSelectionScreen(navController: NavController) {
                         text = "Choose your path",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Select an account type to get started.",
@@ -181,7 +182,7 @@ fun RoleSelectionScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "By continuing, you agree to Terroir Travel's Terms of Service and Privacy Policy.",
+                        text = "By continuing, you agree to $APP_NAME's Terms of Service and Privacy Policy.",
                         fontSize = 12.sp,
                         color = OnSurfaceSecondary,
                         textAlign = TextAlign.Center,
@@ -248,7 +249,7 @@ fun RoleOptionCard(
                     text = title,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

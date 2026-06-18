@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.ImageUploadCard
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -56,7 +57,7 @@ fun AddEditRoomScreen(navController: NavController) {
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         topBar = {
             // ── Top Bar ───────────────────────────────
             Row(
@@ -136,7 +137,7 @@ fun AddEditRoomScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(16.dp)
             ) {
                 Column {
@@ -144,7 +145,7 @@ fun AddEditRoomScreen(navController: NavController) {
                         text = "Room Photos",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -207,37 +208,14 @@ fun AddEditRoomScreen(navController: NavController) {
                             }
 
                             // Add More
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(72.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .border(
-                                        1.5.dp,
-                                        Primary.copy(0.5f),
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .background(Primary.copy(0.05f))
-                                    .clickable { },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.AddAPhoto,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Text(
-                                        text = "Add More",
-                                        fontSize = 10.sp,
-                                        color = Primary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-                            }
+                            var roomImagePicked by remember { mutableStateOf(false) }
+                            ImageUploadCard(
+                                imagePicked = roomImagePicked,
+                                onPickImage = { roomImagePicked = true },
+                                onRemoveImage = { roomImagePicked = false },
+                                label = "Add photo",
+                                compact = true // ← c'est tout !
+                            )
                         }
                     }
                 }
@@ -249,7 +227,7 @@ fun AddEditRoomScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(16.dp)
             ) {
                 Column {
@@ -257,7 +235,7 @@ fun AddEditRoomScreen(navController: NavController) {
                         text = "Room Identification",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -311,7 +289,7 @@ fun AddEditRoomScreen(navController: NavController) {
                         DropdownMenu(
                             expanded = showCategoryDropdown,
                             onDismissRequest = { showCategoryDropdown = false },
-                            modifier = Modifier.background(Color.White)
+                            modifier = Modifier.background(LocalAppColors.current.surface)
                         ) {
                             categories.forEach { category ->
                                 DropdownMenuItem(
@@ -319,7 +297,7 @@ fun AddEditRoomScreen(navController: NavController) {
                                         Text(
                                             text = category,
                                             color = if (state.category == category)
-                                                Primary else TextDark
+                                                Primary else LocalAppColors.current.textPrimary
                                         )
                                     },
                                     onClick = {
@@ -375,7 +353,7 @@ fun AddEditRoomScreen(navController: NavController) {
                             text = "Pricing & Status",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Box(
                             modifier = Modifier
@@ -402,7 +380,7 @@ fun AddEditRoomScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(horizontal = 16.dp, vertical = 14.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -419,7 +397,7 @@ fun AddEditRoomScreen(navController: NavController) {
                                 textStyle = androidx.compose.ui.text.TextStyle(
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 ),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Color.Transparent,
@@ -443,7 +421,7 @@ fun AddEditRoomScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         Row(
@@ -456,7 +434,7 @@ fun AddEditRoomScreen(navController: NavController) {
                                     text = "Instant Booking",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Guests don't need approval",
@@ -483,7 +461,7 @@ fun AddEditRoomScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(16.dp)
             ) {
                 Column {
@@ -491,7 +469,7 @@ fun AddEditRoomScreen(navController: NavController) {
                         text = "Amenities",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -626,7 +604,7 @@ fun RoomFormLabel(text: String) {
         text = text,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
-        color = TextDark
+        color = LocalAppColors.current.textPrimary
     )
 }
 
@@ -634,9 +612,9 @@ fun RoomFormLabel(text: String) {
 fun roomTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Primary,
     unfocusedBorderColor = Color(0xFFDDE4EA),
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
     cursorColor = Primary
 )

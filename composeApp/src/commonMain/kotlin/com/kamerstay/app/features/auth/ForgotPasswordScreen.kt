@@ -45,7 +45,7 @@ fun ForgotPasswordScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -67,7 +67,7 @@ fun ForgotPasswordScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -118,7 +118,7 @@ fun ForgotPasswordScreen(navController: NavController) {
                     text = "Forgot Password",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark,
+                    color = LocalAppColors.current.textPrimary,
                     textAlign = TextAlign.Center
                 )
 
@@ -222,9 +222,9 @@ fun ForgotPasswordScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "© 2024 MyStays Hospitality Group",
-                    fontSize = 11.sp,
-                    color = OnSurfaceSecondary.copy(0.4f),
+                    text = "© 2024 KamerStay Hospitality Group",
+                    fontSize = 12.sp,
+                    color = OnSurfaceSecondary.copy(0.7f),
                     textAlign = TextAlign.Center
                 )
 

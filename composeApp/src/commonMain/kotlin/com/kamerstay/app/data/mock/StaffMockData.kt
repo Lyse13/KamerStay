@@ -8,30 +8,30 @@ object StaffMockData {
     val staffMembers = listOf(
         StaffMember(
             id = "1",
-            name = "Elena Rodriguez",
-            role = "RECEPTIONIST",
-            shift = "Shift: 08:00 - 16:00",
+            name = "Brigitte Owona",
+            role = "RÉCEPTIONNISTE",
+            shift = "Équipe : 08:00 - 16:00",
             status = StaffStatus.ACTIVE
         ),
         StaffMember(
             id = "2",
-            name = "Marcus Chen",
-            role = "HOUSEKEEPING",
-            shift = "On Break: 12:30 - 13:30",
+            name = "Boris Tankeu",
+            role = "ENTRETIEN",
+            shift = "Pause : 12:30 - 13:30",
             status = StaffStatus.AWAY
         ),
         StaffMember(
             id = "3",
-            name = "Sarah Jenkins",
-            role = "SECURITY",
-            shift = "Shift: 14:00 - 22:00",
+            name = "Sylvie Fonkam",
+            role = "SÉCURITÉ",
+            shift = "Équipe : 14:00 - 22:00",
             status = StaffStatus.ACTIVE
         ),
         StaffMember(
             id = "4",
-            name = "James Wilson",
-            role = "MANAGEMENT",
-            shift = "Shift: 09:00 - 18:00",
+            name = "Jean-Claude Wamba",
+            role = "DIRECTION",
+            shift = "Équipe : 09:00 - 18:00",
             status = StaffStatus.ACTIVE
         ),
     )

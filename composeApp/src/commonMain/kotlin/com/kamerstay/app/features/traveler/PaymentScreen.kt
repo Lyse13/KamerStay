@@ -45,20 +45,21 @@ fun PaymentScreen(
 ) {
     val viewModel = koinViewModel<TravelerViewModel>()
     val state = viewModel.paymentState
+    val bookingState = viewModel.bookingState
 
     val hotel = MockData.getHotelById(NavigationState.selectedHotelId)
         ?: MockData.hotels.first()
     val room = MockData.rooms.find { it.id == NavigationState.selectedRoomId }
         ?: MockData.rooms.first()
 
-    val nights = 3
+    val nights = bookingState.nights.takeIf { it > 0 } ?: 1
     val roomTotal = room.pricePerNight * nights
     val serviceFee = roomTotal * 0.068
     val totalAmount = roomTotal + serviceFee
     val depositAmount = totalAmount * 0.30
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         topBar = {
             Row(
                 modifier = Modifier
@@ -75,46 +76,13 @@ fun PaymentScreen(
                     )
                 }
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
                 )
             }
         },
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Filled.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
-        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -128,7 +96,7 @@ fun PaymentScreen(
                     text = "Confirm & Pay",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = "Secure your reservation with a partial deposit.",
@@ -145,7 +113,7 @@ fun PaymentScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(16.dp)
             ) {
                 Column {
@@ -153,7 +121,7 @@ fun PaymentScreen(
                         text = "Mobile Money",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -190,7 +158,7 @@ fun PaymentScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(16.dp)
             ) {
                 Column {
@@ -203,7 +171,7 @@ fun PaymentScreen(
                             text = "Credit / Debit Card",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Icon(
                             Icons.Outlined.CreditCard,
@@ -244,8 +212,8 @@ fun PaymentScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Primary,
                             unfocusedBorderColor = Divider,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = LocalAppColors.current.surface,
+                            unfocusedContainerColor = LocalAppColors.current.surface,
                             cursorColor = Primary
                         ),
                         keyboardOptions = KeyboardOptions(
@@ -278,8 +246,8 @@ fun PaymentScreen(
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Primary,
                                     unfocusedBorderColor = Divider,
-                                    focusedContainerColor = Color.White,
-                                    unfocusedContainerColor = Color.White,
+                                    focusedContainerColor = LocalAppColors.current.surface,
+                                    unfocusedContainerColor = LocalAppColors.current.surface,
                                     cursorColor = Primary
                                 ),
                                 keyboardOptions = KeyboardOptions(
@@ -307,8 +275,8 @@ fun PaymentScreen(
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Primary,
                                     unfocusedBorderColor = Divider,
-                                    focusedContainerColor = Color.White,
-                                    unfocusedContainerColor = Color.White,
+                                    focusedContainerColor = LocalAppColors.current.surface,
+                                    unfocusedContainerColor = LocalAppColors.current.surface,
                                     cursorColor = Primary
                                 ),
                                 keyboardOptions = KeyboardOptions(
@@ -329,7 +297,7 @@ fun PaymentScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
             ) {
                 Column {
                     // Hotel image
@@ -373,14 +341,14 @@ fun PaymentScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "$nights nights × \$${room.pricePerNight.toInt()}.00",
+                                text = "$nights ${if (nights == 1) "nuit" else "nuits"} × ${room.pricePerNight.toInt()} FCFA",
                                 fontSize = 14.sp,
                                 color = OnSurfaceSecondary
                             )
                             Text(
-                                text = "\$${roomTotal.toInt()}.00",
+                                text = "${roomTotal.toInt()} FCFA",
                                 fontSize = 14.sp,
-                                color = TextDark,
+                                color = LocalAppColors.current.textPrimary,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -392,14 +360,14 @@ fun PaymentScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Service fee",
+                                text = "Frais de service (6.8%)",
                                 fontSize = 14.sp,
                                 color = OnSurfaceSecondary
                             )
                             Text(
-                                text = "\$${formatPrice(serviceFee)}",
+                                text = "${serviceFee.toInt()} FCFA",
                                 fontSize = 14.sp,
-                                color = TextDark,
+                                color = LocalAppColors.current.textPrimary,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -411,17 +379,17 @@ fun PaymentScreen(
 
                         // Total
                         Text(
-                            text = "TOTAL PRICE",
-                            fontSize = 11.sp,
+                            text = "TOTAL TTC",
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = OnSurfaceSecondary,
                             letterSpacing = 0.5.sp
                         )
                         Text(
-                            text = "\$${formatPrice(totalAmount)}",
+                            text = "${totalAmount.toInt()} FCFA",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -441,19 +409,19 @@ fun PaymentScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = "Pay Deposit Now (30%)",
+                                        text = "Acompte à payer (30%)",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                     Text(
-                                        text = "Balance due at check-in",
+                                        text = "Solde dû au check-in",
                                         fontSize = 12.sp,
                                         color = OnSurfaceSecondary
                                     )
                                 }
                                 Text(
-                                    text = "\$${formatPrice(depositAmount)}",
+                                    text = "${depositAmount.toInt()} FCFA",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Secondary
@@ -467,7 +435,7 @@ fun PaymentScreen(
                         Button(
                             onClick = {
                                 state.isLoading = true
-                                navController.navigate(Routes.BookingConfirmation.route) {
+                                navController.navigate(Routes.BookingConfirmation.createRoute(bookingId)) {
                                     popUpTo(Routes.TravelerHome.route)
                                 }
                             },
@@ -492,7 +460,7 @@ fun PaymentScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Pay \$${formatPrice(depositAmount)}",
+                                    text = "Payer ${depositAmount.toInt()} FCFA",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = Color.White
@@ -534,7 +502,7 @@ fun PaymentScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(BackgroundLight)
+                    .background(LocalAppColors.current.background)
                     .padding(14.dp)
             ) {
                 Row(
@@ -548,7 +516,7 @@ fun PaymentScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = "Your payment information is encrypted and processed securely by MyStays.",
+                        text = "Your payment information is encrypted and processed securely by KamerStay.",
                         fontSize = 12.sp,
                         color = OnSurfaceSecondary,
                         lineHeight = 17.sp
@@ -607,7 +575,7 @@ fun MobileMoneyOption(
                 text = name,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             Text(
                 text = subtitle,

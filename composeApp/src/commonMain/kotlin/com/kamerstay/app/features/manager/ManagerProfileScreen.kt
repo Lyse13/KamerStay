@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.ManagerViewModel
@@ -35,10 +36,15 @@ fun ManagerProfileScreen(navController: NavController) {
     val viewModel = koinViewModel<ManagerViewModel>()
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    val managerName = viewModel.managerPersonalInfoState.fullName
+    val managerInitials = managerName.trim().split("\\s+".toRegex())
+        .filter { it.isNotEmpty() }.take(2)
+        .joinToString("") { it.first().uppercaseChar().toString() }
+
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = TextDark) },
+            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = { Text("Are you sure you want to sign out?", color = OnSurfaceSecondary) },
             confirmButton = {
                 Button(
@@ -57,14 +63,14 @@ fun ManagerProfileScreen(navController: NavController) {
                     Text("Cancel", color = Secondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
-        bottomBar = { ManagerBottomNav(navController, currentRoute = "profile") }
+        containerColor = LocalAppColors.current.background,
+        bottomBar = { ManagerBottomNavBar(navController, currentRoute = "profile") }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -82,7 +88,7 @@ fun ManagerProfileScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { navController.navigate(Routes.ManagerDashboard.route) }) {
                         Icon(
                             Icons.Outlined.Menu,
                             contentDescription = null,
@@ -105,7 +111,7 @@ fun ManagerProfileScreen(navController: NavController) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "AB",
+                        text = managerInitials,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -131,7 +137,7 @@ fun ManagerProfileScreen(navController: NavController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "AB",
+                            text = managerInitials,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Secondary
@@ -151,7 +157,7 @@ fun ManagerProfileScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Amina B.",
+                    text = managerName,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Secondary
@@ -220,7 +226,7 @@ fun ManagerProfileScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         ManagerProfileItem(
@@ -372,7 +378,7 @@ fun ManagerProfileItem(
             text = title,
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
-            color = TextDark,
+            color = LocalAppColors.current.textPrimary,
             modifier = Modifier.weight(1f)
         )
         Icon(

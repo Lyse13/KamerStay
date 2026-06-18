@@ -31,14 +31,30 @@ import com.kamerstay.app.data.mock.ReservationMockData
 import com.kamerstay.app.data.model.Reservation
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.EmptyReservationsSearch
+import com.kamerstay.app.core.components.ManagerBottomNavBar
+import com.kamerstay.app.core.components.ReservationCardSkeleton
+import kotlinx.coroutines.delay
+
+private const val MODE_LIST = "list"
+private const val MODE_CALENDAR = "calendar"
 
 
 @Composable
 fun ReservationsScreen(navController: NavController) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(1000L)
+        isLoading = false
+    }
+    var viewMode by remember { mutableStateOf(MODE_LIST) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Filters") }
+    var calendarMonth by remember { mutableStateOf(10) }
+    var calendarYear by remember { mutableStateOf(2024) }
+    var selectedCalendarDay by remember { mutableStateOf<Int?>(null) }
 
     val filters = listOf("Filters", "Today", "This Week")
 
@@ -50,38 +66,9 @@ fun ReservationsScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Filled.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "reservations")
         }
     ) { paddingValues ->
         LazyColumn(
@@ -109,7 +96,7 @@ fun ReservationsScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -146,21 +133,63 @@ fun ReservationsScreen(navController: NavController) {
             // ── Header ────────────────────────────────
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "Reservations",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
-                    )
-                    Text(
-                        text = "Manage upcoming guest stays and check-ins",
-                        fontSize = 13.sp,
-                        color = OnSurfaceSecondary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Reservations",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = LocalAppColors.current.textPrimary
+                            )
+                            Text(
+                                text = "Manage upcoming guest stays",
+                                fontSize = 13.sp,
+                                color = OnSurfaceSecondary
+                            )
+                        }
+
+                        // ── View toggle List / Calendar ───
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(LocalAppColors.current.surface)
+                        ) {
+                            listOf(
+                                MODE_LIST to Icons.Outlined.FormatListBulleted,
+                                MODE_CALENDAR to Icons.Outlined.CalendarViewMonth
+                            ).forEach { (mode, icon) ->
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(
+                                            if (viewMode == mode) Secondary
+                                            else Color.Transparent
+                                        )
+                                        .clickable {
+                                            viewMode = mode
+                                            selectedCalendarDay = null
+                                        }
+                                        .padding(10.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        icon,
+                                        contentDescription = mode,
+                                        tint = if (viewMode == mode) Color.White else OnSurfaceSecondary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Stats
+                    // Stats cards
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -169,20 +198,16 @@ fun ReservationsScreen(navController: NavController) {
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
+                                .background(LocalAppColors.current.surface)
                                 .padding(14.dp)
                         ) {
                             Column {
+                                Text("Total Bookings", fontSize = 12.sp, color = OnSurfaceSecondary)
                                 Text(
-                                    text = "Total Bookings",
-                                    fontSize = 12.sp,
-                                    color = OnSurfaceSecondary
-                                )
-                                Text(
-                                    text = "124",
+                                    "124",
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -190,20 +215,16 @@ fun ReservationsScreen(navController: NavController) {
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White)
+                                .background(LocalAppColors.current.surface)
                                 .padding(14.dp)
                         ) {
                             Column {
+                                Text("Pending Approval", fontSize = 12.sp, color = OnSurfaceSecondary)
                                 Text(
-                                    text = "Pending Approval",
-                                    fontSize = 12.sp,
-                                    color = OnSurfaceSecondary
-                                )
-                                Text(
-                                    text = "12",
+                                    "12",
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -212,125 +233,164 @@ fun ReservationsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // ── Search ────────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White)
-                        .border(1.dp, Divider, RoundedCornerShape(24.dp))
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = null,
-                        tint = OnSurfaceSecondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(fontSize = 14.sp, color = TextDark),
-                        decorationBox = { inner ->
-                            if (searchQuery.isEmpty()) {
-                                Text(
-                                    "Search guests, room types, or ID...",
-                                    fontSize = 14.sp,
-                                    color = OnSurfaceSecondary.copy(0.5f)
-                                )
-                            }
-                            inner()
-                        }
-                    )
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            // ── Filter Chips ──────────────────────────
-            item {
-                Row(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    filters.forEach { filter ->
-                        val isSelected = selectedFilter == filter
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(
-                                    if (isSelected) Secondary else Color.White
-                                )
-                                .border(
-                                    if (!isSelected) 1.dp else 0.dp,
-                                    Divider,
-                                    RoundedCornerShape(20.dp)
-                                )
-                                .clickable { selectedFilter = filter }
-                                .padding(horizontal = 16.dp, vertical = 9.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                if (filter == "Filters") {
-                                    Icon(
-                                        Icons.Outlined.FilterList,
-                                        contentDescription = null,
-                                        tint = if (isSelected) Color.White else OnSurfaceSecondary,
-                                        modifier = Modifier.size(14.dp)
+            if (viewMode == MODE_LIST) {
+                // ── Search ────────────────────────────────
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(LocalAppColors.current.surface)
+                            .border(1.dp, Divider, RoundedCornerShape(24.dp))
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Search,
+                            contentDescription = null,
+                            tint = OnSurfaceSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        BasicTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = TextStyle(fontSize = 14.sp, color = LocalAppColors.current.textPrimary),
+                            decorationBox = { inner ->
+                                if (searchQuery.isEmpty()) {
+                                    Text(
+                                        "Search guests, room types, or ID...",
+                                        fontSize = 14.sp,
+                                        color = OnSurfaceSecondary.copy(0.5f)
                                     )
                                 }
-                                Text(
-                                    text = filter,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = if (isSelected) Color.White else TextDark
-                                )
+                                inner()
+                            }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // ── Filter Chips ──────────────────────────
+                item {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        filters.forEach { filter ->
+                            val isSelected = selectedFilter == filter
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(if (isSelected) Secondary else Color.White)
+                                    .border(if (!isSelected) 1.dp else 0.dp, Divider, RoundedCornerShape(20.dp))
+                                    .clickable { selectedFilter = filter }
+                                    .padding(horizontal = 16.dp, vertical = 9.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    if (filter == "Filters") {
+                                        Icon(
+                                            Icons.Outlined.FilterList,
+                                            contentDescription = null,
+                                            tint = if (isSelected) Color.White else OnSurfaceSecondary,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = filter,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (isSelected) Color.White else LocalAppColors.current.textPrimary
+                                    )
+                                }
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-                Spacer(modifier = Modifier.height(20.dp))
-            }
 
-            // ── Reservation Cards ─────────────────────
-            items(reservations) { reservation ->
-                ReservationCard(
-                    reservation = reservation,
-                    onDetails = {
-                        navController.navigate(
-                            Routes.ReservationDetails.createRoute(reservation.id)
+                // ── Reservation Cards ─────────────────────
+                if (isLoading) {
+                    items(3) {
+                        ReservationCardSkeleton()
+                        Spacer(Modifier.height(16.dp))
+                    }
+                } else if (reservations.isEmpty()) {
+                    item {
+                        EmptyReservationsSearch(
+                            searchQuery = searchQuery,
+                            onClearSearch = { searchQuery = "" }
                         )
-                    },
-                    onApprove = { }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+                    }
+                } else {
+                    items(reservations) { reservation ->
+                        ReservationCard(
+                            reservation = reservation,
+                            onDetails = {
+                                navController.navigate(Routes.ReservationDetails.createRoute(reservation.id))
+                            },
+                            onApprove = { },
+                            onMessage = {
+                                navController.navigate(Routes.ReservationDetails.createRoute(reservation.id))
+                            },
+                            onMore = {
+                                navController.navigate(Routes.ReservationDetails.createRoute(reservation.id))
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
 
-            // ── Load More ─────────────────────────────
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.Outlined.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = OnSurfaceSecondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Load more reservations",
-                        fontSize = 13.sp,
-                        color = OnSurfaceSecondary
+                // ── Load More ─────────────────────────────
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Outlined.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = OnSurfaceSecondary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Load more reservations", fontSize = 13.sp, color = OnSurfaceSecondary)
+                    }
+                }
+
+            } else {
+                // ── Calendar view ─────────────────────────
+                item {
+                    ReservationCalendarView(
+                        entries = ReservationMockData.calendarEntries,
+                        totalRooms = ReservationMockData.totalRooms,
+                        month = calendarMonth,
+                        year = calendarYear,
+                        selectedDay = selectedCalendarDay,
+                        onDaySelected = { selectedCalendarDay = it },
+                        onPrevMonth = {
+                            if (calendarMonth == 1) {
+                                calendarMonth = 12; calendarYear--
+                            } else {
+                                calendarMonth--
+                            }
+                            selectedCalendarDay = null
+                        },
+                        onNextMonth = {
+                            if (calendarMonth == 12) {
+                                calendarMonth = 1; calendarYear++
+                            } else {
+                                calendarMonth++
+                            }
+                            selectedCalendarDay = null
+                        }
                     )
                 }
             }
@@ -343,7 +403,9 @@ fun ReservationsScreen(navController: NavController) {
 fun ReservationCard(
     reservation: Reservation,
     onDetails: () -> Unit,
-    onApprove: () -> Unit
+    onApprove: () -> Unit,
+    onMessage: () -> Unit = {},
+    onMore: () -> Unit = {}
 ) {
     val isPending = reservation.status == "Pending"
 
@@ -352,7 +414,7 @@ fun ReservationCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
     ) {
         Column {
             // Room image
@@ -377,7 +439,7 @@ fun ReservationCard(
                 ) {
                     Text(
                         text = reservation.roomTag,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = OnPrimary
                     )
@@ -399,7 +461,7 @@ fun ReservationCard(
                     text = reservation.guestName,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = reservation.bookingId,
@@ -431,7 +493,7 @@ fun ReservationCard(
                         text = "${reservation.checkIn} - ${reservation.checkOut}",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
                 Text(
@@ -484,8 +546,8 @@ fun ReservationCard(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .border(1.dp, Divider, CircleShape)
-                                .background(Color.White)
-                                .clickable { },
+                                .background(LocalAppColors.current.surface)
+                                .clickable { onMessage() },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -504,8 +566,8 @@ fun ReservationCard(
                                     .size(40.dp)
                                     .clip(CircleShape)
                                     .border(1.dp, Divider, CircleShape)
-                                    .background(Color.White)
-                                    .clickable { },
+                                    .background(LocalAppColors.current.surface)
+                                    .clickable { onMore() },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -545,7 +607,7 @@ fun ReservationCard(
                                 1.dp, Divider
                             ),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = TextDark
+                                contentColor = LocalAppColors.current.textPrimary
                             ),
                             contentPadding = PaddingValues(
                                 horizontal = 20.dp,
@@ -556,7 +618,7 @@ fun ReservationCard(
                                 text = "Details",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
                     }

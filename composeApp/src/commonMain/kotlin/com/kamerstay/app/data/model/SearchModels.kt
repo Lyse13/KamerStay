@@ -11,5 +11,6 @@ data class SearchHotelResult(
     val amenities: List<String>,
     val isVerified: Boolean = false,
     val isFavorite: Boolean = false,
-    val gradientColors: List<androidx.compose.ui.graphics.Color>
+    val gradientColors: List<androidx.compose.ui.graphics.Color>,
+    val imageUrl: String = ""
 )

@@ -23,7 +23,7 @@ fun SignUpLabel(text: String) {
         text = text,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
-        color = TextDark,
+        color = LocalAppColors.current.textPrimary,
     )
 }
 
@@ -34,10 +34,10 @@ fun authTextFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedBorderColor = Color(0xFFDDE4EA),
     focusedLabelColor = Primary,
     cursorColor = Primary,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
 )
 
 // ── SignUp TextField Colors ───────────────────────────────
@@ -47,10 +47,10 @@ fun signUpTextFieldColors(isError: Boolean) = OutlinedTextFieldDefaults.colors(
     unfocusedBorderColor = if (isError) ErrorColor.copy(0.5f) else Color(0xFFDDE4EA),
     focusedLabelColor = if (isError) ErrorColor else Primary,
     cursorColor = if (isError) ErrorColor else Primary,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
     errorBorderColor = ErrorColor,
     errorContainerColor = ErrorColor.copy(0.04f)
 )
@@ -133,7 +133,7 @@ fun PasswordRequirements(password: String) {
                 Text(
                     text = text,
                     fontSize = 12.sp,
-                    color = if (met) TextDark else OnSurfaceSecondary
+                    color = if (met) LocalAppColors.current.textPrimary else OnSurfaceSecondary
                 )
             }
         }

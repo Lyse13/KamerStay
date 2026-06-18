@@ -30,6 +30,7 @@ import com.kamerstay.app.data.model.PaymentMethod
 import com.kamerstay.app.data.model.PaymentMethodType
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun PaymentMethodsScreen(navController: NavController) {
@@ -38,7 +39,7 @@ fun PaymentMethodsScreen(navController: NavController) {
     val state = viewModel.paymentMethodsState
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { state.showAddDialog = true },
@@ -54,35 +55,7 @@ fun PaymentMethodsScreen(navController: NavController) {
             }
         },
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Dashboard to "Dashboard",
-                    Icons.Outlined.Hotel to "Rooms",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                1 -> navController.navigate(Routes.RoomManagement.createRoute("1"))
-                                2 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 10.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "profile")
         }
     ) { paddingValues ->
         Column(
@@ -101,7 +74,7 @@ fun PaymentMethodsScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                         Icon(
                             Icons.Outlined.Menu,
                             contentDescription = null,
@@ -138,7 +111,7 @@ fun PaymentMethodsScreen(navController: NavController) {
                     text = "Payment Methods",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = "Manage your payout accounts and linked business cards for hotel operations.",
@@ -169,7 +142,7 @@ fun PaymentMethodsScreen(navController: NavController) {
                         ) {
                             Text(
                                 text = "PRIMARY PAYOUT",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = Color.White.copy(0.7f),
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.8.sp
@@ -263,7 +236,7 @@ fun PaymentMethodsScreen(navController: NavController) {
                 // ── Secondary Methods ─────────────────
                 Text(
                     text = "SECONDARY METHODS",
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Primary,
                     letterSpacing = 1.sp
@@ -316,7 +289,7 @@ fun PaymentMethodsScreen(navController: NavController) {
                             text = "Add New Payment Method",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -346,7 +319,7 @@ fun PaymentMethodsScreen(navController: NavController) {
                                 text = "About Payouts",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
@@ -378,7 +351,7 @@ fun PaymentMethodRow(method: PaymentMethod) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Row(
@@ -409,7 +382,7 @@ fun PaymentMethodRow(method: PaymentMethod) {
                         text = method.name,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = method.detail,

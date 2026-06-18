@@ -26,51 +26,37 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.EmptySearchResults
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.SearchResultsMockData
 import com.kamerstay.app.data.model.SearchHotelResult
 import com.kamerstay.app.viewmodel.TravelerViewModel
+import coil3.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun HotelSearchScreen(navController: NavController) {
 
-    val viewModel = koinViewModel<TravelerViewModel>()
-    val state = viewModel.searchState
+    val viewModel     = koinViewModel<TravelerViewModel>()
+    val state         = viewModel.searchState
+    val filterState   = viewModel.filterState
+    val hasActiveFilters = filterState.hasActiveFilters
+
+    val filteredHotels = SearchResultsMockData.hotels.filter { hotel ->
+        filterState.hotelMatches(hotel.pricePerNight, hotel.rating, hotel.amenities, hotel.isVerified) &&
+        (state.destination.isBlank() ||
+         hotel.name.contains(state.destination, ignoreCase = true) ||
+         hotel.location.contains(state.destination, ignoreCase = true))
+    }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 1)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -98,20 +84,31 @@ fun HotelSearchScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
                         )
                     }
-                    Icon(
-                        Icons.Outlined.Tune,
-                        contentDescription = null,
-                        tint = Secondary,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { navController.navigate(Routes.Filter.route) }
-                    )
+                    Box {
+                        Icon(
+                            Icons.Outlined.Tune,
+                            contentDescription = null,
+                            tint = Secondary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable { navController.navigate(Routes.Filter.route) }
+                        )
+                        if (hasActiveFilters) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(ErrorColor)
+                                    .align(Alignment.TopEnd)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -122,7 +119,7 @@ fun HotelSearchScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(28.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .border(1.dp, Divider, RoundedCornerShape(28.dp))
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
@@ -150,7 +147,7 @@ fun HotelSearchScreen(navController: NavController) {
                                 },
                                 textStyle = TextStyle(
                                     fontSize = 15.sp,
-                                    color = TextDark,
+                                    color = LocalAppColors.current.textPrimary,
                                     fontWeight = FontWeight.SemiBold
                                 ),
                                 decorationBox = { inner ->
@@ -165,22 +162,31 @@ fun HotelSearchScreen(navController: NavController) {
                                 }
                             )
                         }
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Primary.copy(0.1f))
-                                .clickable {
-                                    navController.navigate(Routes.Filter.route)
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Outlined.Tune,
-                                contentDescription = null,
-                                tint = Secondary,
-                                modifier = Modifier.size(18.dp)
-                            )
+                        Box {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(if (hasActiveFilters) Primary.copy(0.2f) else Primary.copy(0.1f))
+                                    .clickable { navController.navigate(Routes.Filter.route) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Tune,
+                                    contentDescription = null,
+                                    tint = if (hasActiveFilters) Primary else Secondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            if (hasActiveFilters) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(9.dp)
+                                        .clip(CircleShape)
+                                        .background(ErrorColor)
+                                        .align(Alignment.TopEnd)
+                                )
+                            }
                         }
                     }
                 }
@@ -198,21 +204,22 @@ fun HotelSearchScreen(navController: NavController) {
                 ) {
                     Column {
                         Text(
-                            text = "${SearchResultsMockData.totalResults} Hotels",
+                            text = "${filteredHotels.size} Hôtel${if (filteredHotels.size > 1) "s" else ""}",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark,
+                            color = LocalAppColors.current.textPrimary,
                             lineHeight = 30.sp
                         )
                         Text(
-                            text = "Found",
+                            text = "Trouvé${if (filteredHotels.size > 1) "s" else ""}",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark,
+                            color = LocalAppColors.current.textPrimary,
                             lineHeight = 30.sp
                         )
                         Text(
-                            text = "Top stays in Abidjan",
+                            text = if (state.destination.isNotBlank()) "Résultats pour « ${state.destination} »"
+                                   else "Meilleurs séjours à Douala",
                             fontSize = 13.sp,
                             color = OnSurfaceSecondary
                         )
@@ -222,7 +229,7 @@ fun HotelSearchScreen(navController: NavController) {
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .border(1.dp, Divider, RoundedCornerShape(20.dp))
                             .padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -273,58 +280,28 @@ fun HotelSearchScreen(navController: NavController) {
             }
 
             // ── Hotel Cards ───────────────────────────
-            items(SearchResultsMockData.hotels) { hotel ->
+            items(filteredHotels) { hotel ->
                 SearchResultCard(
                     hotel = hotel,
+                    isInWishlist = viewModel.wishlistState.isInWishlist(hotel.id),
                     onClick = {
                         NavigationState.selectedHotelId = hotel.id
                         navController.navigate(
                             Routes.HotelDetails.createRoute(hotel.id)
                         )
                     },
-                    onFavorite = { }
+                    onFavorite = { viewModel.wishlistState.toggleFromSearchResult(hotel) }
                 )
                 Spacer(modifier = Modifier.height(14.dp))
             }
 
             // ── No Result ─────────────────────────────
             item {
-                if (SearchResultsMockData.hotels.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.SearchOff,
-                                contentDescription = null,
-                                tint = OnSurfaceSecondary.copy(0.3f),
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Text(
-                                text = "No properties found",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextDark
-                            )
-                            Button(
-                                onClick = {
-                                    navController.navigate(Routes.NoResult.route)
-                                },
-                                shape = RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Secondary
-                                )
-                            ) {
-                                Text("See suggestions", color = Color.White)
-                            }
-                        }
-                    }
+                if (filteredHotels.isEmpty()) {
+                    EmptySearchResults(
+                        query = state.destination,
+                        onClearSearch = { navController.navigate(Routes.NoResult.route) }
+                    )
                 }
             }
 
@@ -337,6 +314,7 @@ fun HotelSearchScreen(navController: NavController) {
 @Composable
 fun SearchResultCard(
     hotel: SearchHotelResult,
+    isInWishlist: Boolean,
     onClick: () -> Unit,
     onFavorite: () -> Unit
 ) {
@@ -345,7 +323,7 @@ fun SearchResultCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .clickable { onClick() }
     ) {
         Column {
@@ -355,10 +333,16 @@ fun SearchResultCard(
                     .fillMaxWidth()
                     .height(200.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .background(
-                        brush = Brush.verticalGradient(colors = hotel.gradientColors)
-                    )
+                    .background(brush = Brush.verticalGradient(colors = hotel.gradientColors))
             ) {
+                if (hotel.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = hotel.imageUrl,
+                        contentDescription = hotel.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 // Verified badge
                 if (hotel.isVerified) {
                     Box(
@@ -381,7 +365,7 @@ fun SearchResultCard(
                             )
                             Text(
                                 text = "Verified",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = OnPrimary
                             )
@@ -396,12 +380,12 @@ fun SearchResultCard(
                         .padding(10.dp)
                         .size(34.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .clickable { onFavorite() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Outlined.FavoriteBorder,
+                        if (isInWishlist) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = null,
                         tint = ErrorColor,
                         modifier = Modifier.size(16.dp)
@@ -420,7 +404,7 @@ fun SearchResultCard(
                         text = hotel.name,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -439,7 +423,7 @@ fun SearchResultCard(
                             text = hotel.rating.toString(),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -476,7 +460,7 @@ fun SearchResultCard(
                         ) {
                             Text(
                                 text = amenity,
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = OnSurfaceSecondary,
                                 fontWeight = FontWeight.Medium
                             )

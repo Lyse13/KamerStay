@@ -30,6 +30,7 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.model.DepartureGuest
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun CheckOutScreen(
@@ -40,11 +41,13 @@ fun CheckOutScreen(
     val departures = viewModel.departures
 
     var searchQuery by remember { mutableStateOf("") }
+    var currentPage by remember { mutableStateOf(1) }
+    val totalPages = 3
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -70,7 +73,7 @@ fun CheckOutScreen(
                         )
                     }
                     Text(
-                        text = "MyStays",
+                        text = "KamerStay",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -91,7 +94,7 @@ fun CheckOutScreen(
                     text = "Today's Departures",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = "Review pending check-outs and finalize guest balances.",
@@ -107,7 +110,7 @@ fun CheckOutScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .border(1.dp, Divider, RoundedCornerShape(20.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -122,7 +125,7 @@ fun CheckOutScreen(
                             text = "Oct 24, 2023",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -135,13 +138,13 @@ fun CheckOutScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
                         Text(
                             text = "TOTAL DEPARTURES",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary,
                             letterSpacing = 0.5.sp,
                             fontWeight = FontWeight.SemiBold
@@ -151,7 +154,7 @@ fun CheckOutScreen(
                                 text = "24",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
@@ -171,13 +174,13 @@ fun CheckOutScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
                         Text(
                             text = "COMPLETED",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary,
                             letterSpacing = 0.5.sp,
                             fontWeight = FontWeight.SemiBold
@@ -187,7 +190,7 @@ fun CheckOutScreen(
                                 text = "16",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
@@ -207,7 +210,7 @@ fun CheckOutScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .drawBehind {
                             drawRect(
                                 color = ErrorColor,
@@ -219,7 +222,7 @@ fun CheckOutScreen(
                     Column {
                         Text(
                             text = "PENDING BALANCE",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary,
                             letterSpacing = 0.5.sp,
                             fontWeight = FontWeight.SemiBold
@@ -255,7 +258,7 @@ fun CheckOutScreen(
                     Column {
                         Text(
                             text = "ROOM READINESS",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnPrimary.copy(0.7f),
                             letterSpacing = 0.5.sp,
                             fontWeight = FontWeight.SemiBold
@@ -290,7 +293,7 @@ fun CheckOutScreen(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(24.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .border(1.dp, Divider, RoundedCornerShape(24.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -309,7 +312,7 @@ fun CheckOutScreen(
                                 viewModel.searchDepartures(it)
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(fontSize = 13.sp, color = TextDark),
+                            textStyle = TextStyle(fontSize = 13.sp, color = LocalAppColors.current.textPrimary),
                             decorationBox = { inner ->
                                 if (searchQuery.isEmpty()) {
                                     Text(
@@ -326,10 +329,10 @@ fun CheckOutScreen(
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(24.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .border(1.dp, Divider, RoundedCornerShape(24.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp)
-                            .clickable { },
+                            .clickable { navController.navigate(Routes.Filter.route) },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -342,7 +345,7 @@ fun CheckOutScreen(
                         Text(
                             text = "Filter",
                             fontSize = 13.sp,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -354,7 +357,7 @@ fun CheckOutScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         // Table header
@@ -405,7 +408,7 @@ fun CheckOutScreen(
                         ) {
                             Text(
                                 text = "Showing 4 of 24 departures for today",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = OnSurfaceSecondary
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -414,13 +417,13 @@ fun CheckOutScreen(
                                         .size(30.dp)
                                         .clip(RoundedCornerShape(6.dp))
                                         .border(1.dp, Divider, RoundedCornerShape(6.dp))
-                                        .clickable { },
+                                        .clickable { if (currentPage > 1) currentPage-- },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Outlined.ChevronLeft,
                                         contentDescription = null,
-                                        tint = OnSurfaceSecondary,
+                                        tint = if (currentPage > 1) OnSurfaceSecondary else OnSurfaceSecondary.copy(0.3f),
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -429,13 +432,13 @@ fun CheckOutScreen(
                                         .size(30.dp)
                                         .clip(RoundedCornerShape(6.dp))
                                         .border(1.dp, Divider, RoundedCornerShape(6.dp))
-                                        .clickable { },
+                                        .clickable { if (currentPage < totalPages) currentPage++ },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Outlined.ChevronRight,
                                         contentDescription = null,
-                                        tint = TextDark,
+                                        tint = LocalAppColors.current.textPrimary,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -454,7 +457,7 @@ fun CheckOutScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
         ) {
-            CheckOutBottomNav(navController)
+            ManagerBottomNavBar(navController = navController, currentRoute = "reservations")
         }
     }
 }
@@ -496,11 +499,11 @@ fun DepartureRow(guest: DepartureGuest) {
                     text = guest.name,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = guest.room,
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     color = OnSurfaceSecondary,
                     lineHeight = 15.sp
                 )
@@ -513,11 +516,11 @@ fun DepartureRow(guest: DepartureGuest) {
                 text = guest.nights,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             Text(
                 text = guest.dates,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 color = OnSurfaceSecondary,
                 lineHeight = 15.sp
             )
@@ -532,7 +535,7 @@ fun DepartureRow(guest: DepartureGuest) {
                 text = guest.balance,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (guest.isPaid) TextDark else ErrorColor
+                color = if (guest.isPaid) LocalAppColors.current.textPrimary else ErrorColor
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -548,49 +551,13 @@ fun DepartureRow(guest: DepartureGuest) {
                 Spacer(modifier = Modifier.width(2.dp))
                 Text(
                     text = guest.balanceLabel,
-                    fontSize = 9.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (guest.isPaid) Primary else ErrorColor,
                     lineHeight = 11.sp,
                     textAlign = androidx.compose.ui.text.style.TextAlign.End
                 )
             }
-        }
-    }
-}
-
-// ── Bottom Nav ────────────────────────────────────────────
-@Composable
-fun CheckOutBottomNav(navController: NavController) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp
-    ) {
-        listOf(
-            Icons.Outlined.Home to "Home",
-            Icons.Outlined.Explore to "Explore",
-            Icons.Outlined.BookOnline to "Bookings",
-            Icons.Outlined.Person to "Profile"
-        ).forEachIndexed { index, (icon, label) ->
-            NavigationBarItem(
-                selected = index == 2,
-                onClick = {
-                    when (index) {
-                        0 -> navController.navigate(Routes.ManagerDashboard.route)
-                        1 -> navController.navigate(Routes.HotelSearch.route)
-                        3 -> navController.navigate(Routes.ManagerProfile.route)
-                    }
-                },
-                icon = { Icon(icon, contentDescription = label) },
-                label = { Text(label, fontSize = 11.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Secondary,
-                    selectedTextColor = Secondary,
-                    indicatorColor = Primary.copy(0.15f),
-                    unselectedIconColor = OnSurfaceSecondary,
-                    unselectedTextColor = OnSurfaceSecondary
-                )
-            )
         }
     }
 }

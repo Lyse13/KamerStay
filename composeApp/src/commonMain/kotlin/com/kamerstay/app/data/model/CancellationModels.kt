@@ -25,3 +25,26 @@ data class RefundBreakdown(
     val estimatedRefund: String,
     val refundNote: String
 )
+
+// ── Refund tracking ───────────────────────────────────────────
+
+enum class RefundStatus { INITIATED, PROCESSING, COMPLETED, FAILED }
+
+data class RefundStep(
+    val title: String,
+    val subtitle: String,
+    val date: String?,
+    val isCompleted: Boolean,
+    val isCurrent: Boolean
+)
+
+data class RefundTracking(
+    val bookingId: String,
+    val hotelName: String,
+    val cancellationDate: String,
+    val refundAmount: String,
+    val paymentMethod: String,
+    val estimatedArrival: String,
+    val status: RefundStatus,
+    val steps: List<RefundStep>
+)

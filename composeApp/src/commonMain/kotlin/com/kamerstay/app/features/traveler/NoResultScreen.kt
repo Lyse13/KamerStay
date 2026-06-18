@@ -31,6 +31,7 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.NoResultMockData
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun NoResultScreen(navController: NavController) {
@@ -39,36 +40,9 @@ fun NoResultScreen(navController: NavController) {
     val state = viewModel.noResultState
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Search to "Search",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 1)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -131,7 +105,7 @@ fun NoResultScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(28.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .border(1.dp, Divider, RoundedCornerShape(28.dp))
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -151,7 +125,7 @@ fun NoResultScreen(navController: NavController) {
                             modifier = Modifier.weight(1f),
                             textStyle = TextStyle(
                                 fontSize = 14.sp,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             ),
                             decorationBox = { inner -> inner() }
                         )
@@ -261,7 +235,7 @@ fun NoResultScreen(navController: NavController) {
                         text = "No properties found",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         textAlign = TextAlign.Center
                     )
 
@@ -342,7 +316,7 @@ fun NoResultScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(0.dp))
-                        .background(BackgroundLight)
+                        .background(LocalAppColors.current.background)
                 ) {
                     Row(
                         modifier = Modifier
@@ -374,7 +348,7 @@ fun NoResultScreen(navController: NavController) {
                                 text = suggestion.title,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(

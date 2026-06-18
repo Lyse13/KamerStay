@@ -17,17 +17,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.BookingCardSkeleton
+import com.kamerstay.app.core.components.EmptyBookingsCancelled
+import com.kamerstay.app.core.components.EmptyBookingsPast
+import com.kamerstay.app.core.components.EmptyBookingsUpcoming
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.BookingsMockData
 import com.kamerstay.app.data.model.Booking
 import com.kamerstay.app.data.model.BookingStatus
 import com.kamerstay.app.viewmodel.TravelerViewModel
+import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -35,6 +43,11 @@ fun BookingHistoryScreen(navController: NavController) {
 
     val viewModel = koinViewModel<TravelerViewModel>()
     var selectedTab by remember { mutableStateOf("Upcoming") }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(1000L)
+        isLoading = false
+    }
 
     val tabs = listOf("Upcoming", "Past", "Cancelled")
 
@@ -45,38 +58,9 @@ fun BookingHistoryScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Search to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.FavoriteBorder to "Saved",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 2)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -96,7 +80,7 @@ fun BookingHistoryScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.TravelerProfile.route) }) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = null,
@@ -156,7 +140,7 @@ fun BookingHistoryScreen(navController: NavController) {
                                 text = tab,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (isSelected) Color.White else TextDark
+                                color = if (isSelected) Color.White else LocalAppColors.current.textPrimary
                             )
                         }
                     }
@@ -165,16 +149,36 @@ fun BookingHistoryScreen(navController: NavController) {
             }
 
             // ── Booking Cards ─────────────────────────
-            items(currentBookings) { booking ->
-                BookingCard(
-                    booking = booking,
-                    onClick = {
-                        navController.navigate(
-                            Routes.BookingDetails.createRoute(booking.id)
+            if (isLoading) {
+                items(3) {
+                    BookingCardSkeleton()
+                    Spacer(Modifier.height(16.dp))
+                }
+            } else if (currentBookings.isEmpty()) {
+                item {
+                    when (selectedTab) {
+                        "Past" -> EmptyBookingsPast()
+                        "Cancelled" -> EmptyBookingsCancelled()
+                        else -> EmptyBookingsUpcoming(
+                            onExplore = { navController.navigate(Routes.TravelerHome.route) }
                         )
                     }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                }
+            } else {
+                items(currentBookings) { booking ->
+                    BookingCard(
+                        booking = booking,
+                        onClick = {
+                            navController.navigate(
+                                Routes.BookingDetails.createRoute(booking.id)
+                            )
+                        },
+                        onTrackRefund = if (booking.status == BookingStatus.CANCELLED) {
+                            { navController.navigate(Routes.RefundTracking.route) }
+                        } else null
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
@@ -184,7 +188,8 @@ fun BookingHistoryScreen(navController: NavController) {
 @Composable
 fun BookingCard(
     booking: Booking,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onTrackRefund: (() -> Unit)? = null
 ) {
     val statusLabel = when (booking.status) {
         BookingStatus.CONFIRMED -> "Confirmed"
@@ -205,7 +210,7 @@ fun BookingCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .clickable { onClick() }
     ) {
         Column {
@@ -221,6 +226,14 @@ fun BookingCard(
                         )
                     )
             ) {
+                if (booking.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = booking.imageUrl,
+                        contentDescription = booking.hotelName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 // Status badge
                 Box(
                     modifier = Modifier
@@ -245,7 +258,7 @@ fun BookingCard(
                     text = booking.hotelName,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark,
+                    color = LocalAppColors.current.textPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -293,27 +306,45 @@ fun BookingCard(
                             text = booking.totalPrice,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
 
-                    Button(
-                        onClick = onClick,
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Secondary
-                        ),
-                        contentPadding = PaddingValues(
-                            horizontal = 20.dp,
-                            vertical = 12.dp
-                        )
-                    ) {
-                        Text(
-                            text = "Details",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
+                    if (onTrackRefund != null) {
+                        Button(
+                            onClick = onTrackRefund,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.TrackChanges,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Track Refund",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
+                    } else {
+                        Button(
+                            onClick = onClick,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = "Details",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
 

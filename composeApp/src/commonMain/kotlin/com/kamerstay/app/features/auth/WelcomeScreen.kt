@@ -40,7 +40,7 @@ fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -84,7 +84,7 @@ fun WelcomeScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "MyStays",
+                        text = "KamerStay",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = Primary
@@ -203,7 +203,7 @@ fun WelcomeScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(BackgroundLight)
+                    .background(LocalAppColors.current.background)
                     .padding(horizontal = 20.dp, vertical = 24.dp)
             ) {
                 // Header
@@ -216,7 +216,7 @@ fun WelcomeScreen(navController: NavController) {
                         text = "Popular Destinations",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -258,8 +258,8 @@ fun WelcomeScreen(navController: NavController) {
 
                 // Footer
                 Text(
-                    text = "© 2025 MyStays · Smart Hotel Booking for Cameroon",
-                    fontSize = 11.sp,
+                    text = "© 2025 KamerStay · Smart Hotel Booking for Cameroon",
+                    fontSize = 12.sp,
                     color = DarkNavy,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()

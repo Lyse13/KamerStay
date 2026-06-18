@@ -7,26 +7,26 @@ object DashboardMockData {
 
     val recentActivities = listOf(
         RecentActivity(
-            title = "Check-in: Felix Anderson",
-            room = "Room 402 • Deluxe Ocean View",
-            time = "10:45 AM",
-            badge = "Active",
+            title = "Arrivée : Félicien Abanda",
+            room = "Chambre 402 • Suite Deluxe",
+            time = "10:45",
+            badge = "Actif",
             badgeColor = Primary.copy(0.15f),
             badgeTextColor = Secondary
         ),
         RecentActivity(
-            title = "New Booking: Sarah Miller",
-            room = "Room 105 • Junior Suite • 3 Nights",
-            time = "09:12 AM",
-            badge = "Confirmed",
+            title = "Nouvelle résa : Christine Mbeye",
+            room = "Chambre 105 • Junior Suite • 3 Nuits",
+            time = "09:12",
+            badge = "Confirmé",
             badgeColor = OnSurfaceSecondary.copy(0.15f),
             badgeTextColor = TextDark
         ),
         RecentActivity(
-            title = "Check-out: Marco Rossi",
-            room = "Room 218 • Standard Double",
-            time = "08:30 AM",
-            badge = "Departed",
+            title = "Départ : René Tchouaket",
+            room = "Chambre 218 • Standard Double",
+            time = "08:30",
+            badge = "Parti",
             badgeColor = OnSurfaceSecondary.copy(0.1f),
             badgeTextColor = OnSurfaceSecondary
         ),

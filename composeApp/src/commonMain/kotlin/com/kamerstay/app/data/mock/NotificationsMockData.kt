@@ -8,27 +8,27 @@ object NotificationsMockData {
     val todayNotifications = listOf(
         AppNotification(
             id = "1",
-            title = "Booking Confirmed",
-            message = "Your stay at The Azure Resort is confirmed for Aug 15–20. We look forward to seeing you!",
-            time = "10:24 AM",
+            title = "Réservation Confirmée",
+            message = "Votre séjour au Hilton Yaoundé est confirmé du 15 au 20 août. Nous vous attendons avec plaisir !",
+            time = "10:24",
             type = NotificationType.BOOKING,
             isRead = false
         ),
         AppNotification(
             id = "2",
-            title = "Ready for Check-in?",
-            message = "Check-in for Room 402 is now open. Use the app for a contactless arrival experience.",
-            time = "08:15 AM",
+            title = "Prêt pour l'arrivée ?",
+            message = "L'enregistrement pour la Chambre 402 est ouvert. Utilisez l'appli pour une arrivée sans contact.",
+            time = "08:15",
             type = NotificationType.CHECK_IN,
             isRead = false,
             hasAction = true,
-            actionLabel = "Start Check-in"
+            actionLabel = "Démarrer l'enregistrement"
         ),
         AppNotification(
             id = "3",
-            title = "Maintenance Alert",
-            message = "HVAC system update required in East Wing, Room 204. Scheduled for 11:00 AM.",
-            time = "07:00 AM",
+            title = "Alerte Maintenance",
+            message = "Mise à jour système de climatisation en Aile Est, Chambre 204. Prévue à 11h00.",
+            time = "07:00",
             type = NotificationType.ALERT,
             isRead = false,
             isAlert = true
@@ -38,17 +38,17 @@ object NotificationsMockData {
     val earlierNotifications = listOf(
         AppNotification(
             id = "4",
-            title = "Weekend Escape Deal",
-            message = "Get 20% off your next booking at any urban location. Offer ends this Sunday!",
-            time = "Yesterday",
+            title = "Offre Week-end",
+            message = "Profitez de 20% de réduction sur votre prochaine réservation dans nos hôtels partenaires. Offre valable jusqu'à dimanche !",
+            time = "Hier",
             type = NotificationType.PROMO,
             isRead = true
         ),
         AppNotification(
             id = "5",
-            title = "Payment Received",
-            message = "Transaction ID #88123 for \$540.00 was successful for your July stay.",
-            time = "Jul 10",
+            title = "Paiement Reçu",
+            message = "Transaction #88123 de 324 000 FCFA traitée avec succès pour votre séjour de juillet via MTN Mobile Money.",
+            time = "10 Jul",
             type = NotificationType.PAYMENT,
             isRead = true
         ),

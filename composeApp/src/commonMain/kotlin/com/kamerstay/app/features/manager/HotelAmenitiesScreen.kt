@@ -22,10 +22,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.data.model.AmenityCategory
 import com.kamerstay.app.data.model.AmenityItem
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun HotelAmenitiesScreen(navController: NavController) {
@@ -41,36 +43,9 @@ fun HotelAmenitiesScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Search to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.FavoriteBorder to "Saved",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "rooms")
         }
     ) { paddingValues ->
         LazyColumn(
@@ -90,7 +65,7 @@ fun HotelAmenitiesScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = null,
@@ -98,7 +73,7 @@ fun HotelAmenitiesScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "Orion Stay",
+                            text = APP_NAME,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -167,7 +142,7 @@ fun HotelAmenitiesScreen(navController: NavController) {
                         text = "Facilities",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Configure global facilities available at your property. These changes will reflect across all booking channels in real-time.",
@@ -229,7 +204,7 @@ fun AmenitiesSection(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column {
@@ -242,7 +217,7 @@ fun AmenitiesSection(
                     text = title,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 if (badge != null) {
                     Box(
@@ -253,7 +228,7 @@ fun AmenitiesSection(
                     ) {
                         Text(
                             text = badge,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = badgeTextColor
                         )
@@ -294,7 +269,7 @@ fun AmenityRow(amenity: AmenityItem, onToggle: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
             .padding(12.dp)
     ) {
         Row(
@@ -326,7 +301,7 @@ fun AmenityRow(amenity: AmenityItem, onToggle: (String) -> Unit) {
                         text = amenity.name,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = amenity.description,
@@ -361,7 +336,7 @@ fun AmenityCard(amenity: AmenityItem, onToggle: (String) -> Unit) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .border(1.dp, Divider, RoundedCornerShape(12.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column {
@@ -400,7 +375,7 @@ fun AmenityCard(amenity: AmenityItem, onToggle: (String) -> Unit) {
                 text = amenity.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             Text(
                 text = amenity.description,

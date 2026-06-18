@@ -5,16 +5,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kamerstay.app.features.auth.ChangePasswordScreen
 import com.kamerstay.app.features.auth.ForgotPasswordScreen
 import com.kamerstay.app.features.auth.PasswordResetSuccessScreen
 import com.kamerstay.app.features.auth.ResetPasswordScreen
 import com.kamerstay.app.features.auth.RoleSelectionScreen
 import com.kamerstay.app.features.auth.SignInScreen
 import com.kamerstay.app.features.auth.SignUpScreen
+import com.kamerstay.app.features.auth.OnboardingScreen
 import com.kamerstay.app.features.auth.SplashScreen
 import com.kamerstay.app.features.auth.VerificationCodeScreen
 import com.kamerstay.app.features.auth.WelcomeScreen
 import com.kamerstay.app.features.manager.AddEditRoomScreen
+import com.kamerstay.app.features.manager.AddEditPromotionScreen
 import com.kamerstay.app.features.manager.AddEditStaffScreen
 import com.kamerstay.app.features.manager.CheckInScreen
 import com.kamerstay.app.features.manager.CheckOutScreen
@@ -32,7 +35,11 @@ import com.kamerstay.app.features.manager.ReservationsScreen
 import com.kamerstay.app.features.manager.RevenueAnalyticsScreen
 import com.kamerstay.app.features.manager.RevenueReportScreen
 import com.kamerstay.app.features.manager.RoomManagementScreen
+import com.kamerstay.app.features.manager.ManagerNotificationsScreen
+import com.kamerstay.app.features.manager.ManagerOnboardingScreen
+import com.kamerstay.app.features.manager.ManagerPrivacyTermsScreen
 import com.kamerstay.app.features.manager.ManagerSettingsScreen
+import com.kamerstay.app.features.manager.PromotionsScreen
 import com.kamerstay.app.features.manager.StaffManagementScreen
 import com.kamerstay.app.features.traveler.BookingCancellationScreen
 import com.kamerstay.app.features.traveler.BookingConfirmationScreen
@@ -42,6 +49,7 @@ import com.kamerstay.app.features.traveler.BookingReviewScreen
 import com.kamerstay.app.features.traveler.BookingScreen
 import com.kamerstay.app.features.traveler.BookingVoucherScreen
 import com.kamerstay.app.features.traveler.FilterScreen
+import com.kamerstay.app.features.traveler.HelpCenterScreen
 import com.kamerstay.app.features.traveler.HotelDetailsScreen
 import com.kamerstay.app.features.traveler.HotelReviewsScreen
 import com.kamerstay.app.features.traveler.HotelSearchScreen
@@ -52,9 +60,11 @@ import com.kamerstay.app.features.traveler.NotificationsScreen
 import com.kamerstay.app.features.traveler.PaymentFailedScreen
 import com.kamerstay.app.features.traveler.PaymentScreen
 import com.kamerstay.app.features.traveler.PrivacyTermsScreen
+import com.kamerstay.app.features.traveler.RefundTrackingScreen
 import com.kamerstay.app.features.traveler.RoomDetailsScreen
 import com.kamerstay.app.features.traveler.SettingsScreen
 import com.kamerstay.app.features.traveler.TravelerHomeScreen
+import com.kamerstay.app.features.traveler.TravelerPersonalInfoScreen
 import com.kamerstay.app.features.traveler.TravelerProfileScreen
 import com.kamerstay.app.features.traveler.TravelerSupportScreen
 import com.kamerstay.app.features.traveler.TravelerPaymentMethodsScreen
@@ -72,6 +82,9 @@ fun KamerStayNavGraph(
         // ── Auth ──────────────────────────────────────
         composable(Routes.Splash.route) {
             SplashScreen(navController)
+        }
+        composable(Routes.Onboarding.route) {
+            OnboardingScreen(navController)
         }
         composable(Routes.Welcome.route) {
             WelcomeScreen(navController)
@@ -96,6 +109,9 @@ fun KamerStayNavGraph(
         }
         composable(Routes.PasswordResetSuccess.route) {
             PasswordResetSuccessScreen(navController)
+        }
+        composable(Routes.ChangePassword.route) {
+            ChangePasswordScreen(navController)
         }
 
         // ── Traveler ──────────────────────────────────
@@ -159,6 +175,9 @@ fun KamerStayNavGraph(
         }
         composable(Routes.TravelerProfile.route) {
              TravelerProfileScreen(navController)
+        }
+        composable(Routes.TravelerPersonalInfo.route) {
+            TravelerPersonalInfoScreen(navController)
         }
         composable(Routes.BookingVoucher.route) {
             BookingVoucherScreen(navController)
@@ -255,6 +274,24 @@ fun KamerStayNavGraph(
         composable(Routes.ManagerSettings.route) {
             ManagerSettingsScreen(navController)
         }
+        composable(Routes.ManagerNotifications.route) {
+            ManagerNotificationsScreen(navController)
+        }
+        composable(Routes.Promotions.route) {
+            PromotionsScreen(navController)
+        }
+        composable(Routes.AddEditPromotion.route) {
+            AddEditPromotionScreen(navController)
+        }
+        composable(Routes.ManagerPrivacyTerms.route) {
+            ManagerPrivacyTermsScreen(navController)
+        }
+        composable(Routes.HelpCenter.route) {
+            HelpCenterScreen(navController)
+        }
+        composable(Routes.ManagerOnboarding.route) {
+            ManagerOnboardingScreen(navController)
+        }
 
         // ── Shared ────────────────────────────────────
         composable(Routes.Notifications.route) {
@@ -268,6 +305,12 @@ fun KamerStayNavGraph(
         }
         composable(Routes.BookingCancellation.route) {
             BookingCancellationScreen(
+                navController = navController,
+                bookingId = NavigationState.selectedBookingId
+            )
+        }
+        composable(Routes.RefundTracking.route) {
+            RefundTrackingScreen(
                 navController = navController,
                 bookingId = NavigationState.selectedBookingId
             )

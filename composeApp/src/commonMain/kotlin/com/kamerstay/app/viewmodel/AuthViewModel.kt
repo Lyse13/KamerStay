@@ -5,6 +5,8 @@ import com.kamerstay.app.data.state.ForgotPasswordState
 import com.kamerstay.app.data.state.ResetPasswordState
 import com.kamerstay.app.data.state.SignInState
 import com.kamerstay.app.data.state.SignUpState
+import com.kamerstay.app.data.state.UserRole
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.data.state.VerificationCodeState
 import com.kamerstay.app.features.auth.validateEmail
 import com.kamerstay.app.features.auth.validateFullName
@@ -19,16 +21,37 @@ class AuthViewModel : ViewModel() {
     val resetPasswordState = ResetPasswordState()
 
     fun validateAndSignIn(): Boolean {
-        // TODO: appel API
-        return signInState.email.isNotBlank() &&
-                signInState.password.isNotBlank()
+        val ok = signInState.email.isNotBlank() && signInState.password.isNotBlank()
+        if (ok) {
+            // Derive a display name from the email (before @)
+            val nameFromEmail = signInState.email
+                .substringBefore("@")
+                .replace(".", " ")
+                .split(" ")
+                .joinToString(" ") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+            UserSession.login(
+                name  = nameFromEmail,
+                email = signInState.email,
+                role  = signInState.selectedRole
+            )
+        }
+        return ok
     }
 
     fun validateAndSignUp(): Boolean {
         signUpState.submitted = true
-        return validateFullName(signUpState.fullName) == null &&
+        val ok = validateFullName(signUpState.fullName) == null &&
                 validateEmail(signUpState.email) == null &&
                 validatePhone(signUpState.phoneNumber) == null &&
                 validatePassword(signUpState.password) == null
+        if (ok) {
+            UserSession.login(
+                name  = signUpState.fullName,
+                email = signUpState.email,
+                phone = signUpState.phoneNumber,
+                role  = UserRole.TRAVELER
+            )
+        }
+        return ok
     }
 }

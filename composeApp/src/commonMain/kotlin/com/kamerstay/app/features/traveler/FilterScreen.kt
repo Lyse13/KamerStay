@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.state.FilterState
 import com.kamerstay.app.viewmodel.TravelerViewModel
@@ -38,7 +39,8 @@ fun FilterScreen(navController: NavController) {
     val propertyTypes = listOf(
         Icons.Outlined.Apartment to "Hotel",
         Icons.Outlined.BeachAccess to "Resort",
-        Icons.Outlined.Villa to "Villa"
+        Icons.Outlined.Villa to "Villa",
+        Icons.Outlined.KingBed to "Suite"
     )
 
     val amenities = listOf(
@@ -55,12 +57,12 @@ fun FilterScreen(navController: NavController) {
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(BackgroundLight)
+                    .background(LocalAppColors.current.background)
                     .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Button(
@@ -72,7 +74,7 @@ fun FilterScreen(navController: NavController) {
                     colors = ButtonDefaults.buttonColors(containerColor = Primary)
                 ) {
                     Text(
-                        text = "Apply Filters (24 Hotels)",
+                        text = "Apply Filters",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = OnPrimary
@@ -113,15 +115,8 @@ fun FilterScreen(navController: NavController) {
                     text = "Reset",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Primary,
-                    modifier = Modifier.clickable {
-                        state.minPrice = 15000f
-                        state.maxPrice = 450000f
-                        state.selectedStars = setOf()
-                        state.selectedPropertyType = ""
-                        state.selectedAmenities = setOf()
-                        state.selectedLandmark = ""
-                    }
+                    color = if (state.hasActiveFilters) Primary else OnSurfaceSecondary,
+                    modifier = Modifier.clickable { state.clearAll() }
                 )
             }
 
@@ -138,19 +133,19 @@ fun FilterScreen(navController: NavController) {
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .border(1.dp, Divider, RoundedCornerShape(10.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(12.dp)
                     ) {
                         Text(
                             text = "Minimum",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "15,000",
+                            text = formatFilterPrice(state.minPrice),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
 
@@ -168,19 +163,19 @@ fun FilterScreen(navController: NavController) {
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .border(1.dp, Divider, RoundedCornerShape(10.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(12.dp)
                     ) {
                         Text(
                             text = "Maximum",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "450,000",
+                            text = formatFilterPrice(state.maxPrice),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -206,6 +201,63 @@ fun FilterScreen(navController: NavController) {
 
             FilterDivider()
 
+            // ── Verified Hotels ───────────────────────
+            FilterSection(title = "") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (state.isVerifiedOnly) Primary.copy(0.1f)
+                                    else LocalAppColors.current.background
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Verified,
+                                contentDescription = null,
+                                tint = if (state.isVerifiedOnly) Primary else OnSurfaceSecondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "Verified Hotels Only",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = LocalAppColors.current.textPrimary
+                            )
+                            Text(
+                                text = "Show only KamerStay-certified hotels",
+                                fontSize = 12.sp,
+                                color = OnSurfaceSecondary
+                            )
+                        }
+                    }
+                    Switch(
+                        checked = state.isVerifiedOnly,
+                        onCheckedChange = { state.isVerifiedOnly = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = OnPrimary,
+                            checkedTrackColor = Primary,
+                            uncheckedThumbColor = OnSurfaceSecondary,
+                            uncheckedTrackColor = Divider
+                        )
+                    )
+                }
+            }
+
+            FilterDivider()
+
             // ── Star Rating ───────────────────────────
             FilterSection(title = "Star Rating") {
                 FlowRow(
@@ -217,7 +269,7 @@ fun FilterScreen(navController: NavController) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(if (isSelected) Primary else Color.White)
+                                .background(if (isSelected) Primary else LocalAppColors.current.surface)
                                 .border(
                                     1.dp,
                                     if (isSelected) Color.Transparent else Divider,
@@ -244,7 +296,7 @@ fun FilterScreen(navController: NavController) {
                                     text = star.toString(),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (isSelected) OnPrimary else TextDark
+                                    color = if (isSelected) OnPrimary else LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -268,14 +320,15 @@ fun FilterScreen(navController: NavController) {
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.White)
+                                        .background(LocalAppColors.current.surface)
                                         .border(
                                             if (isSelected) 2.dp else 1.dp,
                                             if (isSelected) Primary else Divider,
                                             RoundedCornerShape(12.dp)
                                         )
                                         .clickable {
-                                            state.selectedPropertyType = label
+                                            state.selectedPropertyType =
+                                                if (state.selectedPropertyType == label) "" else label
                                         }
                                         .padding(20.dp)
                                 ) {
@@ -288,7 +341,7 @@ fun FilterScreen(navController: NavController) {
                                                 .clip(RoundedCornerShape(12.dp))
                                                 .background(
                                                     if (isSelected) Primary
-                                                    else BackgroundLight
+                                                    else LocalAppColors.current.background
                                                 ),
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -305,7 +358,7 @@ fun FilterScreen(navController: NavController) {
                                             text = label,
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = TextDark
+                                            color = LocalAppColors.current.textPrimary
                                         )
                                     }
                                 }
@@ -333,7 +386,7 @@ fun FilterScreen(navController: NavController) {
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(
-                                    if (isSelected) Primary.copy(0.1f) else Color.White
+                                    if (isSelected) Primary.copy(0.1f) else LocalAppColors.current.surface
                                 )
                                 .border(
                                     1.dp,
@@ -362,7 +415,7 @@ fun FilterScreen(navController: NavController) {
                                     fontSize = 13.sp,
                                     fontWeight = if (isSelected) FontWeight.SemiBold
                                     else FontWeight.Normal,
-                                    color = if (isSelected) Secondary else TextDark
+                                    color = if (isSelected) Secondary else LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -384,14 +437,14 @@ fun FilterScreen(navController: NavController) {
                         text = "Landmarks Proximity",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "View Map",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         color = Primary,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { navController.navigate(Routes.MapLocation.route) }
                     )
                 }
 
@@ -402,7 +455,7 @@ fun FilterScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     landmarks.forEachIndexed { index, (iconLabel, distance) ->
                         val (icon, label) = iconLabel
@@ -431,7 +484,7 @@ fun FilterScreen(navController: NavController) {
                                         text = label,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                     Text(
                                         text = distance,
@@ -495,7 +548,7 @@ fun FilterSection(
                 text = title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             Spacer(modifier = Modifier.height(14.dp))
         }
@@ -510,4 +563,9 @@ fun FilterDivider() {
         color = Divider,
         modifier = Modifier.padding(horizontal = 20.dp)
     )
+}
+
+private fun formatFilterPrice(value: Float): String {
+    val s = value.toInt().toString()
+    return s.reversed().chunked(3).joinToString(",").reversed()
 }

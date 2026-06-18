@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.kamerstay.app.core.navigation.NavigationState
+import com.kamerstay.app.core.components.DateRangePickerBottomSheet
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.MockData
@@ -43,7 +43,7 @@ fun BookingScreen(
     val hotel = MockData.getHotelById(hotelId) ?: MockData.hotels.first()
     val room = MockData.rooms.find { it.id == roomId } ?: MockData.rooms.first()
 
-    val nights = 3
+    val nights = state.nights.takeIf { it > 0 } ?: 1
     val pricePerNight = room.pricePerNight
     val roomTotal = pricePerNight * nights
     val taxesFees = roomTotal * 0.085
@@ -51,8 +51,21 @@ fun BookingScreen(
     val acompte = totalTTC * 0.20
     val soldeRestant = totalTTC - acompte
 
+    if (state.showDatePicker) {
+        DateRangePickerBottomSheet(
+            initialCheckIn = state.checkInDate,
+            initialCheckOut = state.checkOutDate,
+            onDismiss = { state.showDatePicker = false },
+            onConfirm = { checkIn, checkOut ->
+                state.checkInDate = checkIn
+                state.checkOutDate = checkOut
+                state.showDatePicker = false
+            }
+        )
+    }
+
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         topBar = {
             Row(
                 modifier = Modifier
@@ -74,7 +87,7 @@ fun BookingScreen(
                         text = "Confirm Booking",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
                 Box(
@@ -97,7 +110,7 @@ fun BookingScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Row(
@@ -112,18 +125,22 @@ fun BookingScreen(
                             color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "${soldeRestant.toInt()}€",
+                            text = "${soldeRestant.toInt()} FCFA",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                     Button(
                         onClick = {
                             navController.navigate(Routes.BookingReview.route)
                         },
+                        enabled = state.checkInDate != null && state.checkOutDate != null,
                         shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Primary,
+                            disabledContainerColor = OnSurfaceSecondary.copy(0.3f)
+                        ),
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp)
                     ) {
                         Text(
@@ -158,24 +175,20 @@ fun BookingScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(14.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Room image
                     Box(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .background(
                                 brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF1A3A5C),
-                                        Color(0xFF0D2A4A)
-                                    )
+                                    colors = listOf(Color(0xFF1A3A5C), Color(0xFF0D2A4A))
                                 )
                             )
                     )
@@ -188,7 +201,7 @@ fun BookingScreen(
                             color = Secondary
                         )
                         Text(
-                            text = "Deluxe Ocean View Suite",
+                            text = room.type.name.lowercase().replaceFirstChar { it.uppercase() } + " Room",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Primary
@@ -196,26 +209,31 @@ fun BookingScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
+                        // ── Date row — clickable ──────
                         Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .clickable { state.showDatePicker = true }
+                                .padding(vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
                                 Icons.Outlined.CalendarMonth,
                                 contentDescription = null,
-                                tint = OnSurfaceSecondary,
+                                tint = if (state.checkInDate == null) Primary else OnSurfaceSecondary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
-                                text = "12 Oct - 15 Oct 2023",
+                                text = state.dateRangeDisplay,
                                 fontSize = 13.sp,
-                                color = OnSurfaceSecondary
+                                color = if (state.checkInDate == null) Primary else OnSurfaceSecondary
                             )
                         }
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
                                 Icons.Outlined.People,
@@ -224,8 +242,87 @@ fun BookingScreen(
                                 modifier = Modifier.size(14.dp)
                             )
                             Text(
-                                text = "2 Adultes, 1 Chambre",
+                                text = if (state.guestCount == 1) "Guest" else "Guests",
                                 fontSize = 13.sp,
+                                color = OnSurfaceSecondary
+                            )
+                            // ── Stepper ──────────────────
+                            Box(
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (state.guestCount > 1) Primary.copy(0.12f)
+                                        else OnSurfaceSecondary.copy(0.08f)
+                                    )
+                                    .clickable { if (state.guestCount > 1) state.guestCount-- },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "−",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (state.guestCount > 1) Primary else OnSurfaceSecondary.copy(0.4f)
+                                )
+                            }
+                            Text(
+                                text = "${state.guestCount}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LocalAppColors.current.textPrimary
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(Primary.copy(0.12f))
+                                    .clickable { if (state.guestCount < 10) state.guestCount++ },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "+",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Date picker trigger (if not yet selected) ─
+            if (state.checkInDate == null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Primary.copy(0.08f))
+                        .clickable { state.showDatePicker = true }
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Choose your dates",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Secondary
+                            )
+                            Text(
+                                text = "Tap to select check-in and check-out",
+                                fontSize = 12.sp,
                                 color = OnSurfaceSecondary
                             )
                         }
@@ -250,33 +347,28 @@ fun BookingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        // Full Name
                         BookingTextField(
                             label = "Nom Complet",
-                            value = state.specialRequests,
+                            value = state.contactName,
                             placeholder = "Ex: Jean Dupont",
-                            onValueChange = { state.specialRequests = it }
+                            onValueChange = { state.contactName = it }
                         )
-
-                        // Email
                         BookingTextField(
                             label = "E-mail de contact",
-                            value = "",
+                            value = state.contactEmail,
                             placeholder = "jean.dupont@email.fr",
-                            onValueChange = { },
+                            onValueChange = { state.contactEmail = it },
                             keyboardType = KeyboardType.Email
                         )
-
-                        // Phone
                         BookingTextField(
                             label = "Numéro de Téléphone",
-                            value = "",
-                            placeholder = "+33 6 12 34 56 78",
-                            onValueChange = { },
+                            value = state.contactPhone,
+                            placeholder = "+237 6 12 34 56 78",
+                            onValueChange = { state.contactPhone = it },
                             keyboardType = KeyboardType.Phone
                         )
                     }
@@ -313,8 +405,8 @@ fun BookingScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Primary,
                         unfocusedBorderColor = Divider,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = LocalAppColors.current.surface,
+                        unfocusedContainerColor = LocalAppColors.current.surface,
                         cursorColor = Primary
                     ),
                     maxLines = 4
@@ -329,18 +421,18 @@ fun BookingScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(BackgroundLight)
+                    .background(LocalAppColors.current.background)
                     .padding(16.dp)
             ) {
                 Column {
                     BookingPriceRow2(
-                        label = "$nights Nuits x ${pricePerNight.toInt()}€",
-                        amount = "${roomTotal.toInt()}.00€"
+                        label = "$nights ${if (nights == 1) "Nuit" else "Nuits"} × ${pricePerNight.toInt()} FCFA",
+                        amount = "${roomTotal.toInt()} FCFA"
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     BookingPriceRow2(
-                        label = "Taxes et Frais",
-                        amount = "${taxesFees.toInt()}.50€"
+                        label = "Taxes et Frais (8.5%)",
+                        amount = "${taxesFees.toInt()} FCFA"
                     )
 
                     HorizontalDivider(
@@ -359,7 +451,7 @@ fun BookingScreen(
                             color = Secondary
                         )
                         Text(
-                            text = "${totalTTC.toInt()}.50€",
+                            text = "${totalTTC.toInt()} FCFA",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -415,7 +507,7 @@ fun BookingScreen(
                         Spacer(modifier = Modifier.height(10.dp))
                         Row(verticalAlignment = Alignment.Bottom) {
                             Text(
-                                text = "${acompte.toInt()}.00€",
+                                text = "${acompte.toInt()} FCFA",
                                 fontSize = 22.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Primary
@@ -465,8 +557,8 @@ fun BookingTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Primary,
                 unfocusedBorderColor = Divider,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
+                focusedContainerColor = LocalAppColors.current.surface,
+                unfocusedContainerColor = LocalAppColors.current.surface,
                 cursorColor = Primary
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
@@ -487,7 +579,7 @@ fun BookingPriceRow2(label: String, amount: String) {
             text = amount,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = TextDark
+            color = LocalAppColors.current.textPrimary
         )
     }
 }

@@ -24,9 +24,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.data.mock.VerificationMockData
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun ManagerVerificationScreen(navController: NavController) {
@@ -35,36 +37,9 @@ fun ManagerVerificationScreen(navController: NavController) {
     val state = viewModel.verificationState
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.FavoriteBorder to "Saved",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "profile")
         }
     ) { paddingValues ->
         Column(
@@ -91,7 +66,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                         )
                     }
                     Text(
-                        text = "Orion Stay",
+                        text = APP_NAME,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -128,7 +103,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                     )
                     Text(
                         text = "SECURITY VERIFICATION",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Primary,
                         letterSpacing = 0.8.sp
@@ -141,7 +116,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                     text = "Get Your Verified\nBadge",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark,
+                    color = LocalAppColors.current.textPrimary,
                     lineHeight = 32.sp
                 )
 
@@ -161,7 +136,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -174,7 +149,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                                 text = "Verification Status",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "Step ${state.currentStep} of ${state.totalSteps}",
@@ -212,7 +187,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -220,7 +195,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                             text = "Official ID Document",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -262,7 +237,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -270,7 +245,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                             text = "Business License",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -321,7 +296,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = if (state.businessLicenseUploaded) Primary
-                                    else TextDark
+                                    else LocalAppColors.current.textPrimary
                                 )
                                 if (!state.businessLicenseUploaded) {
                                     Text(
@@ -375,15 +350,15 @@ fun ManagerVerificationScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(10.dp))
 
                 OutlinedButton(
-                    onClick = { },
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(28.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary)
                 ) {
-                    Text("Save as Draft", fontSize = 15.sp, color = TextDark)
+                    Text("Save as Draft", fontSize = 15.sp, color = LocalAppColors.current.textPrimary)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -411,7 +386,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                                 text = "Requirements",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
@@ -454,7 +429,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(14.dp)
                     ) {
                         Column {
@@ -484,7 +459,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                                             text = "Akwa Palace Hotel",
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = TextDark
+                                            color = LocalAppColors.current.textPrimary
                                         )
                                         Icon(
                                             Icons.Outlined.Verified,
@@ -530,7 +505,7 @@ fun ManagerVerificationScreen(navController: NavController) {
                     )
                     Text(
                         text = "Your data is encrypted and stored securely. We only use this information for verification purposes in accordance with our Privacy Policy.",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = OnSurfaceSecondary,
                         lineHeight = 16.sp
                     )

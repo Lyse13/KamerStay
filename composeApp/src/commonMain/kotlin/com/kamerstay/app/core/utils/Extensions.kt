@@ -7,7 +7,7 @@ fun String.toLocalDate(): LocalDate? = try {
 } catch (e: Exception) { null }
 
 fun LocalDate.formatDisplay(): String =
-    "${this.dayOfMonth} ${this.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${this.year}"
+    "${this.day} ${this.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${this.year}"
 
 fun Double.toCfa(): String = "${this.toLong()} FCFA"
 

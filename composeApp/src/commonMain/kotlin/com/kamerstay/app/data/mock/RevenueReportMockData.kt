@@ -8,80 +8,80 @@ object RevenueReportMockData {
     val metrics = listOf(
         RevenueMetric(
             id = "1", icon = "payments",
-            label = "Total Revenue", value = "\$284,590.00",
+            label = "Revenu Total", value = "170 754 000 FCFA",
             change = "+12.5%", isPositive = true
         ),
         RevenueMetric(
             id = "2", icon = "bed",
-            label = "Occupancy Rate", value = "88.4%",
+            label = "Taux d'occupation", value = "88.4%",
             change = "+3.2%", isPositive = true
         ),
         RevenueMetric(
             id = "3", icon = "chart",
-            label = "Avg Daily Rate", value = "\$312.45",
+            label = "Tarif Journalier Moy.", value = "187 470 FCFA",
             change = "+8.1%", isPositive = true
         ),
         RevenueMetric(
             id = "4", icon = "trending",
-            label = "RevPAR", value = "\$276.20",
+            label = "RevPAR", value = "165 720 FCFA",
             change = "+5.7%", isPositive = true
         )
     )
 
     val monthlyEarnings = listOf(
         MonthlyEarning("JAN", 0.35f, 0.30f),
-        MonthlyEarning("FEB", 0.45f, 0.40f),
+        MonthlyEarning("FÉV", 0.45f, 0.40f),
         MonthlyEarning("MAR", 0.50f, 0.45f),
-        MonthlyEarning("APR", 0.55f, 0.50f),
-        MonthlyEarning("MAY", 0.60f, 0.55f),
+        MonthlyEarning("AVR", 0.55f, 0.50f),
+        MonthlyEarning("MAI", 0.60f, 0.55f),
         MonthlyEarning("JUN", 0.65f, 0.60f),
         MonthlyEarning(
             "JUL", 0.90f, 0.80f,
-            isHighlighted = true, highlightLabel = "\$38k"
+            isHighlighted = true, highlightLabel = "23M"
         ),
-        MonthlyEarning("AUG", 0.75f, 0.70f),
+        MonthlyEarning("AOÛ", 0.75f, 0.70f),
         MonthlyEarning("SEP", 0.55f, 0.50f)
     )
 
     val paymentMethods = listOf(
-        PaymentMethodShare("card", "Credit Card", 64),
-        PaymentMethodShare("bank", "Direct Transfer", 22),
-        PaymentMethodShare("wallet", "Digital Wallets", 11),
-        PaymentMethodShare("other", "Others", 3)
+        PaymentMethodShare("card", "Carte Bancaire", 28),
+        PaymentMethodShare("bank", "Virement Direct", 18),
+        PaymentMethodShare("wallet", "MTN Mobile Money", 32),
+        PaymentMethodShare("other", "Orange Money", 22)
     )
 
     val recentTransactions = listOf(
         RecentTransaction(
             id = "1",
-            guestName = "Julianne Smith",
-            roomType = "Deluxe King",
+            guestName = "Nadège Belinga",
+            roomType = "King Deluxe",
             nights = 3,
-            date = "Jul 28, 2023",
+            date = "28 Jul 2024",
             status = TransactionStatus.COMPLETED,
-            amount = "\$1,245",
-            initials = "JS",
+            amount = "747 000 FCFA",
+            initials = "NB",
             avatarColor = Color(0xFF1A5276)
         ),
         RecentTransaction(
             id = "2",
-            guestName = "Marcus Reed",
-            roomType = "Executive Suite",
+            guestName = "Emmanuel Mbia",
+            roomType = "Suite Executive",
             nights = 2,
-            date = "Jul 27, 2023",
+            date = "27 Jul 2024",
             status = TransactionStatus.COMPLETED,
-            amount = "\$2,100",
-            initials = "MR",
+            amount = "1 260 000 FCFA",
+            initials = "EM",
             avatarColor = Color(0xFF8B4513)
         ),
         RecentTransaction(
             id = "3",
-            guestName = "Lydia Bennett",
-            roomType = "Standard Queen",
+            guestName = "Estelle Nkengfack",
+            roomType = "Queen Standard",
             nights = 1,
-            date = "Jul 27, 2023",
+            date = "27 Jul 2024",
             status = TransactionStatus.PENDING,
-            amount = "\$580",
-            initials = "LB",
+            amount = "348 000 FCFA",
+            initials = "EN",
             avatarColor = Color(0xFF1A3A2E)
         )
     )

@@ -39,7 +39,25 @@ fun RoomDetailsScreen(
     val room = MockData.rooms.find { it.id == roomId } ?: MockData.rooms.first()
     val hotel = MockData.getHotelById(room.hotelId) ?: MockData.hotels.first()
 
+    var showShareDialog by remember { mutableStateOf(false) }
     var showFullDescription by remember { mutableStateOf(false) }
+
+    if (showShareDialog) {
+        AlertDialog(
+            onDismissRequest = { showShareDialog = false },
+            title = { Text("Share Room", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
+            text = { Text("Copy the link below to share this room:\nkamerstay.cm/rooms/${room.id}", color = OnSurfaceSecondary, fontSize = 13.sp) },
+            confirmButton = {
+                Button(
+                    onClick = { showShareDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Done", color = OnPrimary) }
+            },
+            containerColor = LocalAppColors.current.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
     var selectedGuests by remember { mutableStateOf("2 Adults, 1 Child") }
     var guestsExpanded by remember { mutableStateOf(false) }
 
@@ -65,12 +83,12 @@ fun RoomDetailsScreen(
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Row(
@@ -83,7 +101,7 @@ fun RoomDetailsScreen(
                             text = "\$${pricePerNight.toInt()}",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "/ night",
@@ -165,7 +183,7 @@ fun RoomDetailsScreen(
                         }
 
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -177,7 +195,7 @@ fun RoomDetailsScreen(
                                     .size(38.dp)
                                     .clip(CircleShape)
                                     .background(Color.Black.copy(0.3f))
-                                    .clickable { },
+                                    .clickable { showShareDialog = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -192,11 +210,12 @@ fun RoomDetailsScreen(
                                     .size(38.dp)
                                     .clip(CircleShape)
                                     .background(Color.Black.copy(0.3f))
-                                    .clickable { },
+                                    .clickable { viewModel.wishlistState.toggleFromHotel(hotel) },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Outlined.FavoriteBorder,
+                                    if (viewModel.wishlistState.isInWishlist(hotel.id)) Icons.Outlined.Favorite
+                                    else Icons.Outlined.FavoriteBorder,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(18.dp)
@@ -212,7 +231,7 @@ fun RoomDetailsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     // Badge + Rating
@@ -247,7 +266,7 @@ fun RoomDetailsScreen(
                                 text = "${hotel.rating} (${hotel.reviewCount} reviews)",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
                     }
@@ -258,7 +277,7 @@ fun RoomDetailsScreen(
                         text = "The Orion Skyloft Suite",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         lineHeight = 30.sp
                     )
 
@@ -295,7 +314,7 @@ fun RoomDetailsScreen(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clip(RoundedCornerShape(10.dp))
-                                            .background(BackgroundLight)
+                                            .background(LocalAppColors.current.background)
                                             .padding(12.dp)
                                     ) {
                                         Column(
@@ -311,9 +330,9 @@ fun RoomDetailsScreen(
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(
                                                 text = label,
-                                                fontSize = 11.sp,
+                                                fontSize = 12.sp,
                                                 fontWeight = FontWeight.Medium,
-                                                color = TextDark
+                                                color = LocalAppColors.current.textPrimary
                                             )
                                         }
                                     }
@@ -335,7 +354,7 @@ fun RoomDetailsScreen(
                         text = "Experience Digital Hospitality",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -396,7 +415,7 @@ fun RoomDetailsScreen(
                                     text = title,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -615,7 +634,7 @@ fun RoomDetailsScreen(
                         text = "Where you'll be",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -640,7 +659,7 @@ fun RoomDetailsScreen(
                                 .align(Alignment.BottomStart)
                                 .padding(14.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(Color.White)
+                                .background(LocalAppColors.current.surface)
                                 .padding(12.dp)
                         ) {
                             Column {
@@ -648,7 +667,7 @@ fun RoomDetailsScreen(
                                     text = hotel.city,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = hotel.address,

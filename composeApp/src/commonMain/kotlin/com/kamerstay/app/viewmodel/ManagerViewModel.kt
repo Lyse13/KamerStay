@@ -8,12 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.kamerstay.app.data.mock.CheckInMockData
+import com.kamerstay.app.data.mock.ManagerNotificationsMockData
 import com.kamerstay.app.data.mock.ReservationMockData
 import com.kamerstay.app.data.mock.RoomsMockData
 import com.kamerstay.app.data.mock.StaffMockData
 import com.kamerstay.app.data.mock.mockReservations
 import com.kamerstay.app.data.model.CheckInGuest
 import com.kamerstay.app.data.model.DepartureGuest
+import com.kamerstay.app.data.model.ManagerNotification
 import com.kamerstay.app.data.model.ManagerRoom
 import com.kamerstay.app.data.model.Reservation
 import com.kamerstay.app.data.model.StaffMember
@@ -42,6 +44,18 @@ class ManagerViewModel : ViewModel() {
     val revenueReportState = RevenueReportState()
     val supportState = SupportState()
     val managerSettingsState = ManagerSettingsState()
+
+    // ── Notifications ─────────────────────────
+    var todayNotifications by mutableStateOf<List<ManagerNotification>>(ManagerNotificationsMockData.todayNotifications)
+        private set
+
+    var earlierNotifications by mutableStateOf<List<ManagerNotification>>(ManagerNotificationsMockData.earlierNotifications)
+        private set
+
+    fun markAllNotificationsRead() {
+        todayNotifications = todayNotifications.map { it.copy(isRead = true) }
+        earlierNotifications = earlierNotifications.map { it.copy(isRead = true) }
+    }
 
     // ── Reservations ──────────────────────────
     var reservations by mutableStateOf<List<Reservation>>(ReservationMockData.reservations)

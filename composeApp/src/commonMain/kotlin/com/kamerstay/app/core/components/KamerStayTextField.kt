@@ -32,7 +32,7 @@ fun KamerStayTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
-            placeholder = { Text(placeholder, color = OnSurfaceSecondary.copy(alpha = 0.6f)) },
+            placeholder = { Text(placeholder, color = OnSurfaceSecondary.copy(alpha = 0.8f)) },
             leadingIcon = leadingIcon,
             trailingIcon = trailingIcon,
             isError = isError,

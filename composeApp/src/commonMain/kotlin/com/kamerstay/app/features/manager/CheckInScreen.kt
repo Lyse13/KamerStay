@@ -31,6 +31,7 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.model.CheckInGuest
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun CheckInScreen(
@@ -44,7 +45,7 @@ fun CheckInScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -69,7 +70,7 @@ fun CheckInScreen(
                         )
                     }
                     Text(
-                        text = "MyStays",
+                        text = "KamerStay",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -98,7 +99,7 @@ fun CheckInScreen(
                     text = "Daily Arrivals",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = "Review and check-in guests for Oct 24, 2023",
@@ -113,7 +114,7 @@ fun CheckInScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .border(1.dp, Divider, RoundedCornerShape(24.dp))
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -134,7 +135,7 @@ fun CheckInScreen(
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = TextStyle(
                             fontSize = 14.sp,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         ),
                         decorationBox = { inner ->
                             if (state.arrivalNotes.isEmpty()) {
@@ -188,20 +189,20 @@ fun CheckInScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(Color.White)
+                                .background(LocalAppColors.current.surface)
                                 .padding(12.dp)
                         ) {
                             Column {
                                 Text(
                                     text = "Pending Check-In",
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = OnSurfaceSecondary
                                 )
                                 Text(
                                     text = "09",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -217,7 +218,7 @@ fun CheckInScreen(
                             Column {
                                 Text(
                                     text = "Rooms Ready",
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = OnPrimary.copy(0.7f)
                                 )
                                 Text(
@@ -257,7 +258,7 @@ fun CheckInScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
         ) {
-            CheckInBottomNav(navController)
+            ManagerBottomNavBar(navController = navController, currentRoute = "rooms")
         }
     }
 }
@@ -273,7 +274,7 @@ fun CheckInGuestCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column(
@@ -307,7 +308,7 @@ fun CheckInGuestCard(
                 text = guest.name,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (guest.isCheckedIn) OnSurfaceSecondary else TextDark
+                color = if (guest.isCheckedIn) OnSurfaceSecondary else LocalAppColors.current.textPrimary
             )
 
             Text(
@@ -333,7 +334,7 @@ fun CheckInGuestCard(
                     ) {
                         Text(
                             text = tag,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = guest.tagColor,
                             fontWeight = FontWeight.Medium
                         )
@@ -357,7 +358,7 @@ fun CheckInGuestCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = time,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                     }
@@ -372,7 +373,7 @@ fun CheckInGuestCard(
                     ) {
                         Text(
                             text = "Payment Pending",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = ErrorColor,
                             fontWeight = FontWeight.Medium
                         )
@@ -404,14 +405,14 @@ fun CheckInGuestCard(
                             1.dp, Divider
                         ),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = TextDark
+                            contentColor = LocalAppColors.current.textPrimary
                         )
                     ) {
                         Text(
                             text = "Details",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
 
@@ -434,41 +435,6 @@ fun CheckInGuestCard(
                     }
                 }
             }
-        }
-    }
-}
-
-// ── Bottom Nav ────────────────────────────────────────────
-@Composable
-fun CheckInBottomNav(navController: NavController) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp
-    ) {
-        listOf(
-            Icons.Outlined.Home to "Home",
-            Icons.Outlined.Explore to "Explore",
-            Icons.Outlined.BookOnline to "Bookings",
-            Icons.Outlined.Person to "Profile"
-        ).forEachIndexed { index, (icon, label) ->
-            NavigationBarItem(
-                selected = index == 1,
-                onClick = {
-                    when (index) {
-                        0 -> navController.navigate(Routes.ManagerDashboard.route)
-                        2 -> navController.navigate(Routes.Reservations.route)
-                    }
-                },
-                icon = { Icon(icon, contentDescription = label) },
-                label = { Text(label, fontSize = 11.sp) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Secondary,
-                    selectedTextColor = Secondary,
-                    indicatorColor = Primary.copy(0.15f),
-                    unselectedIconColor = OnSurfaceSecondary,
-                    unselectedTextColor = OnSurfaceSecondary
-                )
-            )
         }
     }
 }

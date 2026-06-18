@@ -29,6 +29,7 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun BookingDetailsScreen(
@@ -49,7 +50,7 @@ fun BookingDetailsScreen(
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
             title = {
-                Text("Cancel Booking?", fontWeight = FontWeight.Bold, color = TextDark)
+                Text("Cancel Booking?", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
             },
             text = {
                 Text(
@@ -70,45 +71,15 @@ fun BookingDetailsScreen(
                     Text("Keep Booking", color = Secondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Filled.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 2)
         }
     ) { paddingValues ->
         Column(
@@ -199,7 +170,7 @@ fun BookingDetailsScreen(
                     .padding(horizontal = 16.dp)
                     .offset(y = (-20).dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(20.dp)
             ) {
                 Column {
@@ -208,7 +179,7 @@ fun BookingDetailsScreen(
                         text = "The Azure Vista Resort",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -249,7 +220,7 @@ fun BookingDetailsScreen(
                                 text = "Oct 24, 2024",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "From 3:00 PM",
@@ -269,7 +240,7 @@ fun BookingDetailsScreen(
                                 text = "Oct 29, 2024",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "Before 11:00 AM",
@@ -308,7 +279,7 @@ fun BookingDetailsScreen(
                                 text = "Deluxe Ocean Suite",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "2 Adults • King Bed • Private Balcony",
@@ -328,7 +299,7 @@ fun BookingDetailsScreen(
                     text = "Stay Amenities",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -345,7 +316,7 @@ fun BookingDetailsScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(Color.White)
+                                        .background(LocalAppColors.current.surface)
                                         .padding(12.dp)
                                 ) {
                                     Row(
@@ -379,7 +350,7 @@ fun BookingDetailsScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
                         .border(1.dp, Divider, RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -387,7 +358,7 @@ fun BookingDetailsScreen(
                             text = "Payment Summary",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -412,7 +383,7 @@ fun BookingDetailsScreen(
                                 text = "Total",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "\$2,273.00",
@@ -429,7 +400,7 @@ fun BookingDetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(BackgroundLight)
+                                .background(LocalAppColors.current.background)
                                 .padding(14.dp)
                         ) {
                             Column {
@@ -446,13 +417,13 @@ fun BookingDetailsScreen(
                                         text = "\$450.00",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "Pay the deposit now to secure your booking. The remaining balance will be charged 48h before arrival.",
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = OnSurfaceSecondary,
                                     lineHeight = 16.sp
                                 )
@@ -491,7 +462,7 @@ fun BookingDetailsScreen(
 
                         Text(
                             text = "Secure SSL Encrypted Payment",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
@@ -506,7 +477,7 @@ fun BookingDetailsScreen(
                     text = "Location",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -531,7 +502,7 @@ fun BookingDetailsScreen(
                             .align(Alignment.BottomCenter)
                             .padding(16.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(12.dp)
                     ) {
                         Row(
@@ -557,7 +528,7 @@ fun BookingDetailsScreen(
                                     text = "The Azure Vista",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Oia 847 02, Greece",
@@ -602,7 +573,7 @@ fun BookingPriceRow(label: String, amount: String) {
             text = amount,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = TextDark
+            color = LocalAppColors.current.textPrimary
         )
     }
 }

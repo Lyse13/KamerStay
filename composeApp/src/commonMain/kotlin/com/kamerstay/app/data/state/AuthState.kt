@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 class SignInState {
     var email by mutableStateOf("")
     var password by mutableStateOf("")
+    var selectedRole by mutableStateOf(UserRole.TRAVELER)
     var passwordVisible by mutableStateOf(false)
     var isLoading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)

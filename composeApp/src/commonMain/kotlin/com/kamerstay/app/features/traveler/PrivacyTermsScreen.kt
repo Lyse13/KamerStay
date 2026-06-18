@@ -25,41 +25,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun PrivacyTermsScreen(navController: NavController) {
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Notifications to "Alerts",
-                    Icons.Outlined.Settings to "Settings"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
-                                2 -> navController.navigate(Routes.Notifications.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 3)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -87,7 +62,7 @@ fun PrivacyTermsScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "StayCameroon",
+                            text = APP_NAME,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -156,7 +131,7 @@ fun PrivacyTermsScreen(navController: NavController) {
                         text = "Terms & Privacy",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -205,11 +180,11 @@ fun PrivacyTermsScreen(navController: NavController) {
                     title = "Terms of Service"
                 ) {
                     LegalParagraph(
-                        text = "Welcome to StayCameroon. By accessing our platform, you agree to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern StayCameroon's relationship with you in relation to this website and service."
+                        text = "Welcome to $APP_NAME. By accessing our platform, you agree to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern $APP_NAME's relationship with you in relation to this website and service."
                     )
 
                     LegalParagraph(
-                        text = "The term 'StayCameroon' or 'us' or 'we' refers to the owner of the website. The term 'you' refers to the user or viewer of our website."
+                        text = "The term '$APP_NAME' or 'us' or 'we' refers to the owner of the website. The term 'you' refers to the user or viewer of our website."
                     )
 
                     // Quote box
@@ -217,7 +192,7 @@ fun PrivacyTermsScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .background(BackgroundLight)
+                            .background(LocalAppColors.current.background)
                             .border(1.dp, Divider, RoundedCornerShape(10.dp))
                             .padding(14.dp)
                     ) {
@@ -226,11 +201,11 @@ fun PrivacyTermsScreen(navController: NavController) {
                                 text = "Booking Guarantee",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "\"All reservations made through StayCameroon are subject to the specific hotel's cancellation policy. We act as an intermediary to ensure your booking is secured and confirmed with the venue.\"",
+                                text = "\"All reservations made through $APP_NAME are subject to the specific hotel's cancellation policy. We act as an intermediary to ensure your booking is secured and confirmed with the venue.\"",
                                 fontSize = 13.sp,
                                 color = OnSurfaceSecondary,
                                 lineHeight = 18.sp,
@@ -284,7 +259,7 @@ fun PrivacyTermsScreen(navController: NavController) {
                     title = "Privacy Policy"
                 ) {
                     LegalParagraph(
-                        text = "StayCameroon is committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this website, then you can be assured that it will only be used in accordance with this privacy statement."
+                        text = "$APP_NAME is committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this website, then you can be assured that it will only be used in accordance with this privacy statement."
                     )
 
                     // Info boxes
@@ -359,10 +334,10 @@ fun PrivacyTermsScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "StayCameroon Legal Affairs Dept.",
+                        text = "$APP_NAME Legal Affairs Dept.",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         textAlign = TextAlign.Center
                     )
                     Text(
@@ -384,14 +359,15 @@ fun PrivacyTermsScreen(navController: NavController) {
 fun LegalNavCard(
     icon: ImageVector,
     title: String,
-    subtitle: String
+    subtitle: String,
+    onClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .clickable { }
+            .background(LocalAppColors.current.surface)
+            .clickable { onClick() }
             .padding(14.dp)
     ) {
         Row(
@@ -417,7 +393,7 @@ fun LegalNavCard(
                     text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = subtitle,
@@ -451,7 +427,7 @@ fun LegalSection(
             text = "$number. $title",
             fontSize = 18.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = TextDark
+            color = LocalAppColors.current.textPrimary
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -481,7 +457,7 @@ fun LegalInfoBox(title: String, content: String) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
             .border(1.dp, Divider, RoundedCornerShape(10.dp))
             .padding(14.dp)
     ) {
@@ -490,7 +466,7 @@ fun LegalInfoBox(title: String, content: String) {
                 text = title,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(

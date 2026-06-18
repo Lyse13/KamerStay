@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import kotlinx.coroutines.delay
 
 @Composable
@@ -27,7 +28,7 @@ fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         delay(5000)
-        navController.navigate(Routes.Welcome.route) {
+        navController.navigate(Routes.Onboarding.route) {
             popUpTo(Routes.Splash.route) { inclusive = true }
         }
     }
@@ -51,8 +52,8 @@ fun SplashScreen(navController: NavController) {
             .background(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Primary,  // centre légèrement plus clair
-                        DarkNavy,           // #092031 bords
+                        Color(0xFF002B35),  // centre sombre pour contraste texte blanc
+                        DarkNavy,
                     ),
                     radius = 1200f
                 )
@@ -84,13 +85,13 @@ fun SplashScreen(navController: NavController) {
             Spacer(modifier = Modifier.weight(1f))
 
             // ── Logo Triangles ────────────────────────
-            MyStaysLogo()
+            KamerStayLogo()
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // ── App Name ──────────────────────────────
             Text(
-                text = "MyStays",
+                text = APP_NAME,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -135,14 +136,13 @@ fun SplashScreen(navController: NavController) {
     }
 }
 
-// ── Logo MyStays — Double Triangle ───────────────────────
+// ── Logo KamerStay — Double Triangle ─────────────────────
 @Composable
-fun MyStaysLogo() {
+fun KamerStayLogo() {
     Canvas(modifier = Modifier.size(120.dp)) {
         val w = size.width
         val h = size.height
 
-        // Triangle arrière (gris clair, décalé à droite)
         val backTriangle = Path().apply {
             moveTo(w * 0.35f, h * 0.85f)
             lineTo(w * 0.72f, h * 0.28f)
@@ -150,7 +150,6 @@ fun MyStaysLogo() {
             close()
         }
 
-        // Triangle avant (blanc, principal)
         val frontTriangle = Path().apply {
             moveTo(w * 0.05f, h * 0.85f)
             lineTo(w * 0.42f, h * 0.22f)
@@ -158,7 +157,6 @@ fun MyStaysLogo() {
             close()
         }
 
-        // Triangle ombre (zone de chevauchement plus foncée)
         val overlapTriangle = Path().apply {
             moveTo(w * 0.35f, h * 0.85f)
             lineTo(w * 0.42f, h * 0.22f)
@@ -166,18 +164,17 @@ fun MyStaysLogo() {
             close()
         }
 
-        // Dessin
         drawPath(
             path = backTriangle,
-            color = TriangleBack  // gris bleuté
+            color = TriangleBack
         )
         drawPath(
             path = frontTriangle,
-            color = TriangleFront // blanc cassé
+            color = TriangleFront
         )
         drawPath(
             path = overlapTriangle,
-            color = TriangleShadow.copy(alpha = 0.6f)  // ombre chevauchement
+            color = TriangleShadow.copy(alpha = 0.6f)
         )
     }
 }

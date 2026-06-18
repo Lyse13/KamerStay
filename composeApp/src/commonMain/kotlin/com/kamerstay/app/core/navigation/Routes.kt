@@ -3,6 +3,7 @@ package com.kamerstay.app.core.navigation
 sealed class Routes(val route: String) {
 
     data object Splash : Routes("splash")
+    data object Onboarding : Routes("onboarding")
     data object Welcome : Routes("welcome")
     data object RoleSelection : Routes("role_selection")
     data object SignIn : Routes("sign_in")
@@ -31,6 +32,7 @@ sealed class Routes(val route: String) {
     data object VerificationCode : Routes("verification_code")
     data object ResetPassword : Routes("reset_password")
     data object PasswordResetSuccess : Routes("password_reset_success")
+    data object ChangePassword : Routes("change_password")
 
     data object RoomDetails : Routes("room_details/{roomId}") {
         fun createRoute(roomId: String) = "room_details/$roomId"
@@ -49,6 +51,7 @@ sealed class Routes(val route: String) {
         fun createRoute(bookingId: String) = "booking_details/$bookingId"
     }
     data object TravelerProfile : Routes("traveler_profile")
+    data object TravelerPersonalInfo : Routes("traveler_personal_info")
     data object ManagerDashboard : Routes("manager_dashboard")
     data object MapLocation : Routes("map_location")
     data object RegisterHotel : Routes("register_hotel")
@@ -86,8 +89,15 @@ sealed class Routes(val route: String) {
     data object LocalGuide : Routes("local_guide")
     data object PrivacyTerms : Routes("privacy_terms")
     data object ManagerSettings : Routes("manager_settings")
+    data object ManagerNotifications : Routes("manager_notifications")
     data object TravelerPaymentMethods : Routes("traveler_payment_methods")
     data object BookingCancellation : Routes("booking_cancellation/{bookingId}") {
         fun createRoute(bookingId: String) = "booking_cancellation/$bookingId"
     }
+    data object RefundTracking : Routes("refund_tracking")
+    data object Promotions : Routes("promotions")
+    data object AddEditPromotion : Routes("add_edit_promotion")
+    data object ManagerPrivacyTerms : Routes("manager_privacy_terms")
+    data object HelpCenter : Routes("help_center")
+    data object ManagerOnboarding : Routes("manager_onboarding")
 }

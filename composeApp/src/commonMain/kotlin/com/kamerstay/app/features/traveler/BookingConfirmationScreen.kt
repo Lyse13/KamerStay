@@ -67,7 +67,7 @@ fun BookingConfirmationScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -91,7 +91,7 @@ fun BookingConfirmationScreen(
                     )
                 }
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -129,7 +129,7 @@ fun BookingConfirmationScreen(
                     text = "Pack your bags!",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark,
+                    color = LocalAppColors.current.textPrimary,
                     textAlign = TextAlign.Center
                 )
 
@@ -159,7 +159,7 @@ fun BookingConfirmationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         // Room image
@@ -188,7 +188,7 @@ fun BookingConfirmationScreen(
                             ) {
                                 Text(
                                     text = "CONFIRMED",
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Primary
                                 )
@@ -200,7 +200,7 @@ fun BookingConfirmationScreen(
                                 text = hotel.name,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
 
                             Row(
@@ -239,7 +239,7 @@ fun BookingConfirmationScreen(
                                         text = "Oct 24, 2024",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                 }
                                 Column {
@@ -254,7 +254,7 @@ fun BookingConfirmationScreen(
                                         text = "Oct 28, 2024",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                 }
                             }
@@ -269,7 +269,7 @@ fun BookingConfirmationScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     Column(
@@ -278,7 +278,7 @@ fun BookingConfirmationScreen(
                     ) {
                         Text(
                             text = "BOOKING REFERENCE",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Primary,
                             letterSpacing = 0.8.sp
@@ -301,7 +301,7 @@ fun BookingConfirmationScreen(
                                 .size(120.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .border(1.dp, Divider, RoundedCornerShape(12.dp))
-                                .background(BackgroundLight),
+                                .background(LocalAppColors.current.background),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -357,7 +357,7 @@ fun BookingConfirmationScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.White)
+                                        .background(LocalAppColors.current.surface)
                                         .padding(12.dp)
                                 ) {
                                     Row(
@@ -374,7 +374,7 @@ fun BookingConfirmationScreen(
                                             text = label,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Medium,
-                                            color = TextDark
+                                            color = LocalAppColors.current.textPrimary
                                         )
                                     }
                                 }
@@ -426,13 +426,13 @@ fun BookingConfirmationScreen(
                     shape = RoundedCornerShape(28.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = TextDark
+                        contentColor = LocalAppColors.current.textPrimary
                     )
                 ) {
                     Icon(
                         Icons.Outlined.Home,
                         contentDescription = null,
-                        tint = TextDark,
+                        tint = LocalAppColors.current.textPrimary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -440,7 +440,7 @@ fun BookingConfirmationScreen(
                         text = "Go to Home",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
 
@@ -450,8 +450,8 @@ fun BookingConfirmationScreen(
                 Text(
                     text = buildAnnotatedString {
                         append("A confirmation email has been sent to ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = TextDark)) {
-                            append("traveler@example.com")
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)) {
+                            append(com.kamerstay.app.data.state.UserSession.email.ifBlank { "votre email" })
                         }
                         append(". Need to make changes? You can manage your booking in the ")
                         withStyle(SpanStyle(

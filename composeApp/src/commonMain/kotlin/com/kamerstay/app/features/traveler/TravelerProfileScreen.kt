@@ -1,11 +1,9 @@
 package com.kamerstay.app.features.traveler
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,10 +22,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.AvatarWithImagePicker
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun TravelerProfileScreen(navController: NavController) {
@@ -38,7 +38,7 @@ fun TravelerProfileScreen(navController: NavController) {
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = TextDark) },
+            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = { Text("Are you sure you want to sign out?", color = OnSurfaceSecondary) },
             confirmButton = {
                 Button(
@@ -57,45 +57,15 @@ fun TravelerProfileScreen(navController: NavController) {
                     Text("Cancel", color = Secondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 3)
         }
     ) { paddingValues ->
         Column(
@@ -122,7 +92,7 @@ fun TravelerProfileScreen(navController: NavController) {
                         )
                     }
                     Text(
-                        text = "MyStays",
+                        text = "KamerStay",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -144,7 +114,7 @@ fun TravelerProfileScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(20.dp)
             ) {
                 Column(
@@ -152,48 +122,20 @@ fun TravelerProfileScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     // Avatar
-                    Box(modifier = Modifier.size(90.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .size(85.dp)
-                                .clip(CircleShape)
-                                .background(OnSurfaceSecondary.copy(0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Outlined.Person,
-                                contentDescription = null,
-                                tint = OnSurfaceSecondary,
-                                modifier = Modifier.size(44.dp)
-                            )
-                        }
-                        // Edit badge
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(Secondary)
-                                .border(2.dp, Color.White, CircleShape)
-                                .align(Alignment.BottomEnd)
-                                .clickable { },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Outlined.Edit,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
+                    AvatarWithImagePicker(
+                        imagePicked = viewModel.travelerPersonalInfoState.profileImagePicked,
+                        onPickImage = { viewModel.travelerPersonalInfoState.profileImagePicked = true },
+                        avatarSize = 85,
+                        badgeSize = 28
+                    )
 
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "Alex Thompson",
+                        text = viewModel.travelerPersonalInfoState.fullName,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Explorer • Since 2022",
@@ -224,6 +166,12 @@ fun TravelerProfileScreen(navController: NavController) {
                 modifier = Modifier.padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                TravelerProfileItem(
+                    icon = Icons.Outlined.Person,
+                    title = "Personal Information",
+                    subtitle = "Edit your name, email, phone and location",
+                    onClick = { navController.navigate(Routes.TravelerPersonalInfo.route) }
+                )
                 TravelerProfileItem(
                     icon = Icons.Outlined.BookOnline,
                     title = "My Bookings",
@@ -258,7 +206,7 @@ fun TravelerProfileScreen(navController: NavController) {
                     text = "Account Details",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -267,24 +215,24 @@ fun TravelerProfileScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         AccountDetailRow(
-                            label = "Email Address",
-                            value = "alex.thompson@traveler.com",
+                            label = "Adresse Email",
+                            value = viewModel.travelerPersonalInfoState.email.ifBlank { "—" },
                             hasVerified = true
                         )
                         HorizontalDivider(color = Divider)
                         AccountDetailRow(
-                            label = "Phone Number",
-                            value = "+1 (555) 123-4567"
+                            label = "Téléphone",
+                            value = "${viewModel.travelerPersonalInfoState.phoneCode} ${viewModel.travelerPersonalInfoState.phoneNumber}".trim().ifBlank { "—" }
                         )
                         HorizontalDivider(color = Divider)
                         AccountDetailRow(
-                            label = "Address",
-                            value = "San Francisco, California"
+                            label = "Ville",
+                            value = viewModel.travelerPersonalInfoState.city.ifBlank { "—" }
                         )
                     }
                 }
@@ -360,7 +308,7 @@ fun TravelerProfileItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .clickable { onClick() }
             .padding(16.dp)
     ) {
@@ -388,7 +336,7 @@ fun TravelerProfileItem(
                     text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = subtitle,
@@ -430,7 +378,7 @@ fun AccountDetailRow(
                 text = value,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             if (hasVerified) {
                 Icon(

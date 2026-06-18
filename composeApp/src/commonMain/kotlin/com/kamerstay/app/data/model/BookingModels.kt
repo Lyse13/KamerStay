@@ -11,7 +11,8 @@ data class Booking(
     val totalPrice: String,
     val status: BookingStatus,
     val rating: Double = 0.0,
-    val gradientColors: List<Color>
+    val gradientColors: List<Color>,
+    val imageUrl: String = ""
 )
 
 enum class BookingStatus {

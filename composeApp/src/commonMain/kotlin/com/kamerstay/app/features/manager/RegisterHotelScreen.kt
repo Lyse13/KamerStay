@@ -23,9 +23,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
+import com.kamerstay.app.core.components.ImageUploadCard
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun RegisterHotelScreen(navController: NavController) {
@@ -37,35 +39,9 @@ fun RegisterHotelScreen(navController: NavController) {
     val categories = listOf("Hotel", "Resort", "Villa", "Boutique", "Hostel", "Apart-hotel")
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.Hotel to "Register",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "rooms")
         }
     ) { paddingValues ->
         Column(
@@ -89,7 +65,7 @@ fun RegisterHotelScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -102,11 +78,11 @@ fun RegisterHotelScreen(navController: NavController) {
                     text = "Grow your business with",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark,
+                    color = LocalAppColors.current.textPrimary,
                     lineHeight = 32.sp
                 )
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Secondary
@@ -128,7 +104,7 @@ fun RegisterHotelScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -153,7 +129,7 @@ fun RegisterHotelScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     Column {
@@ -171,7 +147,7 @@ fun RegisterHotelScreen(navController: NavController) {
                                 text = "Hotel Details",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
 
@@ -227,7 +203,7 @@ fun RegisterHotelScreen(navController: NavController) {
                                 DropdownMenu(
                                     expanded = categoryExpanded,
                                     onDismissRequest = { categoryExpanded = false },
-                                    modifier = Modifier.background(Color.White)
+                                    modifier = Modifier.background(LocalAppColors.current.surface)
                                 ) {
                                     categories.forEach { cat ->
                                         DropdownMenuItem(
@@ -235,7 +211,7 @@ fun RegisterHotelScreen(navController: NavController) {
                                                 Text(
                                                     text = cat,
                                                     color = if (state.selectedCategory == cat)
-                                                        Primary else TextDark
+                                                        Primary else LocalAppColors.current.textPrimary
                                                 )
                                             },
                                             onClick = {
@@ -316,7 +292,7 @@ fun RegisterHotelScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     Column {
@@ -334,77 +310,27 @@ fun RegisterHotelScreen(navController: NavController) {
                                 text = "Property Photos",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(1.5.dp, Divider, RoundedCornerShape(12.dp))
-                                .background(BackgroundLight)
-                                .clickable { }
-                                .padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(CircleShape)
-                                        .background(Primary),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.FileUpload,
-                                        contentDescription = null,
-                                        tint = OnPrimary,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                                Text(
-                                    text = "Upload main property image",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
-                                )
-                                Text(
-                                    text = "PNG, JPG or JPEG (max. 10MB)",
-                                    fontSize = 12.sp,
-                                    color = OnSurfaceSecondary
-                                )
-                                OutlinedButton(
-                                    onClick = { },
-                                    shape = RoundedCornerShape(20.dp),
-                                    border = androidx.compose.foundation.BorderStroke(
-                                        1.dp, Divider
-                                    ),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = TextDark
-                                    )
-                                ) {
-                                    Text(
-                                        text = "Browse Files",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = TextDark
-                                    )
-                                }
-                            }
-                        }
+                        var hotelImagePicked by remember { mutableStateOf(false) }
+                        ImageUploadCard(
+                            imagePicked = hotelImagePicked,
+                            onPickImage = { hotelImagePicked = true },
+                            onRemoveImage = { hotelImagePicked = false },
+                            label = "Upload main property image",
+                            compact = true
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 TextButton(
-                    onClick = { },
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -423,7 +349,9 @@ fun RegisterHotelScreen(navController: NavController) {
                             state.error = "Please fill in all required fields."
                         } else {
                             state.error = null
-                            navController.navigate(Routes.ManagerDashboard.route)
+                            navController.navigate(Routes.ManagerOnboarding.route) {
+                                    popUpTo(Routes.RegisterHotel.route) { inclusive = true }
+                                }
                         }
                     },
                     modifier = Modifier
@@ -470,7 +398,7 @@ fun BenefitRow(icon: ImageVector, title: String, subtitle: String) {
             Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
         }
         Column {
-            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
             Text(text = subtitle, fontSize = 13.sp, color = OnSurfaceSecondary, lineHeight = 17.sp)
         }
     }
@@ -489,9 +417,9 @@ fun RegisterFormField(label: String, content: @Composable () -> Unit) {
 fun registerTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Primary,
     unfocusedBorderColor = Divider,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
     cursorColor = Primary
 )

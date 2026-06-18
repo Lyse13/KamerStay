@@ -28,10 +28,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.data.mock.GuideMockData
 import com.kamerstay.app.data.model.*
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun LocalTravelGuideScreen(navController: NavController) {
@@ -39,6 +43,28 @@ fun LocalTravelGuideScreen(navController: NavController) {
     val viewModel = koinViewModel<TravelerViewModel>()
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("All Guide") }
+
+    // Filtrage par catégorie et recherche
+    val q = searchQuery.trim().lowercase()
+    val showAll = selectedCategory == "All Guide"
+
+    val filteredLandmarks = if (showAll || selectedCategory == "Landmarks")
+        GuideMockData.landmarks.filter { q.isEmpty() || it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+    else emptyList()
+
+    val filteredFood = if (showAll || selectedCategory == "Food & Dining")
+        GuideMockData.foodPlaces.filter { q.isEmpty() || it.name.lowercase().contains(q) || it.location.lowercase().contains(q) || it.tag.lowercase().contains(q) }
+    else emptyList()
+
+    val filteredShopping = if (showAll || selectedCategory == "Shopping")
+        GuideMockData.shoppingPlaces.filter { q.isEmpty() || it.name.lowercase().contains(q) || it.description.lowercase().contains(q) }
+    else emptyList()
+
+    val filteredNightlife = if (showAll || selectedCategory == "Nightlife")
+        GuideMockData.nightlifePlaces.filter { q.isEmpty() || it.name.lowercase().contains(q) || it.subtitle.lowercase().contains(q) }
+    else emptyList()
+
+    val hasResults = filteredLandmarks.isNotEmpty() || filteredFood.isNotEmpty() || filteredShopping.isNotEmpty() || filteredNightlife.isNotEmpty()
 
     val categories = listOf(
         Icons.Outlined.AutoAwesome to "All Guide",
@@ -49,39 +75,9 @@ fun LocalTravelGuideScreen(navController: NavController) {
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 1)
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -120,7 +116,7 @@ fun LocalTravelGuideScreen(navController: NavController) {
                         }
                         Column {
                             Text(
-                                text = "Terroir Stay",
+                                text = APP_NAME,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Secondary
@@ -152,7 +148,7 @@ fun LocalTravelGuideScreen(navController: NavController) {
                         text = "Local Travel Guide",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Curated local experiences and hidden gems around your stay, handpicked by our expert concierges.",
@@ -173,7 +169,7 @@ fun LocalTravelGuideScreen(navController: NavController) {
                             modifier = Modifier
                                 .weight(1f)
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(Color.White)
+                                .background(LocalAppColors.current.surface)
                                 .border(1.dp, Divider, RoundedCornerShape(24.dp))
                                 .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -188,12 +184,12 @@ fun LocalTravelGuideScreen(navController: NavController) {
                             BasicTextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                textStyle = TextStyle(fontSize = 13.sp, color = TextDark),
+                                modifier = Modifier.weight(1f),
+                                textStyle = TextStyle(fontSize = 13.sp, color = LocalAppColors.current.textPrimary),
                                 decorationBox = { inner ->
                                     if (searchQuery.isEmpty()) {
                                         Text(
-                                            "Search landmarks, din...",
+                                            "Repères, restaurants, shopping...",
                                             fontSize = 13.sp,
                                             color = OnSurfaceSecondary.copy(0.5f)
                                         )
@@ -201,10 +197,23 @@ fun LocalTravelGuideScreen(navController: NavController) {
                                     inner()
                                 }
                             )
+                            if (searchQuery.isNotEmpty()) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .clip(CircleShape)
+                                        .background(OnSurfaceSecondary.copy(0.2f))
+                                        .clickable { searchQuery = "" },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Outlined.Close, null, tint = OnSurfaceSecondary, modifier = Modifier.size(10.dp))
+                                }
+                            }
                         }
 
                         Button(
-                            onClick = { },
+                            onClick = { navController.navigate(Routes.MapLocation.route) },
                             shape = RoundedCornerShape(24.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Primary),
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
@@ -252,7 +261,7 @@ fun LocalTravelGuideScreen(navController: NavController) {
                                         text = label,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = if (isSelected) OnPrimary else TextDark
+                                        color = if (isSelected) OnPrimary else LocalAppColors.current.textPrimary
                                     )
                                 }
                             }
@@ -263,123 +272,159 @@ fun LocalTravelGuideScreen(navController: NavController) {
                 }
             }
 
+            // ── État vide si aucun résultat ───────────
+            if (!hasResults) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Outlined.SearchOff,
+                                contentDescription = null,
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Aucun résultat pour « $searchQuery »",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = LocalAppColors.current.textPrimary
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Essayez un autre mot-clé ou changez de catégorie.",
+                                fontSize = 13.sp,
+                                color = OnSurfaceSecondary
+                            )
+                        }
+                    }
+                }
+            }
+
             // ── Landmarks ─────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
+            if (filteredLandmarks.isNotEmpty()) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Landmarks",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LocalAppColors.current.textPrimary
+                            )
+                            Text(
+                                text = "Sites emblématiques et panoramas",
+                                fontSize = 12.sp,
+                                color = OnSurfaceSecondary
+                            )
+                        }
                         Text(
-                            text = "Landmarks",
+                            text = "Voir sur la carte →",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Primary,
+                            modifier = Modifier.clickable { navController.navigate(Routes.MapLocation.route) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+                items(filteredLandmarks) { landmark ->
+                    LandmarkCard(
+                        landmark = landmark,
+                        onGetDirections = { navController.navigate(Routes.MapLocation.route) },
+                        onClick = { navController.navigate(Routes.MapLocation.route) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+
+            // ── Food & Dining ─────────────────────────
+            if (filteredFood.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        Text(
+                            text = "Food & Dining",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
-                            text = "Iconic spots and breathtaking views",
+                            text = "Saveurs locales et gastronomie",
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                     }
-                    Text(
-                        text = "View all →",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Primary,
-                        modifier = Modifier.clickable { }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            items(GuideMockData.landmarks) { landmark ->
-                LandmarkCard(
-                    landmark = landmark,
-                    onGetDirections = { navController.navigate(Routes.MapLocation.route) }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            // ── Food & Dining ─────────────────────────
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "Food & Dining",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark
-                    )
-                    Text(
-                        text = "Best local flavors and fine dining",
-                        fontSize = 12.sp,
-                        color = OnSurfaceSecondary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(GuideMockData.foodPlaces) { place ->
-                        FoodCard(place = place)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(filteredFood) { place ->
+                            FoodCard(
+                                place = place,
+                                onBookTable = { navController.navigate(Routes.MapLocation.route) },
+                                onClick = { navController.navigate(Routes.MapLocation.route) }
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
-
-                Spacer(modifier = Modifier.height(20.dp))
             }
 
             // ── Premium Shopping ──────────────────────
-            item {
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "Premium Shopping",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark
-                    )
+            if (filteredShopping.isNotEmpty()) {
+                item {
+                    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        Text(
+                            text = "Premium Shopping",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LocalAppColors.current.textPrimary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            items(GuideMockData.shoppingPlaces) { place ->
-                ShoppingCard(place = place)
-                Spacer(modifier = Modifier.height(12.dp))
+                items(filteredShopping) { place ->
+                    ShoppingCard(place = place, onClick = { navController.navigate(Routes.MapLocation.route) })
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
 
             // ── Nightlife ─────────────────────────────
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(
-                        text = "Nightlife",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextDark
-                    )
-                    Text(
-                        text = "The city comes alive after dark.",
-                        fontSize = 12.sp,
-                        color = OnSurfaceSecondary
-                    )
+            if (filteredNightlife.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        Text(
+                            text = "Nightlife",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LocalAppColors.current.textPrimary
+                        )
+                        Text(
+                            text = "La ville s'anime après la tombée de la nuit.",
+                            fontSize = 12.sp,
+                            color = OnSurfaceSecondary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            items(GuideMockData.nightlifePlaces) { place ->
-                NightlifeCard(place = place)
-                Spacer(modifier = Modifier.height(10.dp))
+                items(filteredNightlife) { place ->
+                    NightlifeCard(place = place, onClick = { navController.navigate(Routes.MapLocation.route) })
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -389,14 +434,14 @@ fun LocalTravelGuideScreen(navController: NavController) {
 
 // ── Landmark Card ─────────────────────────────────────────
 @Composable
-fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
+fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}, onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
-            .clickable { }
+            .background(LocalAppColors.current.surface)
+            .clickable { onClick() }
     ) {
         Column {
             // Image
@@ -405,17 +450,23 @@ fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
                     .fillMaxWidth()
                     .height(160.dp)
                     .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
-                    .background(
-                        brush = Brush.verticalGradient(colors = landmark.gradientColors)
-                    )
+                    .background(brush = Brush.verticalGradient(colors = landmark.gradientColors))
             ) {
+                if (landmark.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = landmark.imageUrl,
+                        contentDescription = landmark.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 // Rating badge
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(10.dp)
                         .clip(RoundedCornerShape(20.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Row(
@@ -432,7 +483,7 @@ fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
                             text = "${landmark.rating} (${landmark.reviewCount})",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -448,7 +499,7 @@ fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
                         text = landmark.name,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
@@ -500,8 +551,8 @@ fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
                             .size(42.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .border(1.dp, Divider, RoundedCornerShape(10.dp))
-                            .background(Color.White)
-                            .clickable { },
+                            .background(LocalAppColors.current.surface)
+                            .clickable { onGetDirections() },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -519,13 +570,13 @@ fun LandmarkCard(landmark: Landmark, onGetDirections: () -> Unit = {}) {
 
 // ── Food Card ─────────────────────────────────────────────
 @Composable
-fun FoodCard(place: FoodPlace) {
+fun FoodCard(place: FoodPlace, onBookTable: () -> Unit = {}, onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .width(180.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
-            .clickable { }
+            .background(LocalAppColors.current.surface)
+            .clickable { onClick() }
     ) {
         Column {
             Box(
@@ -533,10 +584,16 @@ fun FoodCard(place: FoodPlace) {
                     .fillMaxWidth()
                     .height(120.dp)
                     .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
-                    .background(
-                        brush = Brush.verticalGradient(colors = place.gradientColors)
-                    )
+                    .background(brush = Brush.verticalGradient(colors = place.gradientColors))
             ) {
+                if (place.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = place.imageUrl,
+                        contentDescription = place.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 Box(
                     modifier = Modifier
                         .padding(8.dp)
@@ -546,7 +603,7 @@ fun FoodCard(place: FoodPlace) {
                 ) {
                     Text(
                         text = place.tag,
-                        fontSize = 9.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -558,7 +615,7 @@ fun FoodCard(place: FoodPlace) {
                     text = place.name,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -572,7 +629,7 @@ fun FoodCard(place: FoodPlace) {
                     )
                     Text(
                         text = place.location,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = OnSurfaceSecondary
                     )
                 }
@@ -580,7 +637,7 @@ fun FoodCard(place: FoodPlace) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Button(
-                    onClick = { },
+                    onClick = { onBookTable() },
                     modifier = Modifier.fillMaxWidth().height(36.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Secondary),
@@ -600,18 +657,27 @@ fun FoodCard(place: FoodPlace) {
 
 // ── Shopping Card ─────────────────────────────────────────
 @Composable
-fun ShoppingCard(place: ShoppingPlace) {
+fun ShoppingCard(place: ShoppingPlace, onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .height(180.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(
-                brush = Brush.verticalGradient(colors = place.gradientColors)
-            )
-            .clickable { }
+            .background(brush = Brush.verticalGradient(colors = place.gradientColors))
+            .clickable { onClick() }
     ) {
+        if (place.imageUrl.isNotEmpty()) {
+            AsyncImage(
+                model = place.imageUrl,
+                contentDescription = place.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(
+                listOf(Color.Transparent, Color.Black.copy(0.7f))
+            )))
+        }
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -635,14 +701,14 @@ fun ShoppingCard(place: ShoppingPlace) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
                     text = "Start Shopping",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
             }
         }
@@ -651,14 +717,14 @@ fun ShoppingCard(place: ShoppingPlace) {
 
 // ── Nightlife Card ────────────────────────────────────────
 @Composable
-fun NightlifeCard(place: NightlifePlace) {
+fun NightlifeCard(place: NightlifePlace, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .clickable { }
+            .background(LocalAppColors.current.surface)
+            .clickable { onClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -666,10 +732,17 @@ fun NightlifeCard(place: NightlifePlace) {
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(
-                    brush = Brush.verticalGradient(colors = place.gradientColors)
+                .background(brush = Brush.verticalGradient(colors = place.gradientColors))
+        ) {
+            if (place.imageUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = place.imageUrl,
+                    contentDescription = place.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
                 )
-        )
+            }
+        }
 
         Spacer(modifier = Modifier.width(14.dp))
 
@@ -678,7 +751,7 @@ fun NightlifeCard(place: NightlifePlace) {
                 text = place.name,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
             Text(
                 text = place.subtitle,

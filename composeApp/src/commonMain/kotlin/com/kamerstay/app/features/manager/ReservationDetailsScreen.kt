@@ -30,6 +30,7 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.ReservationMockData
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun ReservationDetailsScreen(
@@ -39,11 +40,29 @@ fun ReservationDetailsScreen(
     val viewModel = koinViewModel<ManagerViewModel>()
     val reservation = ReservationMockData.getById(reservationId)
     var showCancelDialog by remember { mutableStateOf(false) }
+    var internalToolMessage by remember { mutableStateOf<String?>(null) }
+
+    if (internalToolMessage != null) {
+        AlertDialog(
+            onDismissRequest = { internalToolMessage = null },
+            title = { Text("Done", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
+            text = { Text(internalToolMessage ?: "", color = OnSurfaceSecondary) },
+            confirmButton = {
+                Button(
+                    onClick = { internalToolMessage = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("OK", color = OnPrimary) }
+            },
+            containerColor = LocalAppColors.current.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
-            title = { Text("Cancel Reservation?", fontWeight = FontWeight.Bold, color = TextDark) },
+            title = { Text("Cancel Reservation?", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = {
                 Text(
                     "Are you sure you want to cancel this reservation? The guest will be notified.",
@@ -60,45 +79,15 @@ fun ReservationDetailsScreen(
                     Text("Keep", color = Secondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Filled.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "reservations")
         }
     ) { paddingValues ->
         Column(
@@ -125,7 +114,7 @@ fun ReservationDetailsScreen(
                         )
                     }
                     Text(
-                        text = "MyStays",
+                        text = "KamerStay",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -163,7 +152,7 @@ fun ReservationDetailsScreen(
                 // ── Header ────────────────────────────
                 Text(
                     text = "RESERVATION ID: ${reservation.reservationId}",
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Primary,
                     letterSpacing = 0.5.sp
@@ -173,7 +162,7 @@ fun ReservationDetailsScreen(
                     text = "Guest: ${reservation.guestName}",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -206,15 +195,15 @@ fun ReservationDetailsScreen(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .border(1.dp, Divider, RoundedCornerShape(20.dp))
-                            .background(Color.White)
-                            .clickable { }
+                            .background(LocalAppColors.current.surface)
+                            .clickable { navController.popBackStack() }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = "Edit Booking",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                 }
@@ -226,7 +215,7 @@ fun ReservationDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -250,14 +239,14 @@ fun ReservationDetailsScreen(
                             Column {
                                 Text(
                                     text = "Check-in / Check-out",
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = OnSurfaceSecondary
                                 )
                                 Text(
                                     text = "${reservation.checkIn} — ${reservation.checkOut}",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "${reservation.nights} Nights Total",
@@ -289,14 +278,14 @@ fun ReservationDetailsScreen(
                             Column {
                                 Text(
                                     text = "Room Selection",
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     color = OnSurfaceSecondary
                                 )
                                 Text(
                                     text = reservation.roomName,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = reservation.roomDetails,
@@ -347,7 +336,7 @@ fun ReservationDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -363,7 +352,7 @@ fun ReservationDetailsScreen(
                                 text = "Guest Information",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
 
@@ -450,13 +439,13 @@ fun ReservationDetailsScreen(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(20.dp))
                                         .border(1.dp, Divider, RoundedCornerShape(20.dp))
-                                        .background(Color.White)
+                                        .background(LocalAppColors.current.surface)
                                         .padding(horizontal = 12.dp, vertical = 5.dp)
                                 ) {
                                     Text(
                                         text = tag,
                                         fontSize = 12.sp,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                 }
                             }
@@ -471,7 +460,7 @@ fun ReservationDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -479,7 +468,7 @@ fun ReservationDetailsScreen(
                             text = "Payment Summary",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -503,7 +492,7 @@ fun ReservationDetailsScreen(
                                 text = "Total Amount",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = reservation.totalAmount,
@@ -520,7 +509,7 @@ fun ReservationDetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(BackgroundLight)
+                                .background(LocalAppColors.current.background)
                                 .padding(12.dp)
                         ) {
                             Row(
@@ -565,7 +554,7 @@ fun ReservationDetailsScreen(
 
                         // Issue Invoice Button
                         Button(
-                            onClick = { },
+                            onClick = { navController.navigate(Routes.RevenueReport.route) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
@@ -596,12 +585,12 @@ fun ReservationDetailsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         Text(
                             text = "INTERNAL TOOLS",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = OnSurfaceSecondary,
                             letterSpacing = 0.8.sp,
@@ -616,7 +605,7 @@ fun ReservationDetailsScreen(
                         InternalToolRow(
                             icon = Icons.Outlined.Key,
                             title = "Generate Digital Key",
-                            onClick = { }
+                            onClick = { internalToolMessage = "Digital key generated and sent to guest's email." }
                         )
 
                         HorizontalDivider(
@@ -627,7 +616,7 @@ fun ReservationDetailsScreen(
                         InternalToolRow(
                             icon = Icons.Outlined.Notifications,
                             title = "Notify Concierge",
-                            onClick = { }
+                            onClick = { internalToolMessage = "Concierge has been notified for this reservation." }
                         )
 
                         HorizontalDivider(
@@ -673,7 +662,7 @@ fun GuestInfoRow(label: String, value: String) {
     Column {
         Text(text = label, fontSize = 12.sp, color = OnSurfaceSecondary)
         Spacer(modifier = Modifier.height(2.dp))
-        Text(text = value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextDark)
+        Text(text = value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalAppColors.current.textPrimary)
     }
 }
 
@@ -684,7 +673,7 @@ fun PaymentRow(label: String, amount: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, fontSize = 14.sp, color = OnSurfaceSecondary)
-        Text(text = amount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+        Text(text = amount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
     }
 }
 
@@ -712,7 +701,7 @@ fun InternalToolRow(
             text = title,
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
-            color = TextDark,
+            color = LocalAppColors.current.textPrimary,
             modifier = Modifier.weight(1f)
         )
         Icon(

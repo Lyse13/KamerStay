@@ -25,50 +25,54 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.TravelerSupportMockData
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun TravelerSupportScreen(navController: NavController) {
 
     val viewModel = koinViewModel<TravelerViewModel>()
     val state = viewModel.travelerSupportState
+    var showChatDialog by remember { mutableStateOf(false) }
+
+    if (showChatDialog) {
+        AlertDialog(
+            onDismissRequest = { showChatDialog = false },
+            title = { Text("Contact Support", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Choose how you'd like to reach us:", color = OnSurfaceSecondary, fontSize = 14.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Outlined.Call, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+                        Text("+237 6 55 00 11 22", fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Outlined.MailOutline, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+                        Text("support@kamerstay.cm", fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showChatDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Got it", color = OnPrimary) }
+            },
+            containerColor = LocalAppColors.current.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 3)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -96,7 +100,7 @@ fun TravelerSupportScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -140,7 +144,7 @@ fun TravelerSupportScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(28.dp))
-                                .background(Color.White)
+                                .background(LocalAppColors.current.surface)
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -157,7 +161,7 @@ fun TravelerSupportScreen(navController: NavController) {
                                 modifier = Modifier.weight(1f),
                                 textStyle = TextStyle(
                                     fontSize = 14.sp,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 ),
                                 decorationBox = { inner ->
                                     if (state.searchQuery.isEmpty()) {
@@ -172,15 +176,13 @@ fun TravelerSupportScreen(navController: NavController) {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Button(
-                                onClick = { },
+                                onClick = {
+                                    NavigationState.helpCenterRole = "traveler"
+                                    navController.navigate(Routes.HelpCenter.route)
+                                },
                                 shape = RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Primary
-                                ),
-                                contentPadding = PaddingValues(
-                                    horizontal = 16.dp,
-                                    vertical = 8.dp
-                                )
+                                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Text(
                                     text = "Search",
@@ -202,8 +204,11 @@ fun TravelerSupportScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 6.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                        .clickable { }
+                        .background(LocalAppColors.current.surface)
+                        .clickable {
+                            NavigationState.helpCenterRole = "traveler"
+                            navController.navigate(Routes.HelpCenter.route)
+                        }
                         .padding(16.dp)
                 ) {
                     Row(
@@ -229,7 +234,7 @@ fun TravelerSupportScreen(navController: NavController) {
                                 text = category.title,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = category.subtitle,
@@ -256,14 +261,17 @@ fun TravelerSupportScreen(navController: NavController) {
                         text = "Popular Questions",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "View all FAQ",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable {
+                            NavigationState.helpCenterRole = "traveler"
+                            navController.navigate(Routes.HelpCenter.route)
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -276,8 +284,11 @@ fun TravelerSupportScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 4.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                        .clickable { }
+                        .background(LocalAppColors.current.surface)
+                        .clickable {
+                            NavigationState.helpCenterRole = "traveler"
+                            navController.navigate(Routes.HelpCenter.route)
+                        }
                         .padding(16.dp)
                 ) {
                     Row(
@@ -296,7 +307,7 @@ fun TravelerSupportScreen(navController: NavController) {
                                 text = question.title,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = TextDark,
+                                color = LocalAppColors.current.textPrimary,
                                 lineHeight = 20.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
@@ -342,7 +353,7 @@ fun TravelerSupportScreen(navController: NavController) {
 
                         // Live Chat
                         Button(
-                            onClick = { },
+                            onClick = { showChatDialog = true },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),
@@ -370,7 +381,7 @@ fun TravelerSupportScreen(navController: NavController) {
 
                         // Call Center
                         OutlinedButton(
-                            onClick = { },
+                            onClick = { showChatDialog = true },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),

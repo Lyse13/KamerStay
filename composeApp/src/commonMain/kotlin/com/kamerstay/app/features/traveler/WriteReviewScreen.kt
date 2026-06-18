@@ -25,8 +25,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun WriteReviewScreen(navController: NavController) {
@@ -35,36 +37,9 @@ fun WriteReviewScreen(navController: NavController) {
     val state = viewModel.writeReviewState
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Search to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.FavoriteBorder to "Saved",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 3)
         }
     ) { paddingValues ->
         Column(
@@ -91,7 +66,7 @@ fun WriteReviewScreen(navController: NavController) {
                         )
                     }
                     Text(
-                        text = "Orion Stay",
+                        text = APP_NAME,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -130,7 +105,7 @@ fun WriteReviewScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
             ) {
                 Column {
                     Box(
@@ -156,7 +131,7 @@ fun WriteReviewScreen(navController: NavController) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text(
                             text = "STAY COMPLETED",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Primary,
                             letterSpacing = 0.8.sp
@@ -166,7 +141,7 @@ fun WriteReviewScreen(navController: NavController) {
                             text = "Azure Bay Resort & Spa",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "Deluxe Ocean View Suite",
@@ -230,7 +205,7 @@ fun WriteReviewScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(20.dp)
             ) {
                 Column(
@@ -241,7 +216,7 @@ fun WriteReviewScreen(navController: NavController) {
                         text = "How was your stay?",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(6.dp))
@@ -292,7 +267,7 @@ fun WriteReviewScreen(navController: NavController) {
                     // ── Review Text ───────────────────
                     Text(
                         text = "SHARE YOUR EXPERIENCE",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = OnSurfaceSecondary,
                         letterSpacing = 0.8.sp,
@@ -317,8 +292,8 @@ fun WriteReviewScreen(navController: NavController) {
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Primary,
                             unfocusedBorderColor = Divider,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = LocalAppColors.current.surface,
+                            unfocusedContainerColor = LocalAppColors.current.surface,
                             cursorColor = Primary
                         ),
                         maxLines = 6
@@ -334,7 +309,7 @@ fun WriteReviewScreen(navController: NavController) {
                     ) {
                         Text(
                             text = "ADD PHOTOS (OPTIONAL)",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = OnSurfaceSecondary,
                             letterSpacing = 0.8.sp
@@ -360,7 +335,7 @@ fun WriteReviewScreen(navController: NavController) {
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(10.dp))
                                     .border(1.5.dp, Divider, RoundedCornerShape(10.dp))
-                                    .background(BackgroundLight)
+                                    .background(LocalAppColors.current.background)
                                     .clickable { },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -427,7 +402,7 @@ fun WriteReviewScreen(navController: NavController) {
                                     .weight(1f)
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(BackgroundLight),
+                                    .background(LocalAppColors.current.background),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -457,13 +432,13 @@ fun WriteReviewScreen(navController: NavController) {
                                 1.dp, Divider
                             ),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = TextDark
+                                contentColor = LocalAppColors.current.textPrimary
                             )
                         ) {
                             Text(
                                 text = "Save Draft",
                                 fontSize = 14.sp,
-                                color = TextDark,
+                                color = LocalAppColors.current.textPrimary,
                                 fontWeight = FontWeight.Medium
                             )
                         }

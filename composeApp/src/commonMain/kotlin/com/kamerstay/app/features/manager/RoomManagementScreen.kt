@@ -31,6 +31,7 @@ import com.kamerstay.app.data.model.ManagerRoom
 import com.kamerstay.app.model.enums.RoomStatus
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun RoomManagementScreen(navController: NavController) {
@@ -54,39 +55,9 @@ fun RoomManagementScreen(navController: NavController) {
     val occupiedCount = RoomsMockData.rooms.count { it.status == RoomStatus.OCCUPIED }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 0.dp
-            ) {
-                listOf(
-                    Icons.Outlined.Dashboard to "Overview",
-                    Icons.Outlined.Hotel to "Rooms",
-                    Icons.Outlined.BookOnline to "Reservations",
-                    Icons.Outlined.Settings to "Settings"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                2 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.Settings.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "rooms")
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -116,7 +87,7 @@ fun RoomManagementScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = null,
@@ -124,7 +95,7 @@ fun RoomManagementScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -155,7 +126,7 @@ fun RoomManagementScreen(navController: NavController) {
                         text = "Room Management",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Real-time status overview of all available properties.",
@@ -241,7 +212,7 @@ fun RoomManagementScreen(navController: NavController) {
                                     text = filter,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = if (isSelected) Color.White else TextDark
+                                    color = if (isSelected) Color.White else LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -273,7 +244,7 @@ fun RoomManagementScreen(navController: NavController) {
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .border(1.5.dp, Divider, RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .clickable { navController.navigate(Routes.AddEditRoom.route) }
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
@@ -298,7 +269,7 @@ fun RoomManagementScreen(navController: NavController) {
                             text = "Add New Room",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "Expand your property inventory",
@@ -340,7 +311,7 @@ fun RoomManagementCard(
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
     ) {
         Column {
             // Image
@@ -382,7 +353,7 @@ fun RoomManagementCard(
                             text = "${room.type} ${room.number}",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = room.description,
@@ -395,11 +366,11 @@ fun RoomManagementCard(
                             text = "\$${room.price}",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "per night",
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                     }
@@ -412,7 +383,7 @@ fun RoomManagementCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(BackgroundLight)
+                            .background(LocalAppColors.current.background)
                             .padding(horizontal = 10.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -469,7 +440,7 @@ fun RoomManagementCard(
                             .size(42.dp)
                             .clip(RoundedCornerShape(10.dp))
                             .border(1.dp, Divider, RoundedCornerShape(10.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .clickable { onMore() },
                         contentAlignment = Alignment.Center
                     ) {

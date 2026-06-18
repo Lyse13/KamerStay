@@ -33,6 +33,46 @@ fun BookingReviewScreen(navController: NavController) {
     val viewModel = koinViewModel<TravelerViewModel>()
     val state = viewModel.bookingReviewState
     val booking = state.booking
+    var showPromoDialog by remember { mutableStateOf(false) }
+    var promoInput by remember { mutableStateOf("") }
+
+    if (showPromoDialog) {
+        AlertDialog(
+            onDismissRequest = { showPromoDialog = false },
+            title = { Text("Add Promo Code", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
+            text = {
+                OutlinedTextField(
+                    value = promoInput,
+                    onValueChange = { promoInput = it.uppercase() },
+                    placeholder = { Text("Enter code (e.g. STAY20)", color = OnSurfaceSecondary.copy(0.5f)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        unfocusedBorderColor = Divider,
+                        focusedContainerColor = LocalAppColors.current.surface,
+                        unfocusedContainerColor = LocalAppColors.current.surface,
+                        cursorColor = Primary
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showPromoDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Apply", color = OnPrimary) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPromoDialog = false; promoInput = "" }) {
+                    Text("Cancel", color = Secondary)
+                }
+            },
+            containerColor = LocalAppColors.current.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     fun formatPrice(value: Double): String {
         val intPart = value.toLong()
@@ -41,7 +81,7 @@ fun BookingReviewScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         topBar = {
             Row(
                 modifier = Modifier
@@ -58,7 +98,7 @@ fun BookingReviewScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -69,7 +109,7 @@ fun BookingReviewScreen(navController: NavController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Row(
@@ -87,7 +127,7 @@ fun BookingReviewScreen(navController: NavController) {
                             text = "\$${formatPrice(booking.totalUSD)}",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                     }
                     Button(
@@ -131,7 +171,7 @@ fun BookingReviewScreen(navController: NavController) {
                         text = "Review your booking",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Please check your details before proceeding to payment.",
@@ -149,7 +189,7 @@ fun BookingReviewScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         // Image
@@ -263,7 +303,7 @@ fun BookingReviewScreen(navController: NavController) {
                                             Text(
                                                 text = amenity,
                                                 fontSize = 12.sp,
-                                                color = TextDark,
+                                                color = LocalAppColors.current.textPrimary,
                                                 fontWeight = FontWeight.Medium
                                             )
                                         }
@@ -291,7 +331,7 @@ fun BookingReviewScreen(navController: NavController) {
                             text = "${booking.checkIn} — ${booking.checkOut}",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "${booking.nights} nights",
@@ -309,7 +349,7 @@ fun BookingReviewScreen(navController: NavController) {
                             text = "${booking.guests} Adults",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "${booking.rooms} Room",
@@ -327,7 +367,7 @@ fun BookingReviewScreen(navController: NavController) {
                             text = booking.roomType,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = booking.roomDetail,
@@ -346,7 +386,7 @@ fun BookingReviewScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -359,14 +399,14 @@ fun BookingReviewScreen(navController: NavController) {
                                 text = "Primary Guest",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "Edit details",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Primary,
-                                modifier = Modifier.clickable { }
+                                modifier = Modifier.clickable { navController.popBackStack() }
                             )
                         }
 
@@ -534,8 +574,8 @@ fun BookingReviewScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
-                        .clickable { }
+                        .background(LocalAppColors.current.surface)
+                        .clickable { showPromoDialog = true }
                         .padding(16.dp)
                 ) {
                     Row(
@@ -566,7 +606,7 @@ fun BookingReviewScreen(navController: NavController) {
                                     text = "Have a coupon?",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Apply code at next step",
@@ -600,7 +640,7 @@ fun ReviewInfoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column {
@@ -650,7 +690,7 @@ fun GuestDetailRow(label: String, value: String) {
         Text(
             text = value,
             fontSize = 15.sp,
-            color = TextDark,
+            color = LocalAppColors.current.textPrimary,
             fontWeight = FontWeight.Medium
         )
     }

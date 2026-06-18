@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,8 +23,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun AddEditStaffScreen(
@@ -32,6 +35,7 @@ fun AddEditStaffScreen(
 ) {
     val viewModel = koinViewModel<ManagerViewModel>()
     val state = viewModel.addEditStaffState
+    var staffImagePicked by remember { mutableStateOf(false) }
     var roleExpanded by remember { mutableStateOf(false) }
 
     val roles = listOf(
@@ -49,36 +53,9 @@ fun AddEditStaffScreen(
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.People to "Staff",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "profile")
         }
     ) { paddingValues ->
         Column(
@@ -97,11 +74,11 @@ fun AddEditStaffScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                         Icon(Icons.Outlined.Menu, contentDescription = null, tint = Secondary)
                     }
                     Text(
-                        text = "Terroir Travel",
+                        text = APP_NAME,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -146,7 +123,7 @@ fun AddEditStaffScreen(
                     text = "Manage Staff Member",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = "Update profile information and assign access levels for team members.",
@@ -162,7 +139,7 @@ fun AddEditStaffScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -190,11 +167,13 @@ fun AddEditStaffScreen(
                                     .background(Secondary)
                                     .border(2.dp, Color.White, CircleShape)
                                     .align(Alignment.BottomEnd)
-                                    .clickable { },
+                                    .clickable { staffImagePicked = true },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    Icons.Outlined.CameraAlt, contentDescription = null,
+                                    if (staffImagePicked) Icons.Outlined.Edit
+                                    else Icons.Outlined.CameraAlt,
+                                    contentDescription = null,
                                     tint = Color.White, modifier = Modifier.size(14.dp)
                                 )
                             }
@@ -204,7 +183,7 @@ fun AddEditStaffScreen(
                             text = "Profile Identity",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "JPG, GIF or PNG. Max size of 800K",
@@ -216,7 +195,7 @@ fun AddEditStaffScreen(
 
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Button(
-                                onClick = { },
+                                onClick = { staffImagePicked = true },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
                                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
@@ -229,13 +208,13 @@ fun AddEditStaffScreen(
                                 )
                             }
                             OutlinedButton(
-                                onClick = { },
+                                onClick = { staffImagePicked = false },
                                 shape = RoundedCornerShape(20.dp),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary),
                                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
                             ) {
-                                Text(text = "Remove", fontSize = 13.sp, color = TextDark)
+                                Text(text = "Remove", fontSize = 13.sp, color = LocalAppColors.current.textPrimary)
                             }
                         }
                     }
@@ -248,7 +227,7 @@ fun AddEditStaffScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -307,7 +286,7 @@ fun AddEditStaffScreen(
                                 DropdownMenu(
                                     expanded = roleExpanded,
                                     onDismissRequest = { roleExpanded = false },
-                                    modifier = Modifier.background(Color.White)
+                                    modifier = Modifier.background(LocalAppColors.current.surface)
                                 ) {
                                     roles.forEach { role ->
                                         DropdownMenuItem(
@@ -315,7 +294,7 @@ fun AddEditStaffScreen(
                                                 Text(
                                                     text = role,
                                                     color = if (state.selectedRole == role) Primary
-                                                    else TextDark
+                                                    else LocalAppColors.current.textPrimary
                                                 )
                                             },
                                             onClick = {
@@ -387,7 +366,7 @@ fun AddEditStaffScreen(
                     text = "Permissions Level",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -437,7 +416,7 @@ fun AddEditStaffScreen(
                                         text = label,
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
@@ -495,7 +474,7 @@ fun AddEditStaffScreen(
                         )
                     } else {
                         Icon(
-                            Icons.Outlined.Send, contentDescription = null,
+                            Icons.AutoMirrored.Outlined.Send, contentDescription = null,
                             tint = OnPrimary, modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -515,9 +494,9 @@ fun AddEditStaffScreen(
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(28.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary)
                 ) {
-                    Text(text = "Cancel", fontSize = 15.sp, color = TextDark)
+                    Text(text = "Cancel", fontSize = 15.sp, color = LocalAppColors.current.textPrimary)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -570,9 +549,9 @@ fun StaffFormField(label: String, content: @Composable () -> Unit) {
 fun staffTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Primary,
     unfocusedBorderColor = Divider,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
     cursorColor = Primary
 )

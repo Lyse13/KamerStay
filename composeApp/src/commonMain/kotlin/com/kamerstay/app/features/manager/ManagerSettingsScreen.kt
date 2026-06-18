@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.features.traveler.SettingsCard
@@ -44,7 +45,7 @@ fun ManagerSettingsScreen(navController: NavController) {
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = TextDark) },
+            title = { Text("Sign Out?", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = { Text("Are you sure you want to sign out?", color = OnSurfaceSecondary) },
             confirmButton = {
                 Button(
@@ -63,14 +64,14 @@ fun ManagerSettingsScreen(navController: NavController) {
                     Text("Cancel", color = Secondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
-        bottomBar = { ManagerBottomNav(navController, currentRoute = "profile") }
+        containerColor = LocalAppColors.current.background,
+        bottomBar = { ManagerBottomNavBar(navController, currentRoute = "settings") }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -99,7 +100,7 @@ fun ManagerSettingsScreen(navController: NavController) {
                         text = "Settings",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
             }
@@ -111,7 +112,7 @@ fun ManagerSettingsScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Row(
@@ -137,7 +138,7 @@ fun ManagerSettingsScreen(navController: NavController) {
                                 text = "Amina B.",
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "Property Manager • Akwa Palace",
@@ -162,9 +163,9 @@ fun ManagerSettingsScreen(navController: NavController) {
                     )
                     SettingsRowDivider()
                     SettingsRowItem(
-                        icon = Icons.Outlined.Shield,
-                        label = "Password & Security",
-                        onClick = { navController.navigate(Routes.ForgotPassword.route) }
+                        icon = Icons.Outlined.Lock,
+                        label = "Change Password",
+                        onClick = { navController.navigate(Routes.ChangePassword.route) }
                     )
                     SettingsRowDivider()
                     SettingsRowItem(
@@ -237,13 +238,13 @@ fun ManagerSettingsScreen(navController: NavController) {
                     SettingsRowItem(
                         icon = Icons.Outlined.Description,
                         label = "Terms of Service",
-                        onClick = { navController.navigate(Routes.PrivacyTerms.route) }
+                        onClick = { navController.navigate(Routes.ManagerPrivacyTerms.route) }
                     )
                     SettingsRowDivider()
                     SettingsRowItem(
                         icon = Icons.Outlined.PrivacyTip,
                         label = "Privacy Policy",
-                        onClick = { navController.navigate(Routes.PrivacyTerms.route) }
+                        onClick = { navController.navigate(Routes.ManagerPrivacyTerms.route) }
                     )
                 }
 

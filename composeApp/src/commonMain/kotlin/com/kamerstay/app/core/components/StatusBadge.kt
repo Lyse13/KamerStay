@@ -76,7 +76,7 @@ private fun StatusChip(
 ) {
     Text(
         text = label,
-        fontSize = 11.sp,
+        fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
         color = textColor,
         modifier = Modifier

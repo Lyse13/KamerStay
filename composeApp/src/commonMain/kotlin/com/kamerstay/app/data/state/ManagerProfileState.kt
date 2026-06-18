@@ -23,14 +23,15 @@ class VerificationState {
 }
 
 class ManagerPersonalInfoState {
-    var fullName by mutableStateOf("Manager Douala")
-    var email by mutableStateOf("douala.manager@akwa-palace.com")
-    var phoneCode by mutableStateOf("+237")
-    var phoneNumber by mutableStateOf("670 123 456")
-    var region by mutableStateOf("Douala, Littoral Region")
+    var fullName by mutableStateOf(UserSession.fullName.ifBlank { "Gestionnaire d'Hôtel" })
+    var email    by mutableStateOf(UserSession.email.ifBlank { "contact@akwa-palace.cm" })
+    var phoneCode   by mutableStateOf("+237")
+    var phoneNumber by mutableStateOf(UserSession.phone.ifBlank { "670 000 000" })
+    var region by mutableStateOf("Douala, Littoral")
     var emailNotifications by mutableStateOf(true)
     var isLoading by mutableStateOf(false)
     var regionExpanded by mutableStateOf(false)
+    var profileImagePicked by mutableStateOf(false)
 }
 
 class AmenitiesState {

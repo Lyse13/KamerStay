@@ -24,14 +24,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
+import com.kamerstay.app.core.components.ImageUploadCard
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun ManageHotelScreen(navController: NavController) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
+    var hotelGalleryImagePicked by remember { mutableStateOf(false) }
     val state = viewModel.manageHotelState
     var typeExpanded by remember { mutableStateOf(false) }
 
@@ -47,36 +51,9 @@ fun ManageHotelScreen(navController: NavController) {
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.People to "Staff",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                1 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "rooms")
         }
     ) { paddingValues ->
         Column(
@@ -99,7 +76,7 @@ fun ManageHotelScreen(navController: NavController) {
                         Icon(Icons.Outlined.Menu, contentDescription = null, tint = Secondary)
                     }
                     Text(
-                        text = "Terroir Travel",
+                        text = APP_NAME,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Secondary
@@ -135,7 +112,7 @@ fun ManageHotelScreen(navController: NavController) {
                     text = "Edit Property Details",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Text(
                     text = "Updates to your property will be synced across all booking channels.",
@@ -150,7 +127,7 @@ fun ManageHotelScreen(navController: NavController) {
                     onClick = { navController.navigate(Routes.HotelDetails.createRoute("1")) },
                     shape = RoundedCornerShape(20.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Icon(
@@ -160,7 +137,7 @@ fun ManageHotelScreen(navController: NavController) {
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Preview Listing", fontSize = 13.sp, color = TextDark)
+                    Text("Preview Listing", fontSize = 13.sp, color = LocalAppColors.current.textPrimary)
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -206,7 +183,7 @@ fun ManageHotelScreen(navController: NavController) {
                             DropdownMenu(
                                 expanded = typeExpanded,
                                 onDismissRequest = { typeExpanded = false },
-                                modifier = Modifier.background(Color.White)
+                                modifier = Modifier.background(LocalAppColors.current.surface)
                             ) {
                                 propertyTypes.forEach { type ->
                                     DropdownMenuItem(
@@ -214,7 +191,7 @@ fun ManageHotelScreen(navController: NavController) {
                                             Text(
                                                 text = type,
                                                 color = if (state.propertyType == type) Primary
-                                                else TextDark
+                                                else LocalAppColors.current.textPrimary
                                             )
                                         },
                                         onClick = {
@@ -303,7 +280,7 @@ fun ManageHotelScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${state.description.length}/1500 characters",
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         color = OnSurfaceSecondary,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.End
@@ -317,7 +294,7 @@ fun ManageHotelScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -338,24 +315,24 @@ fun ManageHotelScreen(navController: NavController) {
                                     text = "Property\nPhotos",
                                     fontSize = 17.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark,
+                                    color = LocalAppColors.current.textPrimary,
                                     lineHeight = 22.sp
                                 )
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                modifier = Modifier.clickable { }
+                                modifier = Modifier.clickable { hotelGalleryImagePicked = true }
                             ) {
                                 Icon(
                                     Icons.Outlined.AddAPhoto, contentDescription = null,
                                     tint = Primary, modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = "Add\nPhoto",
+                                    text = if (hotelGalleryImagePicked) "Added!" else "Add\nPhoto",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Primary,
+                                    color = if (hotelGalleryImagePicked) Secondary else Primary,
                                     lineHeight = 18.sp
                                 )
                             }
@@ -419,7 +396,7 @@ fun ManageHotelScreen(navController: NavController) {
                                         .weight(1f).height(110.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                         .border(1.5.dp, Divider, RoundedCornerShape(10.dp))
-                                        .background(BackgroundLight)
+                                        .background(LocalAppColors.current.background)
                                         .clickable { },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -468,7 +445,7 @@ fun ManageHotelScreen(navController: NavController) {
                                     tint = if (checked) Secondary else OnSurfaceSecondary,
                                     modifier = Modifier.size(20.dp)
                                 )
-                                Text(text = label, fontSize = 14.sp, color = TextDark)
+                                Text(text = label, fontSize = 14.sp, color = LocalAppColors.current.textPrimary)
                             }
                             Checkbox(
                                 checked = checked,
@@ -496,7 +473,7 @@ fun ManageHotelScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -512,7 +489,7 @@ fun ManageHotelScreen(navController: NavController) {
                                 text = "Publishing Status",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
 
@@ -529,7 +506,7 @@ fun ManageHotelScreen(navController: NavController) {
                                     .background(Primary)
                             )
                             Text(
-                                text = "Live on Terroir Travel",
+                                text = "Live on $APP_NAME",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Primary
@@ -551,9 +528,9 @@ fun ManageHotelScreen(navController: NavController) {
                             modifier = Modifier.fillMaxWidth().height(46.dp),
                             shape = RoundedCornerShape(10.dp),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary)
                         ) {
-                            Text("View Public Listing", fontSize = 14.sp, color = TextDark)
+                            Text("View Public Listing", fontSize = 14.sp, color = LocalAppColors.current.textPrimary)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -604,7 +581,7 @@ fun ManageSection(icon: ImageVector, title: String, content: @Composable ColumnS
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column {
@@ -613,7 +590,7 @@ fun ManageSection(icon: ImageVector, title: String, content: @Composable ColumnS
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
-                Text(text = title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text(text = title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
             }
             Spacer(modifier = Modifier.height(16.dp))
             content()
@@ -634,9 +611,9 @@ fun ManageField(label: String, content: @Composable () -> Unit) {
 fun manageTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Primary,
     unfocusedBorderColor = Divider,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
     cursorColor = Primary
 )

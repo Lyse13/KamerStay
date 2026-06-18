@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.data.mock.PaymentMethodsMockData
 import com.kamerstay.app.data.model.AlternativeHotel
 import com.kamerstay.app.viewmodel.TravelerViewModel
@@ -36,7 +37,7 @@ fun PaymentFailedScreen(navController: NavController) {
     val state = viewModel.paymentFailedState
 
     Scaffold(
-        containerColor = BackgroundLight
+        containerColor = LocalAppColors.current.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -53,7 +54,7 @@ fun PaymentFailedScreen(navController: NavController) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Orion Stay",
+                    text = APP_NAME,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary,
@@ -92,7 +93,7 @@ fun PaymentFailedScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(24.dp)
                 ) {
                     Column(
@@ -121,7 +122,7 @@ fun PaymentFailedScreen(navController: NavController) {
                             text = "Payment Declined",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = TextDark,
+                            color = LocalAppColors.current.textPrimary,
                             textAlign = TextAlign.Center
                         )
 
@@ -182,7 +183,7 @@ fun PaymentFailedScreen(navController: NavController) {
                             shape = RoundedCornerShape(28.dp),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = TextDark
+                                contentColor = LocalAppColors.current.textPrimary
                             )
                         ) {
                             Icon(
@@ -195,7 +196,7 @@ fun PaymentFailedScreen(navController: NavController) {
                             Text(
                                 text = "Change Payment Method",
                                 fontSize = 15.sp,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
 
@@ -230,7 +231,7 @@ fun PaymentFailedScreen(navController: NavController) {
                                     text = state.bookingName,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = state.bookingDetails,
@@ -249,7 +250,7 @@ fun PaymentFailedScreen(navController: NavController) {
                                     text = "\$${state.amountDue}",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -281,7 +282,7 @@ fun PaymentFailedScreen(navController: NavController) {
                                 text = "Need help?",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -297,7 +298,7 @@ fun PaymentFailedScreen(navController: NavController) {
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Primary,
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { navController.navigate(Routes.TravelerSupport.route) }
                         )
                     }
                 }
@@ -309,7 +310,7 @@ fun PaymentFailedScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(BackgroundLight)
+                        .background(LocalAppColors.current.background)
                         .border(1.dp, Divider, RoundedCornerShape(12.dp))
                         .padding(14.dp),
                     contentAlignment = Alignment.Center
@@ -345,7 +346,7 @@ fun PaymentFailedScreen(navController: NavController) {
                         text = "Still looking? Explore\nalternatives",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         lineHeight = 24.sp
                     )
                     Text(
@@ -390,7 +391,7 @@ fun AlternativeHotelCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .clickable { onClick() }
     ) {
         Column {
@@ -413,7 +414,7 @@ fun AlternativeHotelCard(
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "\$${hotel.pricePerNight}/night",
+                        text = "${"%,d".format(hotel.pricePerNight).replace(",", " ")} FCFA/nuit",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -426,7 +427,7 @@ fun AlternativeHotelCard(
                     text = hotel.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -452,7 +453,7 @@ fun AlternativeHotelCard(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(BackgroundLight)
+                                .background(LocalAppColors.current.background)
                                 .border(1.dp, Divider, RoundedCornerShape(4.dp))
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {

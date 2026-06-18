@@ -29,6 +29,7 @@ import com.kamerstay.app.data.model.TransactionStatus
 import com.kamerstay.app.data.model.RecentTransaction
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun RevenueReportScreen(navController: NavController) {
@@ -37,36 +38,9 @@ fun RevenueReportScreen(navController: NavController) {
     val state = viewModel.revenueReportState
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 2,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "reservations")
         }
     ) { paddingValues ->
         LazyColumn(
@@ -94,7 +68,7 @@ fun RevenueReportScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "MyStays",
+                            text = "KamerStay",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -127,7 +101,7 @@ fun RevenueReportScreen(navController: NavController) {
                         text = "Revenue Report",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Performance overview for ${state.period} • ${state.propertyName}",
@@ -171,7 +145,7 @@ fun RevenueReportScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -184,7 +158,7 @@ fun RevenueReportScreen(navController: NavController) {
                                 text = "Monthly Earnings",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 listOf("Revenue", "Guests").forEach { tab ->
@@ -280,7 +254,7 @@ fun RevenueReportScreen(navController: NavController) {
 
                                         Text(
                                             text = bar.month,
-                                            fontSize = 9.sp,
+                                            fontSize = 12.sp,
                                             color = OnSurfaceSecondary
                                         )
                                     }
@@ -299,7 +273,7 @@ fun RevenueReportScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -307,7 +281,7 @@ fun RevenueReportScreen(navController: NavController) {
                             text = "Payment Methods",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(14.dp))
@@ -336,7 +310,7 @@ fun RevenueReportScreen(navController: NavController) {
                                 Text(
                                     text = method.name,
                                     fontSize = 14.sp,
-                                    color = TextDark,
+                                    color = LocalAppColors.current.textPrimary,
                                     modifier = Modifier.width(120.dp)
                                 )
 
@@ -345,7 +319,7 @@ fun RevenueReportScreen(navController: NavController) {
                                         .weight(1f)
                                         .height(5.dp)
                                         .clip(RoundedCornerShape(3.dp))
-                                        .background(BackgroundLight)
+                                        .background(LocalAppColors.current.background)
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -361,7 +335,7 @@ fun RevenueReportScreen(navController: NavController) {
                                     text = "${method.percentage}%",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -375,7 +349,7 @@ fun RevenueReportScreen(navController: NavController) {
                             color = Primary,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { }
+                                .clickable { navController.navigate(Routes.RevenueAnalytics.route) }
                                 .padding(top = 4.dp),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -397,12 +371,12 @@ fun RevenueReportScreen(navController: NavController) {
                         text = "Recent Transactions",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable { navController.navigate(Routes.RevenueReport.route) }
                     ) {
                         Text(
                             text = "See All",
@@ -428,7 +402,7 @@ fun RevenueReportScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
-                        .background(BackgroundLight)
+                        .background(LocalAppColors.current.background)
                         .padding(horizontal = 12.dp, vertical = 10.dp)
                 ) {
                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -487,7 +461,7 @@ fun RevenueMetricCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Row(
@@ -523,7 +497,7 @@ fun RevenueMetricCard(
                         text = value,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
             }
@@ -554,7 +528,7 @@ fun TransactionRow(transaction: RecentTransaction) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(horizontal = 12.dp, vertical = 12.dp)
     ) {
         Row(
@@ -586,7 +560,7 @@ fun TransactionRow(transaction: RecentTransaction) {
                         text = transaction.guestName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = TextDark,
+                        color = LocalAppColors.current.textPrimary,
                         lineHeight = 15.sp
                     )
                     Text(
@@ -601,7 +575,7 @@ fun TransactionRow(transaction: RecentTransaction) {
             // Date
             Text(
                 text = transaction.date,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 color = OnSurfaceSecondary,
                 modifier = Modifier.weight(1.2f),
                 lineHeight = 14.sp
@@ -631,7 +605,7 @@ fun TransactionRow(transaction: RecentTransaction) {
                             TransactionStatus.PENDING -> "Pending"
                             TransactionStatus.FAILED -> "Failed"
                         },
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = when (transaction.status) {
                             TransactionStatus.COMPLETED -> Color(0xFF2E7D32)
@@ -647,7 +621,7 @@ fun TransactionRow(transaction: RecentTransaction) {
                 text = transaction.amount,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = LocalAppColors.current.textPrimary
             )
         }
     }

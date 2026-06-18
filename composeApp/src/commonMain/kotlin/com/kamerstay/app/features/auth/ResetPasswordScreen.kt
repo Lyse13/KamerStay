@@ -68,7 +68,7 @@ fun ResetPasswordScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(
             modifier = Modifier
@@ -87,7 +87,7 @@ fun ResetPasswordScreen(navController: NavController) {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .clickable { navController.popBackStack() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -99,7 +99,7 @@ fun ResetPasswordScreen(navController: NavController) {
                     )
                 }
                 Text(
-                    text = "MyStays",
+                    text = "KamerStay",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Secondary
@@ -115,7 +115,7 @@ fun ResetPasswordScreen(navController: NavController) {
                     text = "Reset Password",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -258,7 +258,7 @@ fun ResetPasswordScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -282,7 +282,7 @@ fun ResetPasswordScreen(navController: NavController) {
                                 text = "Data Protection",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "Your security is our priority. We use 256-bit encryption to protect your data.",
@@ -314,7 +314,7 @@ fun ResetRequirement(text: String, isMet: Boolean) {
         Text(
             text = text,
             fontSize = 13.sp,
-            color = if (isMet) TextDark else OnSurfaceSecondary
+            color = if (isMet) LocalAppColors.current.textPrimary else OnSurfaceSecondary
         )
     }
 }

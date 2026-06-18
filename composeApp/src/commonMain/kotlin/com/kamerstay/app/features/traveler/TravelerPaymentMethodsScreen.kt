@@ -29,6 +29,7 @@ import com.kamerstay.app.data.model.TravelerCard
 import com.kamerstay.app.data.model.TravelerCardType
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun TravelerPaymentMethodsScreen(navController: NavController) {
@@ -40,7 +41,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
     if (state.showAddDialog) {
         AlertDialog(
             onDismissRequest = { state.showAddDialog = false },
-            title = { Text("Add Payment Method", fontWeight = FontWeight.Bold, color = TextDark) },
+            title = { Text("Add Payment Method", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     listOf(
@@ -52,14 +53,14 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(BackgroundLight)
+                                .background(LocalAppColors.current.background)
                                 .clickable { state.showAddDialog = false }
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
-                            Text(label, fontSize = 14.sp, color = TextDark)
+                            Text(label, fontSize = 14.sp, color = LocalAppColors.current.textPrimary)
                         }
                     }
                 }
@@ -70,43 +71,15 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                     Text("Cancel", color = OnSurfaceSecondary)
                 }
             },
-            containerColor = Color.White,
+            containerColor = LocalAppColors.current.surface,
             shape = RoundedCornerShape(16.dp)
         )
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Home to "Home",
-                    Icons.Outlined.Search to "Search",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.TravelerHome.route)
-                                1 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.TravelerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 3)
         }
     ) { paddingValues ->
         Column(
@@ -126,7 +99,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Secondary)
                 }
-                Text("Payment Methods", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text("Payment Methods", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
             }
 
             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -156,7 +129,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                         ) {
                             Text(
                                 text = "PRIMARY CARD",
-                                fontSize = 11.sp,
+                                fontSize = 12.sp,
                                 color = Color.White.copy(0.7f),
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 0.8.sp
@@ -164,7 +137,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                             Icon(Icons.Outlined.CreditCard, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
                         }
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text("Alex Thompson", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        Text(viewModel.travelerPersonalInfoState.fullName, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text("•••• •••• ••••", fontSize = 16.sp, color = Color.White.copy(0.6f))
@@ -196,7 +169,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // ── Saved Methods ─────────────────────
-                Text("SAVED METHODS", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Primary, letterSpacing = 1.sp)
+                Text("SAVED METHODS", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Primary, letterSpacing = 1.sp)
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -231,7 +204,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                         ) {
                             Icon(Icons.Outlined.Add, contentDescription = null, tint = OnSurfaceSecondary, modifier = Modifier.size(22.dp))
                         }
-                        Text("Add New Payment Method", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = TextDark)
+                        Text("Add New Payment Method", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = LocalAppColors.current.textPrimary)
                     }
                 }
 
@@ -248,7 +221,7 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
                     Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(Icons.Outlined.Security, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
                         Column {
-                            Text("Secure Payments", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                            Text("Secure Payments", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Your payment details are encrypted and secured with SSL. KamerStay never stores your full card number.",
@@ -282,7 +255,7 @@ private fun TravelerPaymentRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .border(
                 width = if (isSelected) 2.dp else 0.dp,
                 color = if (isSelected) Primary else Color.Transparent,
@@ -304,7 +277,7 @@ private fun TravelerPaymentRow(
                     Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(22.dp))
                 }
                 Column {
-                    Text(card.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
+                    Text(card.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
                     Text(
                         text = if (card.expiry == "—") card.number else "•••• ${card.number}  •  Expires ${card.expiry}",
                         fontSize = 12.sp,

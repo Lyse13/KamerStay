@@ -43,7 +43,7 @@ fun VerificationCodeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(LocalAppColors.current.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -57,7 +57,7 @@ fun VerificationCodeScreen(navController: NavController) {
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .clickable { navController.popBackStack() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -81,7 +81,7 @@ fun VerificationCodeScreen(navController: NavController) {
                     text = "Verify your email",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextDark
+                    color = LocalAppColors.current.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -92,7 +92,7 @@ fun VerificationCodeScreen(navController: NavController) {
                     color = OnSurfaceSecondary
                 )
                 Text(
-                    text = "alex.traveler@example.com",
+                    text = viewModel.forgotPasswordState.email.ifBlank { "votre email" },
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Primary
@@ -112,7 +112,7 @@ fun VerificationCodeScreen(navController: NavController) {
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White),
+                                .background(LocalAppColors.current.surface),
                             contentAlignment = Alignment.Center
                         ) {
                             Box(
@@ -120,7 +120,7 @@ fun VerificationCodeScreen(navController: NavController) {
                                     .size(if (char != null) 12.dp else 8.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        if (char != null) TextDark
+                                        if (char != null) LocalAppColors.current.textPrimary
                                         else OnSurfaceSecondary.copy(0.3f)
                                     )
                             )
@@ -166,7 +166,7 @@ fun VerificationCodeScreen(navController: NavController) {
                         text = "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
             }
@@ -204,7 +204,7 @@ fun VerificationCodeScreen(navController: NavController) {
 
                 Text(
                     text = "By clicking Verify, you agree to our Terms of Service and Privacy Policy regarding digital hospitality.",
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     color = OnSurfaceSecondary.copy(0.5f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),

@@ -25,6 +25,7 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.AnalyticsMockData
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun RevenueAnalyticsScreen(navController: NavController) {
@@ -35,36 +36,9 @@ fun RevenueAnalyticsScreen(navController: NavController) {
     val periods = listOf("Week", "Month", "Year")
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Dashboard to "Overview",
-                    Icons.Outlined.Hotel to "My Hotels",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.People to "Staff"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 0,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                2 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.StaffManagement.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 10.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "dashboard")
         }
     ) { paddingValues ->
         LazyColumn(
@@ -84,7 +58,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = null,
@@ -137,7 +111,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .padding(4.dp)
                     ) {
                         Row {
@@ -158,7 +132,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                         fontSize = 13.sp,
                                         fontWeight = if (isSelected) FontWeight.SemiBold
                                         else FontWeight.Normal,
-                                        color = if (isSelected) TextDark else OnSurfaceSecondary
+                                        color = if (isSelected) LocalAppColors.current.textPrimary else OnSurfaceSecondary
                                     )
                                 }
                             }
@@ -199,7 +173,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -212,7 +186,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                 text = "Monthly Revenue\nTrend",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark,
+                                color = LocalAppColors.current.textPrimary,
                                 lineHeight = 20.sp
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -355,7 +329,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -363,7 +337,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                             text = "Occupancy Trend",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -378,7 +352,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                 Text(
                                     text = item.label,
                                     fontSize = 14.sp,
-                                    color = TextDark,
+                                    color = LocalAppColors.current.textPrimary,
                                     modifier = Modifier.width(110.dp)
                                 )
                                 Box(
@@ -386,7 +360,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                         .weight(1f)
                                         .height(6.dp)
                                         .clip(RoundedCornerShape(3.dp))
-                                        .background(BackgroundLight)
+                                        .background(LocalAppColors.current.background)
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -401,7 +375,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                     text = "${item.percentage}%",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                             }
                         }
@@ -417,7 +391,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Column {
@@ -430,7 +404,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                 text = "Staff Performance",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "View All",
@@ -476,7 +450,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                             text = staff.name,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = TextDark
+                                            color = LocalAppColors.current.textPrimary
                                         )
                                         Text(
                                             text = staff.role,
@@ -491,11 +465,11 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                         text = "${staff.score}%",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                     Text(
                                         text = "Score",
-                                        fontSize = 11.sp,
+                                        fontSize = 12.sp,
                                         color = OnSurfaceSecondary
                                     )
                                     Text(
@@ -584,7 +558,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .clickable { navController.navigate(Routes.RevenueReport.route) }
                         .padding(16.dp)
                 ) {
@@ -616,7 +590,7 @@ fun RevenueAnalyticsScreen(navController: NavController) {
                                     text = "Full Revenue Report",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Transactions, charts & breakdown",
@@ -652,7 +626,7 @@ fun KpiCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Row(
@@ -690,7 +664,7 @@ fun KpiCard(
                         text = value,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
             }
@@ -727,6 +701,6 @@ fun LegendDot(color: Color, label: String) {
                 .clip(CircleShape)
                 .background(color)
         )
-        Text(text = label, fontSize = 11.sp, color = OnSurfaceSecondary)
+        Text(text = label, fontSize = 12.sp, color = OnSurfaceSecondary)
     }
 }

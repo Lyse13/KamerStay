@@ -25,11 +25,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.data.mock.ReviewsMockData
 import com.kamerstay.app.data.model.CategoryRating
 import com.kamerstay.app.data.model.GuestReview
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun HotelReviewsScreen(navController: NavController) {
@@ -52,36 +54,9 @@ fun HotelReviewsScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Explore to "Explore",
-                    Icons.Outlined.Star to "Reviews",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Settings to "Settings"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 1,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.HotelSearch.route)
-                                2 -> navController.navigate(Routes.BookingHistory.route)
-                                3 -> navController.navigate(Routes.Settings.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            TravelerBottomNavBar(navController = navController, selectedTab = 1)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -109,7 +84,7 @@ fun HotelReviewsScreen(navController: NavController) {
                             )
                         }
                         Text(
-                            text = "StayCameroon",
+                            text = APP_NAME,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -139,7 +114,7 @@ fun HotelReviewsScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(20.dp)
                 ) {
                     Column {
@@ -160,7 +135,7 @@ fun HotelReviewsScreen(navController: NavController) {
                                 text = "4.8",
                                 fontSize = 42.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextDark
+                                color = LocalAppColors.current.textPrimary
                             )
                             Text(
                                 text = "/5",
@@ -229,7 +204,7 @@ fun HotelReviewsScreen(navController: NavController) {
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                 ) {
                     Column {
                         ReviewsMockData.categoryRatings.forEachIndexed { index, category ->
@@ -259,14 +234,14 @@ fun HotelReviewsScreen(navController: NavController) {
                                         Text(
                                             text = category.label,
                                             fontSize = 14.sp,
-                                            color = TextDark
+                                            color = LocalAppColors.current.textPrimary
                                         )
                                     }
                                     Text(
                                         text = category.score.toString(),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                 }
 
@@ -278,7 +253,7 @@ fun HotelReviewsScreen(navController: NavController) {
                                         .fillMaxWidth()
                                         .height(4.dp)
                                         .clip(RoundedCornerShape(2.dp))
-                                        .background(BackgroundLight)
+                                        .background(LocalAppColors.current.background)
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -329,7 +304,7 @@ fun HotelReviewsScreen(navController: NavController) {
                                 fontSize = 13.sp,
                                 fontWeight = if (isSelected) FontWeight.SemiBold
                                 else FontWeight.Normal,
-                                color = if (isSelected) OnPrimary else TextDark
+                                color = if (isSelected) OnPrimary else LocalAppColors.current.textPrimary
                             )
                         }
                     }
@@ -346,20 +321,20 @@ fun HotelReviewsScreen(navController: NavController) {
             // ── Load More ─────────────────────────────
             item {
                 OutlinedButton(
-                    onClick = { },
+                    onClick = { navController.navigate(Routes.WriteReview.route) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .height(50.dp),
                     shape = RoundedCornerShape(25.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextDark)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary)
                 ) {
                     Text(
                         text = "Load More Reviews",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -376,7 +351,7 @@ fun ReviewCard(review: GuestReview) {
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Color.White)
+            .background(LocalAppColors.current.surface)
             .padding(16.dp)
     ) {
         Column {
@@ -408,7 +383,7 @@ fun ReviewCard(review: GuestReview) {
                             text = review.name,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextDark
+                            color = LocalAppColors.current.textPrimary
                         )
                         Text(
                             text = "${review.stayType} • ${review.date}",
@@ -449,7 +424,7 @@ fun ReviewCard(review: GuestReview) {
             Text(
                 text = review.comment,
                 fontSize = 14.sp,
-                color = TextDark,
+                color = LocalAppColors.current.textPrimary,
                 lineHeight = 20.sp,
                 fontStyle = FontStyle.Italic
             )
@@ -478,7 +453,7 @@ fun ReviewCard(review: GuestReview) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(BackgroundLight)
+                                .background(LocalAppColors.current.background)
                                 .border(1.dp, Divider, RoundedCornerShape(6.dp))
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {

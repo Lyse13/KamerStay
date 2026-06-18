@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.components.AvatarWithImagePicker
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.ManagerViewModel
@@ -43,12 +44,12 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
     )
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(LocalAppColors.current.surface)
                     .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Button(
@@ -134,41 +135,10 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Avatar
-                Box(modifier = Modifier.size(110.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .border(3.dp, Primary, CircleShape)
-                            .background(OnSurfaceSecondary.copy(0.2f))
-                            .align(Alignment.Center),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Person,
-                            contentDescription = null,
-                            tint = OnSurfaceSecondary,
-                            modifier = Modifier.size(50.dp)
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(Secondary)
-                            .border(2.dp, Color.White, CircleShape)
-                            .align(Alignment.BottomEnd)
-                            .clickable { },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.CameraAlt,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
+                AvatarWithImagePicker(
+                    imagePicked = state.profileImagePicked,
+                    onPickImage = { state.profileImagePicked = true }
+                )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
@@ -290,7 +260,7 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
                         DropdownMenu(
                             expanded = state.regionExpanded,
                             onDismissRequest = { state.regionExpanded = false },
-                            modifier = Modifier.background(Color.White)
+                            modifier = Modifier.background(LocalAppColors.current.surface)
                         ) {
                             regions.forEach { region ->
                                 DropdownMenuItem(
@@ -298,7 +268,7 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
                                         Text(
                                             text = region,
                                             color = if (state.region == region) Primary
-                                            else TextDark
+                                            else LocalAppColors.current.textPrimary
                                         )
                                     },
                                     onClick = {
@@ -318,7 +288,7 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(Color.White)
+                        .background(LocalAppColors.current.surface)
                         .padding(16.dp)
                 ) {
                     Row(
@@ -349,7 +319,7 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
                                     text = "Email Notifications",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TextDark
+                                    color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
                                     text = "Stay updated on hotel bookings",
@@ -395,9 +365,9 @@ fun InfoField(label: String, content: @Composable () -> Unit) {
 fun infoTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Primary,
     unfocusedBorderColor = Divider,
-    focusedContainerColor = Color.White,
-    unfocusedContainerColor = Color.White,
-    focusedTextColor = TextDark,
-    unfocusedTextColor = TextDark,
+    focusedContainerColor = LocalAppColors.current.surface,
+    unfocusedContainerColor = LocalAppColors.current.surface,
+    focusedTextColor = LocalAppColors.current.inputText,
+    unfocusedTextColor = LocalAppColors.current.inputText,
     cursorColor = Primary
 )

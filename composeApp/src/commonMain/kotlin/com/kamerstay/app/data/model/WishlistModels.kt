@@ -8,5 +8,6 @@ data class WishlistHotel(
     val rating: Double,
     val pricePerNight: Int,
     val isFavorite: Boolean = true,
-    val gradientColors: List<androidx.compose.ui.graphics.Color>
+    val gradientColors: List<androidx.compose.ui.graphics.Color>,
+    val imageUrl: String = ""
 )

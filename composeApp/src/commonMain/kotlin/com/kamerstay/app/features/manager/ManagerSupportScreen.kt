@@ -24,52 +24,58 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.SupportMockData
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
 fun ManagerSupportScreen(navController: NavController) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
     val state = viewModel.supportState
+    var showContactDialog by remember { mutableStateOf(false) }
+
+    if (showContactDialog) {
+        AlertDialog(
+            onDismissRequest = { showContactDialog = false },
+            title = { Text("Contact Support", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Our team is available 24/7:", color = OnSurfaceSecondary, fontSize = 14.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Outlined.Chat, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+                        Text("Live chat — ~2 min wait", fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Outlined.MailOutline, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+                        Text("managers@kamerstay.cm", fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Outlined.Call, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+                        Text("+237 6 55 00 33 44", fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showContactDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Got it", color = OnPrimary) }
+            },
+            containerColor = LocalAppColors.current.surface,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     Scaffold(
-        containerColor = BackgroundLight,
+        containerColor = LocalAppColors.current.background,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf(
-                    Icons.Outlined.Dashboard to "Dashboard",
-                    Icons.Outlined.Hotel to "Rooms",
-                    Icons.Outlined.BookOnline to "Bookings",
-                    Icons.Outlined.Person to "Profile"
-                ).forEachIndexed { index, (icon, label) ->
-                    NavigationBarItem(
-                        selected = index == 3,
-                        onClick = {
-                            when (index) {
-                                0 -> navController.navigate(Routes.ManagerDashboard.route)
-                                1 -> navController.navigate(
-                                    Routes.RoomManagement.createRoute("1")
-                                )
-                                2 -> navController.navigate(Routes.Reservations.route)
-                                3 -> navController.navigate(Routes.ManagerProfile.route)
-                            }
-                        },
-                        icon = { Icon(icon, contentDescription = label) },
-                        label = { Text(label, fontSize = 10.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Secondary,
-                            selectedTextColor = Secondary,
-                            indicatorColor = Primary.copy(0.15f),
-                            unselectedIconColor = OnSurfaceSecondary,
-                            unselectedTextColor = OnSurfaceSecondary
-                        )
-                    )
-                }
-            }
+            ManagerBottomNavBar(navController = navController, currentRoute = "profile")
         }
     ) { paddingValues ->
         LazyColumn(
@@ -89,7 +95,7 @@ fun ManagerSupportScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = { navController.navigate(Routes.ManagerProfile.route) }) {
                             Icon(
                                 Icons.Outlined.Menu,
                                 contentDescription = null,
@@ -107,7 +113,8 @@ fun ManagerSupportScreen(navController: NavController) {
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .background(Secondary),
+                            .background(Secondary)
+                            .clickable { navController.navigate(Routes.ManagerProfile.route) },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -127,7 +134,7 @@ fun ManagerSupportScreen(navController: NavController) {
                         text = "How can we help?",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
                     Text(
                         text = "Search our knowledge base or browse categories below.",
@@ -143,7 +150,7 @@ fun ManagerSupportScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(28.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                             .border(1.dp, Divider, RoundedCornerShape(28.dp))
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -159,7 +166,7 @@ fun ManagerSupportScreen(navController: NavController) {
                             value = state.searchQuery,
                             onValueChange = { state.searchQuery = it },
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(fontSize = 14.sp, color = TextDark),
+                            textStyle = TextStyle(fontSize = 14.sp, color = LocalAppColors.current.textPrimary),
                             decorationBox = { inner ->
                                 if (state.searchQuery.isEmpty()) {
                                     Text(
@@ -192,11 +199,14 @@ fun ManagerSupportScreen(navController: NavController) {
                         color = Secondary
                     )
                     Text(
-                        text = "View All",
+                        text = "View All FAQ",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary,
-                        modifier = Modifier.clickable { }
+                        modifier = Modifier.clickable {
+                            NavigationState.helpCenterRole = "manager"
+                            navController.navigate(Routes.HelpCenter.route)
+                        }
                     )
                 }
 
@@ -213,7 +223,10 @@ fun ManagerSupportScreen(navController: NavController) {
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
                             .background(Primary.copy(0.1f))
-                            .clickable { }
+                            .clickable {
+                                NavigationState.helpCenterRole = "manager"
+                                navController.navigate(Routes.HelpCenter.route)
+                            }
                             .padding(16.dp)
                     ) {
                         Column {
@@ -226,7 +239,7 @@ fun ManagerSupportScreen(navController: NavController) {
                                     modifier = Modifier
                                         .size(44.dp)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.White),
+                                        .background(LocalAppColors.current.surface),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -273,8 +286,11 @@ fun ManagerSupportScreen(navController: NavController) {
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(14.dp))
-                                        .background(Color.White)
-                                        .clickable { }
+                                        .background(LocalAppColors.current.surface)
+                                        .clickable {
+                                            NavigationState.helpCenterRole = "manager"
+                                            navController.navigate(Routes.HelpCenter.route)
+                                        }
                                         .padding(16.dp)
                                 ) {
                                     Column(
@@ -298,7 +314,7 @@ fun ManagerSupportScreen(navController: NavController) {
                                             text = category.title,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = TextDark,
+                                            color = LocalAppColors.current.textPrimary,
                                             lineHeight = 18.sp
                                         )
                                     }
@@ -321,7 +337,7 @@ fun ManagerSupportScreen(navController: NavController) {
                         text = "Contact Support",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -330,7 +346,7 @@ fun ManagerSupportScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                     ) {
                         // Live Chat
                         Box(
@@ -338,7 +354,7 @@ fun ManagerSupportScreen(navController: NavController) {
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(Secondary)
-                                .clickable { }
+                                .clickable { showContactDialog = true }
                                 .padding(16.dp)
                         ) {
                             Row(
@@ -391,7 +407,7 @@ fun ManagerSupportScreen(navController: NavController) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { }
+                                .clickable { showContactDialog = true }
                                 .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -419,7 +435,7 @@ fun ManagerSupportScreen(navController: NavController) {
                                         text = "Email Support",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = TextDark
+                                        color = LocalAppColors.current.textPrimary
                                     )
                                     Text(
                                         text = "Response within 24 hours",
@@ -448,7 +464,7 @@ fun ManagerSupportScreen(navController: NavController) {
                         text = "Trending Topics",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = LocalAppColors.current.textPrimary
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -457,14 +473,17 @@ fun ManagerSupportScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(Color.White)
+                            .background(LocalAppColors.current.surface)
                     ) {
                         Column {
                             SupportMockData.trendingTopics.forEachIndexed { index, topic ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clickable { }
+                                        .clickable {
+                                            NavigationState.helpCenterRole = "manager"
+                                            navController.navigate(Routes.HelpCenter.route)
+                                        }
                                         .padding(horizontal = 16.dp, vertical = 16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
@@ -472,7 +491,7 @@ fun ManagerSupportScreen(navController: NavController) {
                                     Text(
                                         text = topic.title,
                                         fontSize = 14.sp,
-                                        color = TextDark,
+                                        color = LocalAppColors.current.textPrimary,
                                         modifier = Modifier.weight(1f)
                                     )
                                     Icon(
@@ -503,7 +522,7 @@ fun ManagerSupportScreen(navController: NavController) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "MyStays Manager v2.4.1",
+                        text = "KamerStay Manager v2.4.1",
                         fontSize = 12.sp,
                         color = OnSurfaceSecondary.copy(0.5f)
                     )
@@ -515,7 +534,7 @@ fun ManagerSupportScreen(navController: NavController) {
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary.copy(0.5f),
                             modifier = Modifier.clickable {
-                                navController.navigate(Routes.PrivacyTerms.route)
+                                navController.navigate(Routes.ManagerPrivacyTerms.route)
                             }
                         )
                         Text(
@@ -528,7 +547,7 @@ fun ManagerSupportScreen(navController: NavController) {
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary.copy(0.5f),
                             modifier = Modifier.clickable {
-                                navController.navigate(Routes.PrivacyTerms.route)
+                                navController.navigate(Routes.ManagerPrivacyTerms.route)
                             }
                         )
                     }

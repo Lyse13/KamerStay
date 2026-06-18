@@ -2,6 +2,18 @@ package com.kamerstay.app.data.model
 
 import androidx.compose.ui.graphics.Color
 
+data class CalendarEntry(
+    val id: String,
+    val guestName: String,
+    val guestInitials: String,
+    val roomType: String,
+    val checkInDay: Int,
+    val checkOutDay: Int,
+    val month: Int,
+    val year: Int,
+    val accentColor: Color
+)
+
 data class ReservationDetail(
     val id: String,
     val guestName: String,
