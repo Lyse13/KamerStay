@@ -132,14 +132,17 @@ fun BookingReviewScreen(navController: NavController) {
                     }
                     Button(
                         onClick = {
-                            state.isLoading = true
-                            navController.navigate(Routes.Payment.createRoute("review"))
+                            viewModel.createBooking {
+                                navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
+                                    popUpTo(Routes.TravelerHome.route)
+                                }
+                            }
                         },
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Primary),
                         contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
                     ) {
-                        if (state.isLoading) {
+                        if (viewModel.isCreatingBooking) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
                                 color = OnPrimary,
@@ -536,8 +539,11 @@ fun BookingReviewScreen(navController: NavController) {
                         // Continue to Payment
                         Button(
                             onClick = {
-                                state.isLoading = true
-                                navController.navigate(Routes.Payment.createRoute("review"))
+                                viewModel.createBooking {
+                                    navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
+                                        popUpTo(Routes.TravelerHome.route)
+                                    }
+                                }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -551,6 +557,11 @@ fun BookingReviewScreen(navController: NavController) {
                                 fontWeight = FontWeight.SemiBold,
                                 color = OnPrimary
                             )
+                        }
+
+                        viewModel.bookingError?.let {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, textAlign = TextAlign.Center)
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

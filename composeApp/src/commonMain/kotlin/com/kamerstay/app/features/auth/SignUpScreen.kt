@@ -338,13 +338,12 @@ fun SignUpScreen(navController: NavController) {
                     // ── Create Account Button ──────────
                     Button(
                         onClick = {
-                            state.submitted = true
-                            if (viewModel.validateAndSignUp()) {
-                                state.isLoading = true
+                            viewModel.onAuthSuccess = {
                                 navController.navigate(Routes.TravelerHome.route) {
                                     popUpTo(Routes.Welcome.route) { inclusive = true }
                                 }
                             }
+                            viewModel.signUp()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -354,7 +353,7 @@ fun SignUpScreen(navController: NavController) {
                             containerColor = Primary
                         )
                     ) {
-                        if (state.isLoading) {
+                        if (viewModel.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 color = OnPrimary,
@@ -368,6 +367,11 @@ fun SignUpScreen(navController: NavController) {
                                 color = OnPrimary
                             )
                         }
+                    }
+
+                    viewModel.authError?.let { error ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ErrorPopup(message = error)
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))

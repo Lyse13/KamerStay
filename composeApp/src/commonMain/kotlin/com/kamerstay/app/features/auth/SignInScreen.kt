@@ -232,17 +232,16 @@ fun SignInScreen(navController: NavController) {
                     // ── Sign In Button ────────────────
                     Button(
                         onClick = {
-                            if (viewModel.validateAndSignIn()) {
-                                val dest = if (state.selectedRole == UserRole.MANAGER)
-                                    Routes.ManagerDashboard.route
-                                else
-                                    Routes.TravelerHome.route
+                            val dest = if (state.selectedRole == UserRole.MANAGER)
+                                Routes.ManagerDashboard.route
+                            else
+                                Routes.TravelerHome.route
+                            viewModel.onAuthSuccess = {
                                 navController.navigate(dest) {
                                     popUpTo(Routes.Welcome.route) { inclusive = true }
                                 }
-                            } else {
-                                state.error = "Veuillez remplir tous les champs."
                             }
+                            viewModel.signIn()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -252,7 +251,7 @@ fun SignInScreen(navController: NavController) {
                             containerColor = Secondary
                         )
                     ) {
-                        if (state.isLoading) {  // ← state
+                        if (viewModel.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 color = Color.White,
@@ -270,6 +269,11 @@ fun SignInScreen(navController: NavController) {
 
                     // ── Error message ─────────────────
                     state.error?.let { error ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        ErrorPopup(message = error)
+                    }
+
+                    viewModel.authError?.let { error ->
                         Spacer(modifier = Modifier.height(8.dp))
                         ErrorPopup(message = error)
                     }

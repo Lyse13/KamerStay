@@ -133,18 +133,18 @@ fun BookingScreen(
                     }
                     Button(
                         onClick = {
-                            navController.navigate(Routes.BookingReview.route)
+                            if (state.checkInDate == null || state.checkOutDate == null) {
+                                state.showDatePicker = true
+                            } else {
+                                navController.navigate(Routes.BookingReview.route)
+                            }
                         },
-                        enabled = state.checkInDate != null && state.checkOutDate != null,
                         shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Primary,
-                            disabledContainerColor = OnSurfaceSecondary.copy(0.3f)
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = Primary),
                         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp)
                     ) {
                         Text(
-                            text = "Review Booking →",
+                            text = "Review Booking",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = OnPrimary

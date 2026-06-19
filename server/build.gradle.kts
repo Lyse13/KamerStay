@@ -9,7 +9,7 @@ group = "com.kamerstay.app"
 version = "1.0.0"
 
 application {
-    mainClass = "com.kamerstay.app.server.ApplicationKt"
+    mainClass = "com.kamerstay.app.ApplicationKt"
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=true")
 }
 
@@ -30,7 +30,9 @@ dependencies {
     implementation(libs.koin.ktor)
 
     // MongoDB
-    implementation(libs.kmongo.coroutine)
+    implementation(libs.mongodb.driver.coroutine)
+    implementation(libs.bcrypt)
+    implementation(libs.java.jwt)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)

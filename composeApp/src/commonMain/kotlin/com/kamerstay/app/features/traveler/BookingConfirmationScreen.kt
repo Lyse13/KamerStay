@@ -41,10 +41,12 @@ fun BookingConfirmationScreen(
     navController: NavController,
     bookingId: String
 ) {
+
+
     val viewModel = koinViewModel<TravelerViewModel>()
-    val hotel = MockData.getHotelById(NavigationState.selectedHotelId) ?: MockData.hotels.first()
-    val room = MockData.rooms.find { it.id == NavigationState.selectedRoomId }
-        ?: MockData.rooms.first()
+    // APRÈS
+    val booking = viewModel.createdBooking
+    val hotel = viewModel.selectedHotel
 
     val scale = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
@@ -142,7 +144,7 @@ fun BookingConfirmationScreen(
                             color = Secondary,
                             fontWeight = FontWeight.SemiBold
                         )) {
-                            append(hotel.name)
+                            append(hotel?.name ?: "")
                         }
                         append(" is confirmed and ready for your arrival.")
                     },
@@ -197,7 +199,7 @@ fun BookingConfirmationScreen(
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Text(
-                                text = hotel.name,
+                                text = hotel?.name ?: "",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = LocalAppColors.current.textPrimary
@@ -214,7 +216,7 @@ fun BookingConfirmationScreen(
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Text(
-                                    text = hotel.address,
+                                    text = hotel?.address ?: "",
                                     fontSize = 13.sp,
                                     color = OnSurfaceSecondary
                                 )
@@ -236,7 +238,7 @@ fun BookingConfirmationScreen(
                                         letterSpacing = 0.5.sp
                                     )
                                     Text(
-                                        text = "Oct 24, 2024",
+                                        text = booking?.checkInDate ?: "",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = LocalAppColors.current.textPrimary
@@ -251,7 +253,7 @@ fun BookingConfirmationScreen(
                                         letterSpacing = 0.5.sp
                                     )
                                     Text(
-                                        text = "Oct 28, 2024",
+                                        text = booking?.checkOutDate ?: "",
                                         fontSize = 15.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = LocalAppColors.current.textPrimary
@@ -287,7 +289,7 @@ fun BookingConfirmationScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = "MS-8829-X",
+                            text = booking?.bookingReference ?: "KS-XXXXXXXX",
                             fontSize = 28.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Secondary
