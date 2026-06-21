@@ -27,14 +27,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
+import com.kamerstay.app.viewmodel.ManagerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.DashboardMockData
 import com.kamerstay.app.data.model.RecentActivity
 import com.kamerstay.app.core.components.ManagerBottomNavBar
+import com.kamerstay.app.data.state.UserSession
 
 @Composable
 fun ManagerDashboardScreen(navController: NavController) {
 
+    val viewModel = koinViewModel<ManagerViewModel>()
     val activities = DashboardMockData.recentActivities
     val barHeights = DashboardMockData.revenueBarHeights
 
@@ -107,7 +111,7 @@ fun ManagerDashboardScreen(navController: NavController) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     Text(
-                        text = "Hello, Manager",
+                        text = "Bonjour, ${UserSession.fullName.ifBlank { "Manager" }}",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = LocalAppColors.current.textPrimary
@@ -263,7 +267,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "\$4,280",
+                            text = "${viewModel.totalRevenue.toLong()} FCFA",
                             fontSize = 30.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary
@@ -339,7 +343,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             color = Color.White.copy(0.7f)
                         )
                         Text(
-                            text = "\$98,450",
+                            text = "${viewModel.totalRevenue.toLong()} FCFA",
                             fontSize = 30.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color.White
@@ -489,21 +493,79 @@ fun ManagerDashboardScreen(navController: NavController) {
 
             // Activity items
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(LocalAppColors.current.surface)
-                ) {
-                    Column {
-                        activities.forEachIndexed { index, activity ->
-                            ActivityRow(activity = activity)
-                            if (index < activities.lastIndex) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    color = Divider.copy(0.5f)
-                                )
+                if (viewModel.isLoadingBookings) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Primary)
+                    }
+                } else if (viewModel.bookings.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(LocalAppColors.current.surface)
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Aucune réservation pour le moment", color = OnSurfaceSecondary, fontSize = 14.sp)
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(LocalAppColors.current.surface)
+                    ) {
+                        Column {
+                            viewModel.bookings.take(5).forEachIndexed { index, booking ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier.size(44.dp).clip(CircleShape).background(Primary.copy(0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Outlined.Person, contentDescription = null, tint = Secondary, modifier = Modifier.size(22.dp))
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = booking.hotel?.name ?: "Hôtel",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = LocalAppColors.current.textPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = "${booking.checkInDate} → ${booking.checkOutDate}",
+                                            fontSize = 12.sp,
+                                            color = OnSurfaceSecondary
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Box(
+                                            modifier = Modifier.clip(RoundedCornerShape(6.dp))
+                                                .background(Primary.copy(0.12f))
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = booking.bookingStatus.name,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = Primary
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "${booking.totalAmount.toLong()} FCFA",
+                                            fontSize = 12.sp,
+                                            color = OnSurfaceSecondary
+                                        )
+                                    }
+                                }
+                                if (index < viewModel.bookings.take(5).lastIndex) {
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Divider.copy(0.5f))
+                                }
                             }
                         }
                     }
@@ -543,7 +605,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
                                 Text(
-                                    text = "12",
+                                    text = "${viewModel.totalBookings} Réservations totales",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = LocalAppColors.current.textPrimary
@@ -583,7 +645,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                             Spacer(modifier = Modifier.width(14.dp))
                             Column {
                                 Text(
-                                    text = "45",
+                                    text = "${viewModel.confirmedBookings} Réservations confirmées",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = LocalAppColors.current.textPrimary
@@ -630,13 +692,13 @@ fun ManagerDashboardScreen(navController: NavController) {
                     ) {
                         Column {
                             Text(
-                                text = "Grand Vista Hotel",
+                                text = UserSession.fullName.ifBlank { "Mon Hôtel" },
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
                             Text(
-                                text = "Primary Property • Miami, FL",
+                                text = "Tableau de bord Manager · KamerStay" ,
                                 fontSize = 12.sp,
                                 color = Color.White.copy(0.7f)
                             )

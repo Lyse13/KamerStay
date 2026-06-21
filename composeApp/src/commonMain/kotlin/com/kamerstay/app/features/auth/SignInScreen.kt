@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.components.ErrorPopup
 import com.kamerstay.app.core.components.SignUpLabel
 import com.kamerstay.app.core.components.authTextFieldColors
+import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.state.UserRole
@@ -42,6 +43,11 @@ fun SignInScreen(navController: NavController) {
 
     val viewModel = koinViewModel<AuthViewModel>()
     val state = viewModel.signInState
+
+    LaunchedEffect(Unit) {
+        state.selectedRole = if (NavigationState.pendingRole == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -298,7 +304,10 @@ fun SignInScreen(navController: NavController) {
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { navController.navigate(Routes.SignUp.route) }
+                            .clickable {
+                                NavigationState.pendingRole = if (state.selectedRole == UserRole.MANAGER) "MANAGER" else "TRAVELER"
+                                navController.navigate(Routes.SignUp.route)
+                            }
                     )
                 }
             }

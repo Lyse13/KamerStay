@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.core.utils.APP_NAME
@@ -147,9 +148,9 @@ fun RoleSelectionScreen(navController: NavController) {
                     // ── Continue Button ───────────────
                     Button(
                         onClick = {
-                            when (selectedRole) {
-                                "TRAVELER" -> navController.navigate(Routes.SignIn.route)
-                                "MANAGER" -> navController.navigate(Routes.SignIn.route)
+                            if (selectedRole.isNotEmpty()) {
+                                NavigationState.pendingRole = selectedRole
+                                navController.navigate(Routes.SignIn.route)
                             }
                         },
                         modifier = Modifier

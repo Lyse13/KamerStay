@@ -56,6 +56,17 @@ fun Route.bookingRoutes(
                 call.respond(HttpStatusCode.Created, booking)
             }
 
+            // Toutes les réservations (manager)
+            get("/all") {
+                call.principal<JWTPrincipal>()?.payload?.getClaim("userId")?.asString()
+                    ?: return@get call.respond(
+                        HttpStatusCode.Unauthorized,
+                        ErrorResponse("Non authentifié")
+                    )
+                val bookings = bookingRepository.getAllBookings()
+                call.respond(HttpStatusCode.OK, bookings)
+            }
+
             // Mes réservations (voyageur connecté)
             get("/my") {
                 val principal = call.principal<JWTPrincipal>()

@@ -1,36 +1,43 @@
 package com.kamerstay.app.viewmodel
 
-import androidx.lifecycle.ViewModel
-import com.kamerstay.app.data.state.CheckInState
-import com.kamerstay.app.data.state.CheckOutState
-import com.kamerstay.app.data.state.RoomFormState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.kamerstay.app.data.mock.CheckInMockData
 import com.kamerstay.app.data.mock.ManagerNotificationsMockData
 import com.kamerstay.app.data.mock.ReservationMockData
 import com.kamerstay.app.data.mock.RoomsMockData
 import com.kamerstay.app.data.mock.StaffMockData
-import com.kamerstay.app.data.mock.mockReservations
 import com.kamerstay.app.data.model.CheckInGuest
 import com.kamerstay.app.data.model.DepartureGuest
 import com.kamerstay.app.data.model.ManagerNotification
 import com.kamerstay.app.data.model.ManagerRoom
 import com.kamerstay.app.data.model.Reservation
 import com.kamerstay.app.data.model.StaffMember
+import com.kamerstay.app.data.remote.BookingRemoteRepository
 import com.kamerstay.app.data.state.AddEditStaffState
 import com.kamerstay.app.data.state.AmenitiesState
 import com.kamerstay.app.data.state.AnalyticsState
+import com.kamerstay.app.data.state.CheckInState
+import com.kamerstay.app.data.state.CheckOutState
 import com.kamerstay.app.data.state.ManageHotelState
 import com.kamerstay.app.data.state.ManagerPersonalInfoState
 import com.kamerstay.app.data.state.ManagerSettingsState
 import com.kamerstay.app.data.state.RegisterHotelState
 import com.kamerstay.app.data.state.RevenueReportState
+import com.kamerstay.app.data.state.RoomFormState
 import com.kamerstay.app.data.state.SupportState
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.data.state.VerificationState
+import com.kamerstay.app.model.Booking
+import kotlinx.coroutines.launch
 
 class ManagerViewModel : ViewModel() {
+
+    private val bookingRepository = BookingRemoteRepository()
+
     val roomFormState = RoomFormState()
     val checkInState = CheckInState()
     val checkOutState = CheckOutState()
@@ -57,27 +64,68 @@ class ManagerViewModel : ViewModel() {
         earlierNotifications = earlierNotifications.map { it.copy(isRead = true) }
     }
 
-    // ── Reservations ──────────────────────────
+    // ── Réservations depuis le vrai backend ───
+    var bookings by mutableStateOf<List<Booking>>(emptyList())
+        private set
+
+    var isLoadingBookings by mutableStateOf(false)
+        private set
+
+    var bookingsError by mutableStateOf<String?>(null)
+        private set
+
+    private var allBookings: List<Booking> = emptyList()
+
+    // ── Reservations mock (fallback) ──────────
     var reservations by mutableStateOf<List<Reservation>>(ReservationMockData.reservations)
         private set
 
     var rooms by mutableStateOf<List<ManagerRoom>>(RoomsMockData.rooms)
         private set
 
-    // ── Check-In ──────────────────────────────
     var arrivals by mutableStateOf<List<CheckInGuest>>(CheckInMockData.arrivals)
         private set
 
-    // ── Check-Out ─────────────────────────────
     var departures by mutableStateOf<List<DepartureGuest>>(CheckInMockData.departures)
         private set
 
-    // ── Staff ─────────────────────────────────
     var staffMembers by mutableStateOf<List<StaffMember>>(StaffMockData.staffMembers)
         private set
 
-    // ── Functions ─────────────────────────────
+    init {
+        loadBookings()
+    }
 
+    // ── Charger les réservations depuis MongoDB ─
+    fun loadBookings(hotelId: String? = null) {
+        viewModelScope.launch {
+            isLoadingBookings = true
+            bookingsError = null
+            try {
+                val result = if (hotelId != null) {
+                    bookingRepository.getHotelBookings(hotelId)
+                } else {
+                    bookingRepository.getAllBookings()
+                }
+                allBookings = result
+                bookings = result
+            } catch (e: Exception) {
+                bookingsError = "Impossible de charger les réservations."
+                // Fallback mock si backend inaccessible
+                bookings = emptyList()
+            } finally {
+                isLoadingBookings = false
+            }
+        }
+    }
+
+    // Statistiques calculées depuis les vraies réservations
+    val totalBookings get() = bookings.size
+    val confirmedBookings get() = bookings.count { it.bookingStatus.name == "CONFIRMED" }
+    val pendingBookings get() = bookings.count { it.bookingStatus.name == "PENDING" }
+    val totalRevenue get() = bookings.sumOf { it.totalAmount }
+
+    // ── Fonctions mock (inchangées) ───────────
     fun filterReservations(status: String) {
         reservations = if (status == "All Bookings") {
             ReservationMockData.reservations
@@ -110,7 +158,7 @@ class ManagerViewModel : ViewModel() {
         }
     }
 
-    fun searchArrivals(query: String) {    // ← au niveau de la classe ✅
+    fun searchArrivals(query: String) {
         arrivals = if (query.isEmpty()) {
             CheckInMockData.arrivals
         } else {
@@ -122,7 +170,7 @@ class ManagerViewModel : ViewModel() {
         }
     }
 
-    fun searchDepartures(query: String) {  // ← au niveau de la classe ✅
+    fun searchDepartures(query: String) {
         departures = if (query.isEmpty()) {
             CheckInMockData.departures
         } else {

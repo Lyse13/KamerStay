@@ -32,9 +32,10 @@ import com.kamerstay.app.core.components.PasswordRequirements
 import com.kamerstay.app.core.components.PasswordStrengthIndicator
 import com.kamerstay.app.core.components.SignUpLabel
 import com.kamerstay.app.core.components.signUpTextFieldColors
+import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.model.enums.UserRole
+import com.kamerstay.app.data.state.UserRole
 import com.kamerstay.app.viewmodel.AuthViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -86,6 +87,10 @@ fun SignUpScreen(navController: NavController) {
 
     val viewModel = koinViewModel<AuthViewModel>()
     val state = viewModel.signUpState
+
+    LaunchedEffect(Unit) {
+        state.selectedRole = if (NavigationState.pendingRole == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
+    }
 
     val nameError = if (state.submitted) validateFullName(state.fullName) else null
     val emailError = if (state.submitted || state.email.isNotEmpty())
@@ -183,6 +188,37 @@ fun SignUpScreen(navController: NavController) {
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))
+
+                    // ── Sélecteur de rôle ─────────────
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(LocalAppColors.current.background),
+                        horizontalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        listOf(UserRole.TRAVELER to "Voyageur", UserRole.MANAGER to "Manager").forEach { (role, label) ->
+                            val isSelected = state.selectedRole == role
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isSelected) Secondary else Color.Transparent)
+                                    .clickable { state.selectedRole = role }
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) Color.White else OnSurfaceSecondary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     // ── Full Name ─────────────────────
                     SignUpLabel("Full Name")
@@ -338,8 +374,12 @@ fun SignUpScreen(navController: NavController) {
                     // ── Create Account Button ──────────
                     Button(
                         onClick = {
+                            val dest = if (state.selectedRole == UserRole.MANAGER)
+                                Routes.ManagerDashboard.route
+                            else
+                                Routes.TravelerHome.route
                             viewModel.onAuthSuccess = {
-                                navController.navigate(Routes.TravelerHome.route) {
+                                navController.navigate(dest) {
                                     popUpTo(Routes.Welcome.route) { inclusive = true }
                                 }
                             }

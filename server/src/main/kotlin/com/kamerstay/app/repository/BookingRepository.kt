@@ -15,6 +15,10 @@ class BookingRepository {
         return booking
     }
 
+    suspend fun getAllBookings(): List<Booking> {
+        return bookings.find().toList()
+    }
+
     suspend fun getBookingsByTraveler(travelerId: String): List<Booking> {
         return bookings.find(Filters.eq("travelerId", travelerId)).toList()
     }

@@ -52,7 +52,7 @@ class AuthViewModel : ViewModel() {
                     email = signInState.email,
                     password = signInState.password
                 )
-                val role = if (response.user.role.name == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
+                val role = if (response.user.role.name == "HOTEL_MANAGER") UserRole.MANAGER else UserRole.TRAVELER
                 UserSession.login(
                     name  = response.user.fullName,
                     email = response.user.email,
@@ -86,13 +86,13 @@ class AuthViewModel : ViewModel() {
                     email       = signUpState.email,
                     phoneNumber = signUpState.phoneNumber,
                     password    = signUpState.password,
-                    role        = "TRAVELER"
+                    role        = if (signUpState.selectedRole == UserRole.MANAGER) "MANAGER" else "TRAVELER"
                 )
                 UserSession.login(
                     name  = response.user.fullName,
                     email = response.user.email,
                     phone = response.user.phoneNumber,
-                    role  = UserRole.TRAVELER,
+                    role  = signUpState.selectedRole,
                     token = response.token
                 )
                 onAuthSuccess?.invoke()

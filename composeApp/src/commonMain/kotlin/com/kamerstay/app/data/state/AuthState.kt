@@ -14,6 +14,7 @@ class SignInState {
 }
 
 class SignUpState {
+    var selectedRole by mutableStateOf(UserRole.TRAVELER)
     var fullName by mutableStateOf("")
     var email by mutableStateOf("")
     var phoneNumber by mutableStateOf("")

@@ -34,6 +34,14 @@ class BookingRemoteRepository {
         }.body()
     }
 
+    suspend fun getAllBookings(): List<Booking> {
+        return client.get("$baseUrl/bookings/all") {
+            headers {
+                append(HttpHeaders.Authorization, "Bearer ${UserSession.token}")
+            }
+        }.body()
+    }
+
     suspend fun getHotelBookings(hotelId: String): List<Booking> {
         return client.get("$baseUrl/bookings/hotel/$hotelId") {
             headers {

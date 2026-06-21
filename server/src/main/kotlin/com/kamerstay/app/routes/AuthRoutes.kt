@@ -40,10 +40,9 @@ fun Route.authRoutes(userRepository: UserRepository) {
                 return@post
             }
 
-            val role = try {
-                UserRole.valueOf(request.role.uppercase())
-            } catch (_: IllegalArgumentException) {
-                UserRole.TRAVELER
+            val role = when (request.role.uppercase()) {
+                "HOTEL_MANAGER", "MANAGER" -> UserRole.HOTEL_MANAGER
+                else -> UserRole.TRAVELER
             }
 
             val newUser = User(

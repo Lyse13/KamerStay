@@ -7,4 +7,5 @@ object NavigationState {
     var selectedStaffId: String = ""
     var selectedPromoId: String = ""
     var helpCenterRole: String = "traveler"
+    var pendingRole: String = "TRAVELER"
 }
