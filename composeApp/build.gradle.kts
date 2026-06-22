@@ -3,6 +3,14 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        load(localPropertiesFile.inputStream())
+    }
+}
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -60,6 +68,9 @@ kotlin {
             implementation(libs.kotlinx.coroutinesAndroid)
             implementation(libs.compose.materialIconsExtended)
             implementation("org.osmdroid:osmdroid-android:6.1.18")
+            implementation(libs.google.maps)
+            implementation(libs.google.location)
+            implementation(libs.maps.compose)
         }
 
         commonMain.dependencies {
@@ -137,6 +148,7 @@ android {
         applicationId = "com.kamerstay.app"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
+        manifestPlaceholders["MAPS_API_KEY"] = localProperties.getProperty("MAPS_API_KEY") ?: ""
         versionCode = 1
         versionName = "1.0"
     }

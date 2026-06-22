@@ -39,11 +39,18 @@ mongodb-driver = "5.5.0"
 # DateTime
 kotlinx-datetime = "0.8.0"
 
+google-maps = "19.0.0"
+google-location = "21.3.0"
+
 [libraries]
 # ─── Kotlin ───────────────────────────────────────────────
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
+
+google-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "google-maps" }
+google-location = { module = "com.google.android.gms:play-services-location", version.ref = "google-location" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version = "6.4.1" }
 
 # ─── AndroidX ─────────────────────────────────────────────
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
@@ -83,6 +90,7 @@ ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "k
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }

@@ -1,5 +1,6 @@
 package com.kamerstay.app.features.traveler
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,12 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.kamerstay.app.core.navigation.Routes
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.mtn
+import kamerstay.composeapp.generated.resources.orange
+import org.jetbrains.compose.resources.painterResource
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.model.TravelerCard
 import com.kamerstay.app.data.model.TravelerCardType
@@ -44,24 +47,56 @@ fun TravelerPaymentMethodsScreen(navController: NavController) {
             title = { Text("Add Payment Method", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    listOf(
-                        Icons.Outlined.CreditCard to "Credit / Debit Card",
-                        Icons.Outlined.PhoneAndroid to "MTN Mobile Money",
-                        Icons.Outlined.PhoneAndroid to "Orange Money"
-                    ).forEach { (icon, label) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(LocalAppColors.current.background)
-                                .clickable { state.showAddDialog = false }
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
-                            Text(label, fontSize = 14.sp, color = LocalAppColors.current.textPrimary)
-                        }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(LocalAppColors.current.background)
+                            .clickable { state.showAddDialog = false }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(Icons.Outlined.CreditCard, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
+                        Text("Credit / Debit Card", fontSize = 14.sp, color = LocalAppColors.current.textPrimary)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(LocalAppColors.current.background)
+                            .clickable { state.showAddDialog = false }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Image(
+                            painterResource(Res.drawable.mtn),
+                            contentDescription = "MTN",
+                            modifier = Modifier.size(25.dp))
+                        Text(
+                            "MTN Mobile Money",
+                            fontSize = 14.sp,
+                            color = LocalAppColors.current.textPrimary)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(LocalAppColors.current.background)
+                            .clickable { state.showAddDialog = false }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Image(
+                            painterResource(Res.drawable.orange),
+                            contentDescription = "Orange",
+                            modifier = Modifier.size(25.dp))
+                        Text(
+                            "Orange Money",
+                            fontSize = 14.sp,
+                            color = LocalAppColors.current.textPrimary)
                     }
                 }
             },
@@ -246,11 +281,6 @@ private fun TravelerPaymentRow(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val icon: ImageVector = when (card.type) {
-        TravelerCardType.VISA, TravelerCardType.MASTERCARD -> Icons.Outlined.CreditCard
-        TravelerCardType.MOBILE_MONEY_MTN, TravelerCardType.MOBILE_MONEY_ORANGE -> Icons.Outlined.PhoneAndroid
-    }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -274,7 +304,14 @@ private fun TravelerPaymentRow(
                     modifier = Modifier.size(46.dp).clip(RoundedCornerShape(12.dp)).background(Primary.copy(0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, tint = Secondary, modifier = Modifier.size(22.dp))
+                    when (card.type) {
+                        TravelerCardType.MOBILE_MONEY_MTN ->
+                            Image(painterResource(Res.drawable.mtn), contentDescription = "MTN", modifier = Modifier.size(30.dp))
+                        TravelerCardType.MOBILE_MONEY_ORANGE ->
+                            Image(painterResource(Res.drawable.orange), contentDescription = "Orange", modifier = Modifier.size(30.dp))
+                        else ->
+                            Icon(Icons.Outlined.CreditCard, contentDescription = null, tint = Secondary, modifier = Modifier.size(22.dp))
+                    }
                 }
                 Column {
                     Text(card.label, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LocalAppColors.current.textPrimary)

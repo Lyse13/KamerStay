@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.ktor)
@@ -8,14 +10,28 @@ plugins {
 group = "com.kamerstay.app"
 version = "1.0.0"
 
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
+}
+
 application {
     mainClass = "com.kamerstay.app.ApplicationKt"
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=true")
 }
 
+tasks.named<JavaExec>("run") {
+    environment("ANTHROPIC_API_KEY", localProps.getProperty("ANTHROPIC_API_KEY") ?: "")
+}
+
 dependencies {
     // Shared module
     implementation(project(":shared"))
+
+    // Ktor Client (pour appels Anthropic API)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.contentNegotiation)
 
     // Ktor Server
     implementation(libs.ktor.serverCore)

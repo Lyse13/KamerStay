@@ -1,5 +1,6 @@
 package com.kamerstay.app.features.manager
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,11 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.mtn
+import kamerstay.composeapp.generated.resources.orange
+import org.jetbrains.compose.resources.painterResource
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.PaymentMethodsMockData
@@ -341,12 +345,6 @@ fun PaymentMethodsScreen(navController: NavController) {
 // ── Payment Method Row ────────────────────────────────────
 @Composable
 fun PaymentMethodRow(method: PaymentMethod) {
-    val icon: ImageVector = when (method.type) {
-        PaymentMethodType.MOBILE_MONEY -> Icons.Outlined.PhoneAndroid
-        PaymentMethodType.CARD -> Icons.Outlined.CreditCard
-        PaymentMethodType.BANK -> Icons.Outlined.AccountBalance
-    }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -370,12 +368,23 @@ fun PaymentMethodRow(method: PaymentMethod) {
                         .background(Primary.copy(0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        icon,
-                        contentDescription = null,
-                        tint = Secondary,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    when {
+                        method.type == PaymentMethodType.MOBILE_MONEY && method.name.contains("MTN", ignoreCase = true) ->
+                            Image(painterResource(Res.drawable.mtn), contentDescription = "MTN", modifier = Modifier.size(30.dp))
+                        method.type == PaymentMethodType.MOBILE_MONEY && method.name.contains("Orange", ignoreCase = true) ->
+                            Image(painterResource(Res.drawable.orange), contentDescription = "Orange", modifier = Modifier.size(30.dp))
+                        else ->
+                            Icon(
+                                imageVector = when (method.type) {
+                                    PaymentMethodType.MOBILE_MONEY -> Icons.Outlined.PhoneAndroid
+                                    PaymentMethodType.CARD -> Icons.Outlined.CreditCard
+                                    PaymentMethodType.BANK -> Icons.Outlined.AccountBalance
+                                },
+                                contentDescription = null,
+                                tint = Secondary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                    }
                 }
                 Column {
                     Text(

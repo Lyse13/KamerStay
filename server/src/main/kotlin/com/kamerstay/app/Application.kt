@@ -10,6 +10,7 @@ import com.kamerstay.app.config.JwtConfig
 import com.kamerstay.app.repository.BookingRepository
 import com.kamerstay.app.repository.HotelRepository
 import com.kamerstay.app.repository.UserRepository
+import com.kamerstay.app.routes.aiRoutes
 import com.kamerstay.app.routes.authRoutes
 import com.kamerstay.app.routes.bookingRoutes
 import com.kamerstay.app.routes.hotelRoutes
@@ -80,5 +81,6 @@ fun Application.module() {
         authRoutes(userRepository)
         hotelRoutes(hotelRepository)
         bookingRoutes(bookingRepository, hotelRepository)
+        aiRoutes()
     }
 }

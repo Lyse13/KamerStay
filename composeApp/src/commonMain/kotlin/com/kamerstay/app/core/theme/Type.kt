@@ -7,26 +7,26 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import kamerstay.composeapp.generated.resources.Res
-import kamerstay.composeapp.generated.resources.plus_jakarta_sans_bold
-import kamerstay.composeapp.generated.resources.plus_jakarta_sans_extrabold
-import kamerstay.composeapp.generated.resources.plus_jakarta_sans_medium
-import kamerstay.composeapp.generated.resources.plus_jakarta_sans_regular
-import kamerstay.composeapp.generated.resources.plus_jakarta_sans_semibold
+import kamerstay.composeapp.generated.resources.outfit_bold
+import kamerstay.composeapp.generated.resources.outfit_extrabold
+import kamerstay.composeapp.generated.resources.outfit_medium
+import kamerstay.composeapp.generated.resources.outfit_regular
+import kamerstay.composeapp.generated.resources.outfit_semibold
 import org.jetbrains.compose.resources.Font
 
 @Composable
-fun plusJakartaSansFamily() = FontFamily(
-    Font(Res.font.plus_jakarta_sans_regular, FontWeight.Normal),
-    Font(Res.font.plus_jakarta_sans_medium, FontWeight.Medium),
-    Font(Res.font.plus_jakarta_sans_semibold, FontWeight.SemiBold),
-    Font(Res.font.plus_jakarta_sans_bold, FontWeight.Bold),
-    Font(Res.font.plus_jakarta_sans_extrabold, FontWeight.ExtraBold),
+fun outfitFamily() = FontFamily(
+    Font(Res.font.outfit_regular, FontWeight.Normal),
+    Font(Res.font.outfit_medium, FontWeight.Medium),
+    Font(Res.font.outfit_semibold, FontWeight.SemiBold),
+    Font(Res.font.outfit_bold, FontWeight.Bold),
+    Font(Res.font.outfit_extrabold, FontWeight.ExtraBold),
 )
 
 @Composable
 fun kamerStayTypography(): Typography {
 
-    val fontFamily = plusJakartaSansFamily()
+    val fontFamily = outfitFamily()
 
     return Typography(
 

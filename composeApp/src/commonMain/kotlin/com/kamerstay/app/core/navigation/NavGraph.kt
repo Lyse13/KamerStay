@@ -68,6 +68,7 @@ import com.kamerstay.app.features.traveler.TravelerPersonalInfoScreen
 import com.kamerstay.app.features.traveler.TravelerProfileScreen
 import com.kamerstay.app.features.traveler.TravelerSupportScreen
 import com.kamerstay.app.features.traveler.TravelerPaymentMethodsScreen
+import com.kamerstay.app.features.traveler.AIConciergeScreen
 import com.kamerstay.app.features.traveler.WishlistScreen
 import com.kamerstay.app.features.traveler.WriteReviewScreen
 
@@ -117,6 +118,9 @@ fun KamerStayNavGraph(
         // ── Traveler ──────────────────────────────────
         composable(Routes.TravelerHome.route) {
             TravelerHomeScreen(navController)
+        }
+        composable(Routes.AIConcierge.route) {
+            AIConciergeScreen(navController)
         }
         composable(Routes.HotelSearch.route) {
             HotelSearchScreen(navController)

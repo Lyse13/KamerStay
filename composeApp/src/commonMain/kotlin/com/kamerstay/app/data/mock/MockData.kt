@@ -10,12 +10,12 @@ import com.kamerstay.app.model.enums.LandmarkType
 object MockData {
 
     val landmarks = listOf(
-        Landmark(id = "1", name = "Near Hospital", type = LandmarkType.HOSPITAL, city = "Yaoundé"),
-        Landmark(id = "2", name = "Near University", type = LandmarkType.UNIVERSITY, city = "Yaoundé"),
-        Landmark(id = "3", name = "Near Stadium", type = LandmarkType.STADIUM, city = "Douala"),
-        Landmark(id = "4", name = "Near Market", type = LandmarkType.MARKET, city = "Douala"),
-        Landmark(id = "5", name = "Near Airport", type = LandmarkType.AIRPORT, city = "Yaoundé"),
-        Landmark(id = "6", name = "Near Bus Station", type = LandmarkType.BUS_STATION, city = "Bafoussam"),
+        Landmark(id = "1", name = "Near Hospital", type = LandmarkType.HOSPITAL.name, city = "Yaoundé"),
+        Landmark(id = "2", name = "Near University", type = LandmarkType.UNIVERSITY.name, city = "Yaoundé"),
+        Landmark(id = "3", name = "Near Stadium", type = LandmarkType.STADIUM.name, city = "Douala"),
+        Landmark(id = "4", name = "Near Market", type = LandmarkType.MARKET.name, city = "Douala"),
+        Landmark(id = "5", name = "Near Airport", type = LandmarkType.AIRPORT.name, city = "Yaoundé"),
+        Landmark(id = "6", name = "Near Bus Station", type = LandmarkType.BUS_STATION.name, city = "Bafoussam"),
     )
 
     private fun u(id: String) = "https://images.unsplash.com/photo-$id?w=800&fit=crop&auto=format"

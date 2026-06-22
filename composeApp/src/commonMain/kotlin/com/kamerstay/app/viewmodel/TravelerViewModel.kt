@@ -11,10 +11,14 @@ import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.data.mock.NotificationsMockData
 import com.kamerstay.app.data.model.AppNotification
 import com.kamerstay.app.data.model.Booking
+import com.kamerstay.app.data.model.ConciergeRequest
+import com.kamerstay.app.data.remote.AiRemoteRepository
 import com.kamerstay.app.data.remote.BookingRemoteRepository
 import com.kamerstay.app.model.Booking as SharedBooking
 import com.kamerstay.app.model.enums.PaymentMethod
 import com.kamerstay.app.data.remote.HotelRemoteRepository
+import com.kamerstay.app.data.state.AiConciergeState
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.data.state.BookingReviewState
 import com.kamerstay.app.data.state.BookingState
 import com.kamerstay.app.data.state.CancellationState
@@ -39,6 +43,9 @@ class TravelerViewModel : ViewModel() {
 
     private val hotelRepository = HotelRemoteRepository()
     private val bookingRepository = BookingRemoteRepository()
+    private val aiRepository = AiRemoteRepository()
+
+    val aiConciergeState = AiConciergeState()
 
     val searchState = SearchState()
     val bookingState = BookingState()
@@ -159,6 +166,33 @@ class TravelerViewModel : ViewModel() {
 
     var bookingError by mutableStateOf<String?>(null)
         private set
+
+    // ── AI Concierge ──────────────────────────────────────────
+    fun sendConciergeMessage(message: String) {
+        viewModelScope.launch {
+            aiConciergeState.isTyping = true
+            try {
+                val response = aiRepository.sendMessage(
+                    ConciergeRequest(
+                        message = message,
+                        history = aiConciergeState.historyForApi(),
+                        userName = UserSession.fullName.ifBlank { null }
+                    )
+                )
+                aiConciergeState.addAssistantMessage(response.message)
+                response.criteria?.let { criteria ->
+                    if (criteria.hasContent()) aiConciergeState.extractedCriteria = criteria
+                }
+            } catch (_: Exception) {
+                aiConciergeState.addAssistantMessage(
+                    "Désolé, je ne peux pas vous répondre pour l'instant. Vérifiez votre connexion et réessayez.",
+                    isError = true
+                )
+            } finally {
+                aiConciergeState.isTyping = false
+            }
+        }
+    }
 
     fun createBooking(onSuccess: () -> Unit) {
         val hotel = selectedHotel
