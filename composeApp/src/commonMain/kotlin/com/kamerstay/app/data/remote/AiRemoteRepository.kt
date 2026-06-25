@@ -2,6 +2,8 @@ package com.kamerstay.app.data.remote
 
 import com.kamerstay.app.data.model.ConciergeRequest
 import com.kamerstay.app.data.model.ConciergeResponse
+import com.kamerstay.app.data.model.PricingRequest
+import com.kamerstay.app.data.model.PricingResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -14,6 +16,13 @@ class AiRemoteRepository {
 
     suspend fun sendMessage(request: ConciergeRequest): ConciergeResponse {
         return client.post("$baseUrl/ai/concierge") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+    }
+
+    suspend fun suggestPricing(request: PricingRequest): PricingResponse {
+        return client.post("$baseUrl/ai/pricing") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()

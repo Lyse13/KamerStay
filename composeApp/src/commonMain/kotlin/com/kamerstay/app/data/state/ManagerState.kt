@@ -3,6 +3,7 @@ package com.kamerstay.app.data.state
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.kamerstay.app.data.model.PricingResponse
 
 class RoomFormState {
     var roomNumber by mutableStateOf("")
@@ -13,6 +14,8 @@ class RoomFormState {
     var selectedFeatures by mutableStateOf(setOf<String>())
     var isLoading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
+    var pricingSuggestion by mutableStateOf<PricingResponse?>(null)
+    var isPricingLoading by mutableStateOf(false)
 }
 
 class CheckInState {

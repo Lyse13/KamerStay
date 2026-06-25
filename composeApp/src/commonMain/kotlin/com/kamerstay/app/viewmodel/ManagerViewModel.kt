@@ -16,6 +16,8 @@ import com.kamerstay.app.data.model.ManagerNotification
 import com.kamerstay.app.data.model.ManagerRoom
 import com.kamerstay.app.data.model.Reservation
 import com.kamerstay.app.data.model.StaffMember
+import com.kamerstay.app.data.model.PricingRequest
+import com.kamerstay.app.data.remote.AiRemoteRepository
 import com.kamerstay.app.data.remote.BookingRemoteRepository
 import com.kamerstay.app.data.state.AddEditStaffState
 import com.kamerstay.app.data.state.AmenitiesState
@@ -37,6 +39,7 @@ import kotlinx.coroutines.launch
 class ManagerViewModel : ViewModel() {
 
     private val bookingRepository = BookingRemoteRepository()
+    private val aiRepository = AiRemoteRepository()
 
     val roomFormState = RoomFormState()
     val checkInState = CheckInState()
@@ -124,6 +127,31 @@ class ManagerViewModel : ViewModel() {
     val confirmedBookings get() = bookings.count { it.bookingStatus.name == "CONFIRMED" }
     val pendingBookings get() = bookings.count { it.bookingStatus.name == "PENDING" }
     val totalRevenue get() = bookings.sumOf { it.totalAmount }
+
+    // ── AI Pricing ────────────────────────────
+    fun suggestPricing() {
+        viewModelScope.launch {
+            roomFormState.isPricingLoading = true
+            roomFormState.pricingSuggestion = null
+            try {
+                val priceInt = roomFormState.pricePerNight.replace(",", "").toDoubleOrNull()?.toInt() ?: 0
+                val response = aiRepository.suggestPricing(
+                    PricingRequest(
+                        hotelName = manageHotelState.propertyName,
+                        city = manageHotelState.city,
+                        currentOccupancyPercent = 65,
+                        currentPricePerNight = priceInt,
+                        roomType = roomFormState.category
+                    )
+                )
+                roomFormState.pricingSuggestion = response
+            } catch (_: Exception) {
+                // Keep existing price, fail silently
+            } finally {
+                roomFormState.isPricingLoading = false
+            }
+        }
+    }
 
     // ── Fonctions mock (inchangées) ───────────
     fun filterReservations(status: String) {

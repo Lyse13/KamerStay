@@ -4,7 +4,9 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -29,9 +31,11 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.model.SearchCriteria
+import com.kamerstay.app.data.state.QUICK_REPLIES
 import com.kamerstay.app.data.state.UiChatMessage
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 
 private val AiGradient = Brush.linearGradient(colors = listOf(Color(0xFF4A00E0), Color(0xFF8E2DE2)))
@@ -46,6 +50,11 @@ fun AIConciergeScreen(navController: NavController) {
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+
+    // Message proactif au premier affichage
+    LaunchedEffect(Unit) {
+        viewModel.checkProactiveMessage()
+    }
 
     // Scroll to bottom when messages change or typing starts
     LaunchedEffect(messages.size, isTyping) {
@@ -136,6 +145,18 @@ fun AIConciergeScreen(navController: NavController) {
                 items(messages, key = { it.id }) { message ->
                     MessageBubble(message)
                 }
+                // Quick replies — visibles seulement quand la conversation est vide
+                if (state.hasOnlyWelcome && !isTyping) {
+                    item(key = "quick_replies") {
+                        QuickRepliesRow(QUICK_REPLIES) { reply ->
+                            state.addUserMessage(reply)
+                            viewModel.sendConciergeMessage(reply)
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(maxOf(0, messages.size - 1))
+                            }
+                        }
+                    }
+                }
                 if (isTyping) {
                     item(key = "typing") { TypingIndicator() }
                 }
@@ -145,9 +166,18 @@ fun AIConciergeScreen(navController: NavController) {
             if (criteria != null && criteria.hasContent()) {
                 CriteriaCard(
                     criteria = criteria,
-                    onClick = {
+                    onSearch = {
                         viewModel.searchState.query = criteria.city ?: ""
                         criteria.budgetFcfa?.let { viewModel.filterState.maxPrice = it.toFloat() }
+                        navController.navigate(Routes.HotelSearch.route)
+                    },
+                    onBook = {
+                        viewModel.searchState.query = criteria.city ?: ""
+                        criteria.budgetFcfa?.let { viewModel.filterState.maxPrice = it.toFloat() }
+                        try {
+                            criteria.checkIn?.let { viewModel.bookingState.checkInDate = LocalDate.parse(it) }
+                            criteria.checkOut?.let { viewModel.bookingState.checkOutDate = LocalDate.parse(it) }
+                        } catch (_: Exception) { }
                         navController.navigate(Routes.HotelSearch.route)
                     }
                 )
@@ -211,7 +241,7 @@ private fun MessageBubble(message: UiChatMessage) {
         val textColor = when {
             isUser -> OnPrimary
             message.isError -> Color(0xFFB00020)
-            message.isWelcome -> Color.White
+            message.isWelcome || message.isProactive -> Color.White
             else -> LocalAppColors.current.textPrimary
         }
         val solidColor = when {
@@ -219,25 +249,38 @@ private fun MessageBubble(message: UiChatMessage) {
             message.isError -> Color(0xFFFFEEEE)
             else -> LocalAppColors.current.surface
         }
+        val proactiveGradient = Brush.linearGradient(colors = listOf(Color(0xFFE65100), Color(0xFFFF8F00)))
 
         Box(
             modifier = Modifier
                 .widthIn(max = 280.dp)
                 .clip(bubbleShape)
                 .then(
-                    if (message.isWelcome)
-                        Modifier.background(AiGradient)
-                    else
-                        Modifier.background(solidColor)
+                    when {
+                        message.isWelcome -> Modifier.background(AiGradient)
+                        message.isProactive -> Modifier.background(proactiveGradient)
+                        else -> Modifier.background(solidColor)
+                    }
                 )
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            Text(
-                text = message.content,
-                fontSize = 14.sp,
-                color = textColor,
-                lineHeight = 20.sp
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (message.isProactive) {
+                    Text(
+                        text = "Rappel",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(0.8f),
+                        letterSpacing = 1.sp
+                    )
+                }
+                Text(
+                    text = message.content,
+                    fontSize = 14.sp,
+                    color = textColor,
+                    lineHeight = 20.sp
+                )
+            }
         }
 
         if (isUser) {
@@ -312,10 +355,52 @@ private fun TypingIndicator() {
     }
 }
 
+// ── Quick Replies ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun QuickRepliesRow(replies: List<String>, onReply: (String) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Suggestions",
+            fontSize = 12.sp,
+            color = OnSurfaceSecondary.copy(0.6f),
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(start = 4.dp)
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 2.dp)
+        ) {
+            items(replies) { reply ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(AiGradient)
+                        .clickable { onReply(reply) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = reply,
+                        fontSize = 13.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
 // ── Criteria Card ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun CriteriaCard(criteria: SearchCriteria, onClick: () -> Unit) {
+private fun CriteriaCard(criteria: SearchCriteria, onSearch: () -> Unit, onBook: () -> Unit) {
+    val readyToBook = criteria.hasReadyToBook()
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -342,32 +427,58 @@ private fun CriteriaCard(criteria: SearchCriteria, onClick: () -> Unit) {
                     color = Secondary
                 )
             }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 criteria.city?.let { CriteriaChip(Icons.Outlined.Place, it) }
                 criteria.budgetFcfa?.let { CriteriaChip(Icons.Outlined.Payments, "${it.toFcfa()} FCFA") }
+                criteria.checkIn?.let { CriteriaChip(Icons.Outlined.CalendarMonth, it) }
+                criteria.checkOut?.let { CriteriaChip(Icons.Outlined.CalendarMonth, it) }
                 criteria.travelType?.let { CriteriaChip(Icons.Outlined.Group, it.capitalize()) }
             }
-            Button(
-                onClick = onClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Secondary),
-                contentPadding = PaddingValues(vertical = 10.dp)
-            ) {
-                Icon(
-                    Icons.Outlined.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    "Rechercher ces hôtels",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+            if (readyToBook) {
+                // Réservation directe : critères complets (ville + dates)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onSearch,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, Secondary),
+                        contentPadding = PaddingValues(vertical = 10.dp)
+                    ) {
+                        Icon(Icons.Outlined.Search, null, modifier = Modifier.size(14.dp), tint = Secondary)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Voir", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Secondary)
+                    }
+                    Button(
+                        onClick = onBook,
+                        modifier = Modifier.weight(2f),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                        contentPadding = PaddingValues(vertical = 10.dp)
+                    ) {
+                        Icon(Icons.Outlined.Hotel, null, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Réserver maintenant", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            } else {
+                Button(
+                    onClick = onSearch,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                    contentPadding = PaddingValues(vertical = 10.dp)
+                ) {
+                    Icon(Icons.Outlined.Search, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Rechercher ces hôtels", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
     }

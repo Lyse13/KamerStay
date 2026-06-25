@@ -3,6 +3,7 @@ package com.kamerstay.app.features.auth
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -20,6 +21,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,7 +29,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.hotel_hero
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
 
 private data class OnboardingPage(
     val icon: ImageVector,
@@ -73,9 +78,17 @@ fun OnboardingScreen(navController: NavController) {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(DarkNavy)
+            .fillMaxSize(),
+
     ) {
+        Box() {
+            Image(
+                painter = painterResource(Res.drawable.hotel_hero),
+                contentDescription = "Hotel Hero",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ── Skip button ───────────────────────────

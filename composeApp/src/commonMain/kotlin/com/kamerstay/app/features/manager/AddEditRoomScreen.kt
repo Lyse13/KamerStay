@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.components.ImageUploadCard
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.data.model.PricingResponse
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -414,6 +415,19 @@ fun AddEditRoomScreen(navController: NavController) {
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // ── AI Pricing Suggestion ─────────────────
+                    AiPricingCard(
+                        isLoading = state.isPricingLoading,
+                        suggestion = state.pricingSuggestion,
+                        onRequest = { viewModel.suggestPricing() },
+                        onApply = { price ->
+                            state.pricePerNight = price.toString()
+                            state.pricingSuggestion = null
+                        }
+                    )
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Instant Booking toggle
@@ -594,6 +608,154 @@ fun AddEditRoomScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(80.dp))
         }
+    }
+}
+
+// ── AI Pricing Card ───────────────────────────────────────
+
+private val AiPricingGradient = Brush.linearGradient(colors = listOf(Color(0xFF4A00E0), Color(0xFF8E2DE2)))
+
+@Composable
+private fun AiPricingCard(
+    isLoading: Boolean,
+    suggestion: PricingResponse?,
+    onRequest: () -> Unit,
+    onApply: (Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFF4A00E0).copy(alpha = 0.06f))
+            .border(1.dp, Color(0xFF8E2DE2).copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        Icons.Outlined.AutoAwesome,
+                        contentDescription = null,
+                        tint = Color(0xFF8E2DE2),
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Text(
+                        text = "Suggestion IA",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF4A00E0)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(AiPricingGradient)
+                        .clickable(enabled = !isLoading) { onRequest() }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(14.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = if (suggestion != null) "Relancer" else "Analyser",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
+            if (suggestion != null) {
+                HorizontalDivider(color = Color(0xFF8E2DE2).copy(alpha = 0.15f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "${"%,d".format(suggestion.suggestedPrice).replace(",", ".")} FCFA",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF4A00E0)
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            SeasonChip(suggestion.season)
+                            DemandChip(suggestion.demandLevel)
+                        }
+                    }
+                    Button(
+                        onClick = { onApply(suggestion.suggestedPrice) },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4A00E0)),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                    ) {
+                        Text("Appliquer", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                Text(
+                    text = suggestion.explanation,
+                    fontSize = 12.sp,
+                    color = OnSurfaceSecondary,
+                    lineHeight = 17.sp
+                )
+            } else if (!isLoading) {
+                Text(
+                    text = "Kamsa analyse la saisonnalité et le taux d'occupation pour suggérer un prix optimal.",
+                    fontSize = 12.sp,
+                    color = OnSurfaceSecondary,
+                    lineHeight = 17.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SeasonChip(season: String) {
+    val color = when (season) {
+        "haute", "très haute" -> Color(0xFFE53935)
+        "normale" -> Color(0xFF43A047)
+        else -> OnSurfaceSecondary
+    }
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(text = "Saison $season", fontSize = 11.sp, color = color, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun DemandChip(demandLevel: String) {
+    val (label, color) = when (demandLevel) {
+        "high" -> "Forte demande" to Color(0xFFE53935)
+        "peak" -> "Pic" to Color(0xFFB71C1C)
+        "medium" -> "Demande moyenne" to Color(0xFFFF8F00)
+        else -> "Faible demande" to OnSurfaceSecondary
+    }
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(color.copy(alpha = 0.12f))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(text = label, fontSize = 11.sp, color = color, fontWeight = FontWeight.Medium)
     }
 }
 

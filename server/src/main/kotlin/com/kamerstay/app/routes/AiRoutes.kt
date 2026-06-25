@@ -22,7 +22,8 @@ data class ConciergeChatMessage(val role: String, val content: String)
 data class ConciergeRequest(
     val message: String,
     val history: List<ConciergeChatMessage> = emptyList(),
-    val userName: String? = null
+    val userName: String? = null,
+    val userContext: String? = null
 )
 
 @Serializable
@@ -62,6 +63,25 @@ private val responseJson = Json { ignoreUnknownKeys = true; isLenient = true }
 
 private val anthropicClient = HttpClient(CIO) {
     install(ContentNegotiation) { json(responseJson) }
+}
+
+private fun resolveApiKey(): String {
+    val fromEnv = System.getenv("ANTHROPIC_API_KEY")
+    if (!fromEnv.isNullOrBlank()) return fromEnv
+    // Fallback: read from local.properties (development without Gradle run task)
+    return try {
+        val props = java.util.Properties()
+        var dir = java.io.File("").absoluteFile
+        repeat(6) {
+            val candidate = java.io.File(dir, "local.properties")
+            if (candidate.exists()) {
+                props.load(candidate.inputStream())
+                return props.getProperty("ANTHROPIC_API_KEY") ?: ""
+            }
+            dir = dir.parentFile ?: return ""
+        }
+        ""
+    } catch (_: Exception) { "" }
 }
 
 private const val ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
@@ -122,6 +142,11 @@ Réponds UNIQUEMENT en JSON valide sans texte additionnel :
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
+private fun buildConciergePrompt(userContext: String?): String {
+    if (userContext.isNullOrBlank()) return CONCIERGE_SYSTEM_PROMPT
+    return "$CONCIERGE_SYSTEM_PROMPT\n\nCONTEXTE UTILISATEUR (réservations actuelles) :\n$userContext"
+}
+
 private suspend fun callClaude(systemPrompt: String, messages: List<ConciergeChatMessage>, apiKey: String): String {
     val body = buildJsonObject {
         put("model", CLAUDE_MODEL)
@@ -142,9 +167,7 @@ private suspend fun callClaude(systemPrompt: String, messages: List<ConciergeCha
         header("anthropic-version", ANTHROPIC_VERSION)
         contentType(ContentType.Application.Json)
         setBody(body.toString())
-    }.body<String>()  // ← lire comme String d'abord
-
-    println("DEBUG ANTHROPIC FULL RESPONSE: $responseBody")  // log temporaire
+    }.body<String>()
 
     // Parser manuellement
     val json = Json { ignoreUnknownKeys = true }
@@ -165,7 +188,7 @@ private fun cleanJson(raw: String): String =
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 fun Route.aiRoutes() {
-    val apiKey = System.getenv("ANTHROPIC_API_KEY") ?: ""
+    val apiKey = resolveApiKey()
 
     route("/ai") {
 
@@ -186,10 +209,8 @@ fun Route.aiRoutes() {
             }
 
             try {
-                val rawText = callClaude(CONCIERGE_SYSTEM_PROMPT, messages, apiKey)
-                println("DEBUG KAMSA RAW: $rawText")
+                val rawText = callClaude(buildConciergePrompt(request.userContext), messages, apiKey)
                 val cleaned = cleanJson(rawText)
-                println("DEBUG KAMSA CLEANED: $cleaned")
 
                 val response = try {
                     responseJson.decodeFromString<ConciergeResponse>(cleaned)

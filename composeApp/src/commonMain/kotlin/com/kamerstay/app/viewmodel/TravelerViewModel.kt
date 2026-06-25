@@ -12,8 +12,10 @@ import com.kamerstay.app.data.mock.NotificationsMockData
 import com.kamerstay.app.data.model.AppNotification
 import com.kamerstay.app.data.model.Booking
 import com.kamerstay.app.data.model.ConciergeRequest
+import com.kamerstay.app.data.model.BookingStatus
 import com.kamerstay.app.data.remote.AiRemoteRepository
 import com.kamerstay.app.data.remote.BookingRemoteRepository
+import com.kamerstay.app.data.store.ChatHistoryStore
 import com.kamerstay.app.model.Booking as SharedBooking
 import com.kamerstay.app.model.enums.PaymentMethod
 import com.kamerstay.app.data.remote.HotelRemoteRepository
@@ -121,6 +123,7 @@ class TravelerViewModel : ViewModel() {
     // Chargement initial des hôtels au démarrage du ViewModel
     init {
         loadHotels()
+        loadChatHistory()
     }
 
     fun loadHotels() {
@@ -176,13 +179,15 @@ class TravelerViewModel : ViewModel() {
                     ConciergeRequest(
                         message = message,
                         history = aiConciergeState.historyForApi(),
-                        userName = UserSession.fullName.ifBlank { null }
+                        userName = UserSession.fullName.ifBlank { null },
+                        userContext = buildUserContext()
                     )
                 )
                 aiConciergeState.addAssistantMessage(response.message)
                 response.criteria?.let { criteria ->
                     if (criteria.hasContent()) aiConciergeState.extractedCriteria = criteria
                 }
+                saveChatHistory()
             } catch (_: Exception) {
                 aiConciergeState.addAssistantMessage(
                     "Désolé, je ne peux pas vous répondre pour l'instant. Vérifiez votre connexion et réessayez.",
@@ -192,6 +197,45 @@ class TravelerViewModel : ViewModel() {
                 aiConciergeState.isTyping = false
             }
         }
+    }
+
+    private fun buildUserContext(): String {
+        val upcoming = upcomingBookings.filter { it.status == BookingStatus.UPCOMING || it.status == BookingStatus.CONFIRMED }
+        val past = pastBookings.filter { it.status == BookingStatus.PAST }
+        if (upcoming.isEmpty() && past.isEmpty()) return ""
+        return buildString {
+            if (upcoming.isNotEmpty()) {
+                appendLine("Réservations à venir :")
+                upcoming.forEach { b ->
+                    appendLine("- ${b.hotelName} (${b.location}) — check-in : ${b.checkIn}, check-out : ${b.checkOut} [${b.status.name}]")
+                }
+            }
+            if (past.isNotEmpty()) {
+                appendLine("Séjours passés :")
+                past.take(3).forEach { b ->
+                    appendLine("- ${b.hotelName} (${b.location}) — check-in : ${b.checkIn} [PASSÉ]")
+                }
+            }
+        }.trim()
+    }
+
+    fun checkProactiveMessage() {
+        if (aiConciergeState.hasShownProactive) return
+        val nextBooking = upcomingBookings.firstOrNull {
+            it.status == BookingStatus.UPCOMING || it.status == BookingStatus.CONFIRMED
+        } ?: return
+        aiConciergeState.addProactiveMessage(
+            "Rappel : vous avez une réservation à ${nextBooking.hotelName} du ${nextBooking.checkIn} au ${nextBooking.checkOut}. Besoin d'infos sur le quartier, les transports ou les activités à proximité ?"
+        )
+    }
+
+    private fun loadChatHistory() {
+        val json = ChatHistoryStore.load() ?: return
+        aiConciergeState.restoreMessages(json)
+    }
+
+    private fun saveChatHistory() {
+        ChatHistoryStore.save(aiConciergeState.serializeMessages())
     }
 
     fun createBooking(onSuccess: () -> Unit) {

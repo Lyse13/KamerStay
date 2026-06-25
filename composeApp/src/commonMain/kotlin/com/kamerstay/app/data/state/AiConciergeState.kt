@@ -6,13 +6,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.kamerstay.app.data.model.ConciergeChatMessage
 import com.kamerstay.app.data.model.SearchCriteria
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class UiChatMessage(
     val id: String,
     val role: String,
     val content: String,
     val isError: Boolean = false,
-    val isWelcome: Boolean = false
+    val isWelcome: Boolean = false,
+    val isProactive: Boolean = false
+)
+
+val QUICK_REPLIES = listOf(
+    "Hôtels à Douala",
+    "Hôtels à Kribi",
+    "Budget max 50.000 FCFA",
+    "Ma réservation en cours",
+    "Hôtels de luxe"
 )
 
 class AiConciergeState {
@@ -21,6 +32,7 @@ class AiConciergeState {
     var isTyping by mutableStateOf(false)
     var extractedCriteria by mutableStateOf<SearchCriteria?>(null)
     var inputText by mutableStateOf("")
+    var hasShownProactive by mutableStateOf(false)
 
     private fun buildWelcome(): UiChatMessage {
         val name = UserSession.fullName.trim().ifBlank { null }
@@ -45,6 +57,14 @@ class AiConciergeState {
         messages.add(UiChatMessage(id = "a_${messages.size}", role = "assistant", content = content, isError = isError))
     }
 
+    fun addProactiveMessage(content: String) {
+        if (hasShownProactive) return
+        hasShownProactive = true
+        messages.add(1, UiChatMessage(id = "proactive_0", role = "assistant", content = content, isProactive = true))
+    }
+
+    val hasOnlyWelcome: Boolean get() = messages.none { !it.isWelcome && !it.isProactive }
+
     fun historyForApi(): List<ConciergeChatMessage> {
         // Tous les messages réels (pas bienvenue, pas erreur), sans le dernier (= message user en cours)
         val real = messages.filter { !it.isWelcome && !it.isError }
@@ -60,10 +80,34 @@ class AiConciergeState {
         }
     }
 
+    fun serializeMessages(): String {
+        val toSave = messages.filter { !it.isWelcome && !it.isError }
+        return kotlinx.serialization.json.Json.encodeToString(
+            kotlinx.serialization.builtins.ListSerializer(UiChatMessage.serializer()),
+            toSave
+        )
+    }
+
+    fun restoreMessages(json: String) {
+        try {
+            val saved = kotlinx.serialization.json.Json.decodeFromString(
+                kotlinx.serialization.builtins.ListSerializer(UiChatMessage.serializer()),
+                json
+            )
+            if (saved.isNotEmpty()) {
+                messages.clear()
+                messages.add(buildWelcome())
+                messages.addAll(saved)
+                // Restaure les critères depuis le dernier message si présents
+            }
+        } catch (_: Exception) { /* Si JSON corrompu, on repart à zéro */ }
+    }
+
     fun reset() {
         messages.clear()
         extractedCriteria = null
         inputText = ""
+        hasShownProactive = false
         messages.add(buildWelcome())
     }
 }

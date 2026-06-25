@@ -27,7 +27,7 @@ import kotlinx.coroutines.delay
 fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
-        delay(5000)
+        delay(9000)
         navController.navigate(Routes.Onboarding.route) {
             popUpTo(Routes.Splash.route) { inclusive = true }
         }
@@ -49,15 +49,7 @@ fun SplashScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(0xFF002B35),  // centre sombre pour contraste texte blanc
-                        DarkNavy,
-                    ),
-                    radius = 1200f
-                )
-            ),
+            .background(color = OnSecondary),
         contentAlignment = Alignment.Center
     ) {
         // Points décoratifs background (comme des étoiles)

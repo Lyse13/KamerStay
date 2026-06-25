@@ -9,7 +9,9 @@ import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 
 object DatabaseConfig {
-    private const val CONNECTION_STRING = "mongodb://localhost:27017"
+    private val CONNECTION_STRING = System.getenv("MONGODB_URI")
+        ?: "mongodb://localhost:27017"
+
     private const val DATABASE_NAME = "kamerstay_db"
 
     private val client: MongoClient = MongoClient.create(CONNECTION_STRING)
