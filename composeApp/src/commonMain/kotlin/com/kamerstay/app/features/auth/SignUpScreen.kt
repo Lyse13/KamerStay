@@ -1,10 +1,10 @@
 package com.kamerstay.app.features.auth
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -26,6 +27,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
 import androidx.navigation.NavController
 import com.kamerstay.app.core.components.ErrorPopup
 import com.kamerstay.app.core.components.PasswordRequirements
@@ -87,10 +96,13 @@ fun SignUpScreen(navController: NavController) {
 
     val viewModel = koinViewModel<AuthViewModel>()
     val state = viewModel.signUpState
+    val scale = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         state.selectedRole = if (NavigationState.pendingRole == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
     }
+
 
     val nameError = if (state.submitted) validateFullName(state.fullName) else null
     val emailError = if (state.submitted || state.email.isNotEmpty())
@@ -111,58 +123,40 @@ fun SignUpScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalAppColors.current.background)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        SecondaryContainer.copy(alpha = 0.35f),
+                        BackgroundLight,
+                        Color(0xFFE8F4F5)
+                    )
+                )
+            )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // ── Top Bar ───────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Outlined.Menu,
-                        contentDescription = null,
-                        tint = Secondary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "KamerStay",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Secondary
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE8F4F5)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.Person,
-                        contentDescription = null,
-                        tint = Secondary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
+                Text(
+                    text = "KamerStay",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SecondaryContainer
+                )
             }
 
-            HorizontalDivider(color = Divider)
+            HorizontalDivider(color = SecondaryContainer.copy(alpha = 0.85f))
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
-            // ── Main Card ─────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -172,10 +166,9 @@ fun SignUpScreen(navController: NavController) {
                     .padding(horizontal = 24.dp, vertical = 32.dp)
             ) {
                 Column {
-                    // ── Header ────────────────────────
                     Text(
                         text = "Create Account",
-                        fontSize = 28.sp,
+                        fontSize = 30.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color(0xFF1A1A2E)
                     )
@@ -183,51 +176,19 @@ fun SignUpScreen(navController: NavController) {
                     Text(
                         text = "Start your journey with professional concierge service.",
                         fontSize = 14.sp,
-                        color = OnSurfaceSecondary,
+                        color = LocalAppColors.current.textPrimary,
                         lineHeight = 20.sp
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ── Sélecteur de rôle ─────────────
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(LocalAppColors.current.background),
-                        horizontalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        listOf(UserRole.TRAVELER to "Voyageur", UserRole.MANAGER to "Manager").forEach { (role, label) ->
-                            val isSelected = state.selectedRole == role
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(if (isSelected) Secondary else Color.Transparent)
-                                    .clickable { state.selectedRole = role }
-                                    .padding(vertical = 12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) Color.White else OnSurfaceSecondary
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // ── Full Name ─────────────────────
                     SignUpLabel("Full Name")
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = state.fullName,
                         onValueChange = { state.fullName = it },
                         placeholder = {
-                            Text("John Doe", color = OnSurfaceSecondary.copy(0.5f))
+                            Text("Mouandeu Lysette", color = OnSurfaceSecondary.copy(0.5f))
                         },
                         leadingIcon = {
                             Icon(
@@ -250,14 +211,13 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ── Email ─────────────────────────
                     SignUpLabel("Email Address")
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = state.email,
                         onValueChange = { state.email = it },
                         placeholder = {
-                            Text("john@example.com", color = OnSurfaceSecondary.copy(0.5f))
+                            Text("lysette@example.com", color = OnSurfaceSecondary.copy(0.5f))
                         },
                         leadingIcon = {
                             Icon(
@@ -283,14 +243,13 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ── Phone ─────────────────────────
                     SignUpLabel("Phone Number")
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = state.phoneNumber,
                         onValueChange = { state.phoneNumber = it },
                         placeholder = {
-                            Text("+1(555)000-0000", color = OnSurfaceSecondary.copy(0.5f))
+                            Text("+(237) 678 90 12 34", color = OnSurfaceSecondary.copy(0.5f))
                         },
                         leadingIcon = {
                             Icon(
@@ -316,7 +275,6 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ── Password ──────────────────────
                     SignUpLabel("Password")
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
@@ -361,7 +319,6 @@ fun SignUpScreen(navController: NavController) {
                         singleLine = true
                     )
 
-                    // Password strength
                     if (state.password.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(10.dp))
                         PasswordStrengthIndicator(strength = passwordStrength)
@@ -371,26 +328,53 @@ fun SignUpScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ── Create Account Button ──────────
+                    var isPressed by remember { mutableStateOf(false) }
+
+                    val buttonColor by animateColorAsState(
+                        targetValue = if (isPressed) SecondaryContainer else Primary,
+                        animationSpec = tween(250),
+                        label = "buttonColor"
+                    )
+
+                    LaunchedEffect(viewModel.isLoading) {
+                        if (!viewModel.isLoading) {
+                            isPressed = false
+                        }
+                    }
+
                     Button(
                         onClick = {
-                            val dest = if (state.selectedRole == UserRole.MANAGER)
-                                Routes.ManagerDashboard.route
-                            else
-                                Routes.TravelerHome.route
+                            isPressed = true
+                            scope.launch {
+                                scale.animateTo(0.92f, tween(70))
+                                scale.animateTo(1.03f, tween(90))
+                                scale.animateTo(
+                                    1f,
+                                    spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    )
+                                )
+                            }
+
                             viewModel.onAuthSuccess = {
-                                navController.navigate(dest) {
+                                navController.navigate(Routes.SignIn.route) {
                                     popUpTo(Routes.Welcome.route) { inclusive = true }
                                 }
                             }
+
                             viewModel.signUp()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(56.dp)
+                            .graphicsLayer {
+                                scaleX = scale.value
+                                scaleY = scale.value
+                            },
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Primary
+                            containerColor = buttonColor
                         )
                     ) {
                         if (viewModel.isLoading) {
@@ -400,12 +384,25 @@ fun SignUpScreen(navController: NavController) {
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(
-                                text = "Create Account  →",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnPrimary
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Create Account",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = OnPrimary.copy(alpha = 0.85f)
+                                )
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    tint = OnPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
 
@@ -417,23 +414,42 @@ fun SignUpScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // ── Sign In Link ───────────────────
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = OnSurfaceSecondary)) {
-                                append("Already have an account? ")
-                            }
-                            withStyle(SpanStyle(
-                                color = Secondary,
+                    val annotatedText = buildAnnotatedString {
+                        append("Already have an account? ")
+
+                        pushStringAnnotation(
+                            tag = "SIGN_IN",
+                            annotation = "sign_in"
+                        )
+
+                        withStyle(
+                            SpanStyle(
+                                color = SecondaryContainer,
                                 fontWeight = FontWeight.Bold
-                            )) {
-                                append("Sign In")
+                            )
+                        ) {
+                            append("Sign In")
+                        }
+
+                        pop()
+                    }
+
+                    ClickableText(
+                        text = annotatedText,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = LocalTextStyle.current.copy(
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        ),
+                        onClick = { offset ->
+                            annotatedText.getStringAnnotations(
+                                tag = "SIGN_IN",
+                                start = offset,
+                                end = offset
+                            ).firstOrNull()?.let {
+                                navController.navigate(Routes.SignIn.route)
                             }
-                        },
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate(Routes.SignIn.route) }
+                        }
                     )
                 }
             }

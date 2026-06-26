@@ -43,6 +43,7 @@ fun Application.module() {
     val bookingRepository = BookingRepository()
 
     SeedData.seedIfEmpty(hotelRepository)
+    SeedData.seedAdminIfNotExists(userRepository)
 
     install(ContentNegotiation) {
         json(Json {

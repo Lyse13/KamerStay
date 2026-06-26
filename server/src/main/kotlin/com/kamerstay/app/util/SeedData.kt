@@ -1,13 +1,15 @@
 package com.kamerstay.app.util
 
 import com.kamerstay.app.model.Hotel
+import com.kamerstay.app.model.User
+import com.kamerstay.app.model.UserCredentials
+import com.kamerstay.app.model.enums.UserRole
 import com.kamerstay.app.repository.HotelRepository
+import com.kamerstay.app.repository.UserRepository
 import kotlinx.coroutines.runBlocking
+import java.time.Instant
+import java.util.UUID
 
-/**
- * Injecte les hôtels camerounais dans MongoDB si la collection est vide.
- * À appeler une seule fois au démarrage du serveur (idempotent).
- */
 object SeedData {
 
     private fun image(id: String) = "https://images.unsplash.com/photo-$id?w=800&fit=crop&auto=format"
@@ -113,6 +115,27 @@ object SeedData {
             println("SeedData: ${hotels.size} hotels inseres dans MongoDB.")
         } else {
             println("SeedData: la collection hotels contient deja $count documents, seed ignore.")
+        }
+    }
+
+    fun seedAdminIfNotExists(userRepository: UserRepository) = runBlocking {
+        val adminEmail = "lysettemouandeu@gmail.com"
+        if (!userRepository.emailExists(adminEmail)) {
+            val adminId = UUID.randomUUID().toString()
+            val admin = User(
+                id = adminId,
+                fullName = "Lysette Mouandeu",
+                email = adminEmail,
+                phoneNumber = "657064991",
+                role = UserRole.HOTEL_MANAGER,
+                createdAt = Instant.now().toString(),
+                isActive = true
+            )
+            val passwordHash = PasswordHasher.hash("Lysette@21")
+            userRepository.createUser(admin, passwordHash)
+            println("SeedData: Compte admin cree -> $adminEmail")
+        } else {
+            println("SeedData: Compte admin deja existant, seed ignore.")
         }
     }
 }

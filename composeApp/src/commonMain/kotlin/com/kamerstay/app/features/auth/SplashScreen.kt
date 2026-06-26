@@ -27,7 +27,7 @@ import kotlinx.coroutines.delay
 fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
-        delay(9000)
+        delay(5000)
         navController.navigate(Routes.Onboarding.route) {
             popUpTo(Routes.Splash.route) { inclusive = true }
         }

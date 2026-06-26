@@ -27,12 +27,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.TextStyle
 import androidx.navigation.NavController
 import com.kamerstay.app.core.components.SignUpLabel
 import com.kamerstay.app.core.components.authTextFieldColors
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.AuthViewModel
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.forgot_password
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -45,7 +51,15 @@ fun ForgotPasswordScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalAppColors.current.background)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        SecondaryContainer.copy(alpha = 0.35f),
+                        BackgroundLight,
+                        Color(0xFFE8F4F5)
+                    )
+                )
+            )
     ) {
         Column(
             modifier = Modifier
@@ -61,16 +75,16 @@ fun ForgotPasswordScreen(navController: NavController) {
             ) {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Secondary
+                        tint = SecondaryContainer
                     )
                 }
                 Text(
                     text = "KamerStay",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Secondary
+                    color = SecondaryContainer
                 )
             }
 
@@ -92,22 +106,23 @@ fun ForgotPasswordScreen(navController: NavController) {
                     Box(
                         modifier = Modifier
                             .size(110.dp)
-                            .clip(RoundedCornerShape(20.dp))
                             .background(
                                 brush = Brush.linearGradient(
                                     colors = listOf(
                                         Color(0xFFB0E8EC),
                                         Color(0xFF7DE5FA)
                                     )
-                                )
+                                ),
+                                shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Outlined.Key,
-                            contentDescription = null,
-                            tint = Secondary,
-                            modifier = Modifier.size(52.dp)
+                        Image(
+                            painter = painterResource(Res.drawable.forgot_password),
+                            contentDescription = "Forgot Password",
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
                         )
                     }
                 }
@@ -201,34 +216,32 @@ fun ForgotPasswordScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = OnSurfaceSecondary)) {
-                            append("Remembered it? ")
-                        }
-                        withStyle(SpanStyle(
-                            color = Secondary,
+                val annotatedString = buildAnnotatedString {
+                    withStyle(SpanStyle(color = OnSurfaceSecondary)) {
+                        append("Remembered it? ")
+                    }
+                    pushStringAnnotation(tag = "LOGIN", annotation = "login_action")
+                    withStyle(
+                        SpanStyle(
+                            color = SecondaryContainer,
                             fontWeight = FontWeight.Bold
-                        )) {
-                            append("Login")
-                        }
-                    },
-                    fontSize = 14.sp,
-                    modifier = Modifier.clickable {
-                        navController.navigate(Routes.SignIn.route)
+                        )
+                    ) {
+                        append("Login")
+                    }
+                    pop()
+                }
+
+                ClickableText(
+                    text = annotatedString,
+                    style = TextStyle(fontSize = 14.sp),
+                    onClick = { offset ->
+                        annotatedString.getStringAnnotations(tag = "LOGIN", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                navController.navigate(Routes.SignIn.route)
+                            }
                     }
                 )
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                Text(
-                    text = "© 2024 KamerStay Hospitality Group",
-                    fontSize = 12.sp,
-                    color = OnSurfaceSecondary.copy(0.7f),
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

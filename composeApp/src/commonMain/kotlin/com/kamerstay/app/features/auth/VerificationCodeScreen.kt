@@ -182,7 +182,7 @@ fun VerificationCodeScreen(navController: NavController) {
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     enabled = state.code.length == 4
                 ) {
                     Text(
@@ -202,14 +202,6 @@ fun VerificationCodeScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "By clicking Verify, you agree to our Terms of Service and Privacy Policy regarding digital hospitality.",
-                    fontSize = 12.sp,
-                    color = OnSurfaceSecondary.copy(0.5f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                    lineHeight = 16.sp
-                )
             }
         }
     }

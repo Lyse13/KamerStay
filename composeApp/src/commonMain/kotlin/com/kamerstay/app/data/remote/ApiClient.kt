@@ -9,10 +9,7 @@ import kotlinx.serialization.json.Json
 
 object ApiClient {
 
-    // En développement sur émulateur Android : utilise 10.0.2.2 (qui pointe vers localhost de ta machine)
-    // Sur appareil physique connecté au même Wi-Fi : utilise l'IP locale de ta machine (ex: 192.168.1.X)
-    // Sur desktop/JVM : utilise localhost directement
-    const val BASE_URL = "http://10.0.2.2:8080"
+    const val BASE_URL = "https://kamerstay-backend.onrender.com"
 
     val client = HttpClient {
         install(ContentNegotiation) {

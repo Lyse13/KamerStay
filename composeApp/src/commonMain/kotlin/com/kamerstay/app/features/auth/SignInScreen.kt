@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
 import androidx.navigation.NavController
 import com.kamerstay.app.core.components.ErrorPopup
 import com.kamerstay.app.core.components.SignUpLabel
@@ -34,6 +41,7 @@ import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.state.UserRole
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.viewmodel.AuthViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -43,6 +51,8 @@ fun SignInScreen(navController: NavController) {
 
     val viewModel = koinViewModel<AuthViewModel>()
     val state = viewModel.signInState
+    val scale = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         state.selectedRole = if (NavigationState.pendingRole == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
@@ -54,7 +64,7 @@ fun SignInScreen(navController: NavController) {
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFE0F7FA),
+                        SecondaryContainer.copy(alpha = 0.35f),
                         BackgroundLight,
                         Color(0xFFE8F4F5)
                     )
@@ -66,7 +76,6 @@ fun SignInScreen(navController: NavController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // ── Top Bar ───────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -78,13 +87,12 @@ fun SignInScreen(navController: NavController) {
                     text = "KamerStay",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Secondary
+                    color = SecondaryContainer
                 )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ── Main Card ─────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -95,7 +103,7 @@ fun SignInScreen(navController: NavController) {
             ) {
                 Column {
                     Text(
-                        text = "Bienvenue",
+                        text = "Welcome Back",
                         fontSize = 30.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = LocalAppColors.current.textPrimary,
@@ -106,52 +114,20 @@ fun SignInScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Connectez-vous à votre compte KamerStay",
+                        text = "Sign in to manage your luxury getaways",
                         fontSize = 14.sp,
-                        color = OnSurfaceSecondary,
+                        color = LocalAppColors.current.textPrimary,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // ── Sélecteur de rôle ─────────────
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(LocalAppColors.current.background),
-                        horizontalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        listOf(UserRole.TRAVELER to "Voyageur", UserRole.MANAGER to "Manager").forEach { (role, label) ->
-                            val isSelected = state.selectedRole == role
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(if (isSelected) Secondary else Color.Transparent)
-                                    .clickable { state.selectedRole = role }
-                                    .padding(vertical = 12.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 14.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) Color.White else OnSurfaceSecondary
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // ── Email ─────────────────────────
-                    SignUpLabel("Adresse Email")
+                    SignUpLabel("Email Address")
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
-                        value = state.email,              // ← state
-                        onValueChange = { state.email = it }, // ← state
+                        value = state.email,
+                        onValueChange = { state.email = it },
                         placeholder = {
                             Text(
                                 "name@example.com",
@@ -177,7 +153,6 @@ fun SignInScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // ── Password ──────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -188,7 +163,7 @@ fun SignInScreen(navController: NavController) {
                             text = "Forgot Password?",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Secondary,
+                            color = SecondaryContainer,
                             modifier = Modifier.clickable {
                                 navController.navigate(Routes.ForgotPassword.route)
                             }
@@ -198,8 +173,8 @@ fun SignInScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     OutlinedTextField(
-                        value = state.password,               // ← state
-                        onValueChange = { state.password = it }, // ← state
+                        value = state.password,
+                        onValueChange = { state.password = it },
                         placeholder = {
                             Text(
                                 "••••••••",
@@ -209,7 +184,7 @@ fun SignInScreen(navController: NavController) {
                         trailingIcon = {
                             IconButton(
                                 onClick = {
-                                    state.passwordVisible = !state.passwordVisible // ← state
+                                    state.passwordVisible = !state.passwordVisible
                                 }
                             ) {
                                 Icon(
@@ -235,26 +210,42 @@ fun SignInScreen(navController: NavController) {
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    // ── Sign In Button ────────────────
                     Button(
                         onClick = {
-                            val dest = if (state.selectedRole == UserRole.MANAGER)
-                                Routes.ManagerDashboard.route
-                            else
-                                Routes.TravelerHome.route
+                            scope.launch {
+                                scale.animateTo(0.92f, tween(70))
+                                scale.animateTo(1.03f, tween(90))
+                                scale.animateTo(
+                                    1f,
+                                    spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    )
+                                )
+                            }
+
                             viewModel.onAuthSuccess = {
+                                val dest = if (UserSession.role == UserRole.MANAGER)
+                                    Routes.ManagerDashboard.route
+                                else
+                                    Routes.TravelerHome.route
                                 navController.navigate(dest) {
                                     popUpTo(Routes.Welcome.route) { inclusive = true }
                                 }
                             }
+
                             viewModel.signIn()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
+                            .height(56.dp)
+                            .graphicsLayer {
+                                scaleX = scale.value
+                                scaleY = scale.value
+                            },
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Secondary
+                            containerColor = SecondaryContainer
                         )
                     ) {
                         if (viewModel.isLoading) {
@@ -266,14 +257,13 @@ fun SignInScreen(navController: NavController) {
                         } else {
                             Text(
                                 text = "Sign In",
-                                fontSize = 16.sp,
+                                fontSize = 17.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
                             )
                         }
                     }
 
-                    // ── Error message ─────────────────
                     state.error?.let { error ->
                         Spacer(modifier = Modifier.height(8.dp))
                         ErrorPopup(message = error)
@@ -284,30 +274,47 @@ fun SignInScreen(navController: NavController) {
                         ErrorPopup(message = error)
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
-
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = OnSurfaceSecondary)) {
-                                append("Don't have an account? ")
-                            }
-                            withStyle(SpanStyle(
-                                color = Secondary,
+                    val annotatedText = buildAnnotatedString {
+                        append("Don't have an account? ")
+
+                        pushStringAnnotation(
+                            tag = "CREATE_ACCOUNT",
+                            annotation = "create_account"
+                        )
+                        withStyle(
+                            SpanStyle(
+                                color = SecondaryContainer,
                                 fontWeight = FontWeight.Bold
-                            )) {
-                                append("Create Account")
-                            }
-                        },
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                NavigationState.pendingRole = if (state.selectedRole == UserRole.MANAGER) "MANAGER" else "TRAVELER"
-                                navController.navigate(Routes.SignUp.route)
-                            }
+                            )
+                        ) {
+                            append("Create Account")
+                        }
+                        pop()
+                    }
+
+                    ClickableText(
+                        text = annotatedText,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = LocalTextStyle.current.copy(
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        ),
+                        onClick = { offset ->
+                            annotatedText
+                                .getStringAnnotations(
+                                    tag = "CREATE_ACCOUNT",
+                                    start = offset,
+                                    end = offset
+                                )
+                                .firstOrNull()?.let {
+                                    NavigationState.pendingRole =
+                                        if (state.selectedRole == UserRole.MANAGER) "MANAGER" else "TRAVELER"
+
+                                    navController.navigate(Routes.SignUp.route)
+                                }
+                        }
                     )
                 }
             }
