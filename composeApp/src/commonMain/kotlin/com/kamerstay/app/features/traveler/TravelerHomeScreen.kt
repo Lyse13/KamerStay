@@ -315,6 +315,77 @@ fun TravelerHomeScreen(navController: NavController) {
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // ── Landmark Search Banner ────────────────
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFF006994), Color(0xFF00BCD4))
+                            )
+                        )
+                        .clickable { navController.navigate(Routes.LandmarkSearch.route) }
+                        .padding(horizontal = 20.dp, vertical = 18.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Place,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(0.85f),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "RECHERCHE PAR LIEU",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(0.85f),
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Recherche par lieu",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Trouvez un hôtel près d'un lieu connu",
+                                fontSize = 13.sp,
+                                color = Color.White.copy(0.75f)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(54.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(0.18f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Outlined.Map,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(20.dp))
             }
 

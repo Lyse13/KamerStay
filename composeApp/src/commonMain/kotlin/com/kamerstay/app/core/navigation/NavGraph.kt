@@ -69,6 +69,7 @@ import com.kamerstay.app.features.traveler.TravelerProfileScreen
 import com.kamerstay.app.features.traveler.TravelerSupportScreen
 import com.kamerstay.app.features.traveler.TravelerPaymentMethodsScreen
 import com.kamerstay.app.features.traveler.AIConciergeScreen
+import com.kamerstay.app.features.traveler.LandmarkSearchScreen
 import com.kamerstay.app.features.traveler.WishlistScreen
 import com.kamerstay.app.features.traveler.WriteReviewScreen
 
@@ -121,6 +122,9 @@ fun KamerStayNavGraph(
         }
         composable(Routes.AIConcierge.route) {
             AIConciergeScreen(navController)
+        }
+        composable(Routes.LandmarkSearch.route) {
+            LandmarkSearchScreen(navController)
         }
         composable(Routes.HotelSearch.route) {
             HotelSearchScreen(navController)
@@ -212,14 +216,12 @@ fun KamerStayNavGraph(
         composable(Routes.ManagerDashboard.route) {
             ManagerDashboardScreen(navController)
         }
-        composable(Routes.RoomManagement.route) { entry ->
-            val hotelId = entry.arguments?.getString("hotelId") ?: NavigationState.selectedHotelId
-            RoomManagementScreen(navController, hotelId)
+        composable(Routes.RoomManagement.route) {
+            RoomManagementScreen(navController, NavigationState.selectedHotelId)
         }
-        composable(Routes.AddEditRoom.route) { entry ->
-            val hotelId = entry.arguments?.getString("hotelId") ?: NavigationState.selectedHotelId
-            val roomId  = entry.arguments?.getString("roomId")?.takeIf { it.isNotBlank() }
-            AddEditRoomScreen(navController, hotelId, roomId)
+        composable(Routes.AddEditRoom.route) {
+            val roomId = NavigationState.selectedRoomId.takeIf { it.isNotBlank() }
+            AddEditRoomScreen(navController, NavigationState.selectedHotelId, roomId)
         }
         composable(Routes.Reservations.route) {
             ReservationsScreen(navController)

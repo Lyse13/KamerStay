@@ -1,14 +1,9 @@
 package com.kamerstay.app
 
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-
 import com.kamerstay.app.config.JwtConfig
 import com.kamerstay.app.repository.BookingRepository
 import com.kamerstay.app.repository.HotelRepository
+import com.kamerstay.app.repository.LandmarkRepository
 import com.kamerstay.app.repository.RoomRepository
 import com.kamerstay.app.repository.UserRepository
 import com.kamerstay.app.routes.aiRoutes
@@ -21,6 +16,7 @@ import com.kamerstay.app.routes.paymentRoutes
 import com.kamerstay.app.routes.reviewRoutes
 import com.kamerstay.app.routes.staffRoutes
 import com.kamerstay.app.util.SeedData
+import com.kamerstay.app.routes.landmarkRoutes
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -48,6 +44,7 @@ fun Application.module() {
     val hotelRepository   = HotelRepository()
     val roomRepository    = RoomRepository()
     val bookingRepository = BookingRepository()
+    val landmarkRepository = LandmarkRepository()
     val reviewRepository  = ReviewRepository()
     val staffRepository   = StaffRepository()
 
@@ -94,6 +91,7 @@ fun Application.module() {
         hotelRoutes(hotelRepository, roomRepository)
         bookingRoutes(bookingRepository, hotelRepository)
         paymentRoutes()
+        landmarkRoutes(landmarkRepository, hotelRepository)
         reviewRoutes(reviewRepository)
         staffRoutes(staffRepository)
         aiRoutes()

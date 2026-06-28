@@ -26,10 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import androidx.compose.material.icons.outlined.Layers
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
@@ -48,6 +48,7 @@ fun MapLocationScreen(navController: NavController) {
     val yaoundeLatLng = LatLng(3.8480, 11.5021)
 
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
+    var isSatellite by remember { mutableStateOf(false) }
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -113,7 +114,7 @@ fun MapLocationScreen(navController: NavController) {
             cameraPositionState = cameraPositionState,
             properties = MapProperties(
                 isMyLocationEnabled = hasPermission,
-                mapType = MapType.NORMAL
+                mapType = if (isSatellite) MapType.HYBRID else MapType.NORMAL
             ),
             uiSettings = MapUiSettings(
                 myLocationButtonEnabled = false,
@@ -133,17 +134,30 @@ fun MapLocationScreen(navController: NavController) {
 
             hotels.forEach { hotel ->
                 if (hotel.latitude != 0.0 && hotel.longitude != 0.0) {
-                    Marker(
+                    MarkerComposable(
                         state = MarkerState(position = LatLng(hotel.latitude, hotel.longitude)),
                         title = hotel.name,
-                        snippet = "${hotel.pricePerNight.toLong()} FCFA / nuit  ⭐ ${hotel.rating}",
-                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
-                        onClick = { marker ->
-                            marker.showInfoWindow()
+                        snippet = "${hotel.pricePerNight.toLong()} FCFA / nuit",
+                        onClick = {
                             viewModel.selectHotel(hotel.id)
                             false
                         }
-                    )
+                    ) {
+                        // Marqueur personnalisé avec le prix
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Secondary)
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "${(hotel.pricePerNight / 1000).toInt()}k FCFA",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -204,6 +218,21 @@ fun MapLocationScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Bascule Satellite / Plan
+            FloatingActionButton(
+                onClick = { isSatellite = !isSatellite },
+                modifier = Modifier.size(46.dp),
+                containerColor = Color.White,
+                shape = RoundedCornerShape(12.dp),
+                elevation = FloatingActionButtonDefaults.elevation(4.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.Layers,
+                    contentDescription = "Type de carte",
+                    tint = if (isSatellite) Primary else Secondary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
             // Zoom In
             FloatingActionButton(
                 onClick = {

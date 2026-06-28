@@ -46,12 +46,13 @@ import kotlinx.coroutines.launch
 
 class TravelerViewModel : ViewModel() {
 
-    private val hotelRepository   = HotelRemoteRepository()
-    private val bookingRepository = BookingRemoteRepository()
-    private val paymentRepository = com.kamerstay.app.data.remote.PaymentRemoteRepository()
-    private val reviewRepository  = com.kamerstay.app.data.remote.ReviewRemoteRepository()
-    private val aiRepository      = AiRemoteRepository()
-    private val authRepository    = com.kamerstay.app.data.remote.AuthRemoteRepository()
+    private val hotelRepository      = HotelRemoteRepository()
+    private val bookingRepository    = BookingRemoteRepository()
+    private val paymentRepository    = com.kamerstay.app.data.remote.PaymentRemoteRepository()
+    private val reviewRepository     = com.kamerstay.app.data.remote.ReviewRemoteRepository()
+    private val aiRepository         = AiRemoteRepository()
+    private val authRepository       = com.kamerstay.app.data.remote.AuthRemoteRepository()
+    private val landmarkRepository   = com.kamerstay.app.data.remote.LandmarkRemoteRepository()
 
     val aiConciergeState = AiConciergeState()
 
@@ -524,6 +525,45 @@ class TravelerViewModel : ViewModel() {
 
     private fun formatFcfa(amount: Double): String =
         amount.toInt().toString().reversed().chunked(3).joinToString(" ").reversed()
+
+    // ── Landmark Search ───────────────────────────────────────
+    var landmarks by mutableStateOf<List<com.kamerstay.app.model.Landmark>>(emptyList())
+        private set
+
+    var isLoadingLandmarks by mutableStateOf(false)
+        private set
+
+    var selectedLandmark by mutableStateOf<com.kamerstay.app.model.Landmark?>(null)
+        private set
+
+    var hotelsNearLandmark by mutableStateOf<List<com.kamerstay.app.model.HotelWithDistance>>(emptyList())
+        private set
+
+    var isLoadingNearbyHotels by mutableStateOf(false)
+        private set
+
+    fun loadLandmarks() {
+        if (landmarks.isNotEmpty()) return
+        viewModelScope.launch {
+            isLoadingLandmarks = true
+            try {
+                landmarks = landmarkRepository.getAllLandmarks()
+            } catch (_: Exception) { /* garder liste vide */ }
+            finally { isLoadingLandmarks = false }
+        }
+    }
+
+    fun searchHotelsNearLandmark(landmark: com.kamerstay.app.model.Landmark) {
+        selectedLandmark = landmark
+        viewModelScope.launch {
+            isLoadingNearbyHotels = true
+            hotelsNearLandmark = emptyList()
+            try {
+                hotelsNearLandmark = landmarkRepository.getHotelsNearLandmark(landmark.id)
+            } catch (_: Exception) { hotelsNearLandmark = emptyList() }
+            finally { isLoadingNearbyHotels = false }
+        }
+    }
 
     fun updateProfile(onSuccess: () -> Unit) {
         val s = travelerPersonalInfoState

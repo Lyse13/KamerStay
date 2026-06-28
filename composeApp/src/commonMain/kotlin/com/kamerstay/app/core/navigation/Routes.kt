@@ -101,4 +101,5 @@ sealed class Routes(val route: String) {
     data object HelpCenter : Routes("help_center")
     data object ManagerOnboarding : Routes("manager_onboarding")
     data object AIConcierge : Routes("ai_concierge")
+    data object LandmarkSearch : Routes("landmark_search")
 }
