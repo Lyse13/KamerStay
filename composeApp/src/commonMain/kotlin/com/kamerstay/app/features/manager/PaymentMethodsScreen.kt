@@ -350,7 +350,7 @@ fun PaymentMethodRow(method: PaymentMethod) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(LocalAppColors.current.surface)
-            .padding(16.dp)
+//            .padding(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -370,9 +370,15 @@ fun PaymentMethodRow(method: PaymentMethod) {
                 ) {
                     when {
                         method.type == PaymentMethodType.MOBILE_MONEY && method.name.contains("MTN", ignoreCase = true) ->
-                            Image(painterResource(Res.drawable.mtn), contentDescription = "MTN", modifier = Modifier.size(30.dp))
+                            Image(
+                                painterResource(Res.drawable.mtn),
+                                contentDescription = "MTN",
+                                modifier = Modifier.size(80.dp))
                         method.type == PaymentMethodType.MOBILE_MONEY && method.name.contains("Orange", ignoreCase = true) ->
-                            Image(painterResource(Res.drawable.orange), contentDescription = "Orange", modifier = Modifier.size(30.dp))
+                            Image(
+                                painterResource(Res.drawable.orange),
+                                contentDescription = "Orange",
+                                modifier = Modifier.size(80.dp))
                         else ->
                             Icon(
                                 imageVector = when (method.type) {

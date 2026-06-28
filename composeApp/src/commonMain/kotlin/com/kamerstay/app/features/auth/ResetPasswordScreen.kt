@@ -223,10 +223,18 @@ fun ResetPasswordScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(28.dp))
 
+                // Erreur
+                if (state.error != null) {
+                    Text(state.error ?: "", fontSize = 13.sp, color = ErrorColor)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 // Update Password Button
                 Button(
                     onClick = {
-                        navController.navigate(Routes.PasswordResetSuccess.route)
+                        viewModel.updatePassword {
+                            navController.navigate(Routes.PasswordResetSuccess.route)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -234,21 +242,25 @@ fun ResetPasswordScreen(navController: NavController) {
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     enabled = hasMinLength && hasUppercase && hasNumberOrSymbol &&
-                            state.newPassword == state.confirmPassword
+                            state.newPassword == state.confirmPassword && !state.isLoading
                 ) {
-                    Text(
-                        text = "Update Password",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = OnPrimary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.Outlined.LockReset,
-                        contentDescription = null,
-                        tint = OnPrimary,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = OnPrimary, strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            text = "Mettre à jour",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = OnPrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            Icons.Outlined.LockReset,
+                            contentDescription = null,
+                            tint = OnPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))

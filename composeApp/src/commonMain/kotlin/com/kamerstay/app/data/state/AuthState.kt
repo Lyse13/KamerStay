@@ -30,13 +30,15 @@ class ForgotPasswordState {
     var isLoading by mutableStateOf(false)
     var isEmailSent by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
+    var debugOtp by mutableStateOf("")
 }
 
 class VerificationCodeState {
     var code by mutableStateOf("")
-    var timeLeft by mutableStateOf(57)
+    var timeLeft by mutableStateOf(600)  // 10 minutes
     var isVerified by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
+    var resetToken by mutableStateOf("")
 }
 
 class ResetPasswordState {

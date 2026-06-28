@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -36,8 +35,19 @@ fun RoomDetailsScreen(
     roomId: String
 ) {
     val viewModel = koinViewModel<TravelerViewModel>()
-    val room = MockData.rooms.find { it.id == roomId } ?: MockData.rooms.first()
-    val hotel = MockData.getHotelById(room.hotelId) ?: MockData.hotels.first()
+    val room = viewModel.hotelRooms.find { it.id == roomId }
+        ?: run {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Secondary)
+            }
+            return
+        }
+    val hotel = viewModel.selectedHotel ?: run {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Secondary)
+        }
+        return
+    }
 
     var showShareDialog by remember { mutableStateOf(false) }
     var showFullDescription by remember { mutableStateOf(false) }

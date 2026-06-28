@@ -6,16 +6,28 @@ import androidx.compose.runtime.setValue
 import com.kamerstay.app.data.model.PricingResponse
 
 class RoomFormState {
+    var editingRoomId by mutableStateOf<String?>(null)   // null = création, non-null = édition
     var roomNumber by mutableStateOf("")
     var category by mutableStateOf("Deluxe Suite")
-    var pricePerNight by mutableStateOf("285.00")
+    var pricePerNight by mutableStateOf("")
     var capacity by mutableStateOf("2")
+    var floor by mutableStateOf("")
+    var size by mutableStateOf("")
     var description by mutableStateOf("")
     var selectedFeatures by mutableStateOf(setOf<String>())
     var isLoading by mutableStateOf(false)
+    var isSuccess by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
     var pricingSuggestion by mutableStateOf<PricingResponse?>(null)
     var isPricingLoading by mutableStateOf(false)
+
+    fun reset() {
+        editingRoomId = null; roomNumber = ""; category = "Deluxe Suite"
+        pricePerNight = ""; capacity = "2"; floor = ""; size = ""
+        description = ""; selectedFeatures = setOf()
+        isLoading = false; isSuccess = false; error = null
+        pricingSuggestion = null; isPricingLoading = false
+    }
 }
 
 class CheckInState {
@@ -34,6 +46,7 @@ class CheckOutState {
 }
 
 class AddEditStaffState {
+    var editingStaffId by mutableStateOf<String?>(null)
     var fullName by mutableStateOf("")
     var selectedRole by mutableStateOf("Receptionist")
     var email by mutableStateOf("")
@@ -41,15 +54,32 @@ class AddEditStaffState {
     var selectedPermission by mutableStateOf("View Only")
     var isLoading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
+
+    fun reset() {
+        editingStaffId = null
+        fullName = ""; email = ""; phone = ""
+        selectedRole = "Receptionist"
+        selectedPermission = "View Only"
+        isLoading = false; error = null
+    }
 }
 
 class RegisterHotelState {
     var hotelName by mutableStateOf("")
     var selectedCategory by mutableStateOf("")
+    var city by mutableStateOf("")
     var address by mutableStateOf("")
     var description by mutableStateOf("")
+    var pricePerNight by mutableStateOf("")
+    var totalRooms by mutableStateOf("")
+    var phoneNumber by mutableStateOf("")
+    var emailContact by mutableStateOf("")
     var isLoading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
+    var isSuccess by mutableStateOf(false)
+
+    val isValid get() = hotelName.isNotBlank() && city.isNotBlank()
+        && pricePerNight.toDoubleOrNull()?.let { it > 0 } == true
 }
 
 class ManageHotelState {

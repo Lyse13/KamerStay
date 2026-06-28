@@ -21,15 +21,58 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.core.utils.APP_NAME
+import com.kamerstay.app.data.state.UserRole
+import com.kamerstay.app.data.state.UserSession
+import com.kamerstay.app.data.store.SessionStore
 import kotlinx.coroutines.delay
+import kotlin.time.Clock
 
 @Composable
 fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
-        delay(5000)
-        navController.navigate(Routes.Onboarding.route) {
-            popUpTo(Routes.Splash.route) { inclusive = true }
+        delay(1500)
+        val session = SessionStore.load()
+        val now = Clock.System.now().toEpochMilliseconds()
+
+        when {
+            // Session valide et non expirée → home
+            session != null
+                && session.token.isNotBlank()
+                && session.expiresAt > now -> {
+                val role = if (session.role == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
+                UserSession.login(
+                    name      = session.fullName,
+                    email     = session.email,
+                    phone     = session.phone,
+                    role      = role,
+                    token     = session.token,
+                    expiresAt = session.expiresAt
+                )
+                val destination = if (role == UserRole.MANAGER)
+                    Routes.ManagerDashboard.route
+                else
+                    Routes.TravelerHome.route
+                navController.navigate(destination) {
+                    popUpTo(Routes.Splash.route) { inclusive = true }
+                }
+            }
+
+            // Session expirée → l'utilisateur connaît déjà l'app, on nettoie et on envoie sur Welcome
+            session != null && session.token.isNotBlank() -> {
+                SessionStore.clear()
+                navController.navigate(Routes.Welcome.route) {
+                    popUpTo(Routes.Splash.route) { inclusive = true }
+                }
+            }
+
+            // Première installation → onboarding complet
+            else -> {
+                delay(3500)
+                navController.navigate(Routes.Onboarding.route) {
+                    popUpTo(Routes.Splash.route) { inclusive = true }
+                }
+            }
         }
     }
 
@@ -46,12 +89,20 @@ fun SplashScreen(navController: NavController) {
         label = "dot"
     )
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = OnSecondary),
-        contentAlignment = Alignment.Center
-    ) {
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        SecondaryContainer.copy(alpha = 0.35f),
+                        BackgroundLight,
+                        Color(0xFFE8F4F5)
+                    )
+                )
+            )
+    )  {
         // Points décoratifs background (comme des étoiles)
         Canvas(modifier = Modifier.fillMaxSize()) {
             val dots = listOf(

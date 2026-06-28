@@ -25,6 +25,10 @@ class HotelRepository {
         hotels.insertOne(hotel)
     }
 
+    suspend fun getHotelByManagerId(managerId: String): Hotel? {
+        return hotels.find(Filters.eq("managerId", managerId)).firstOrNull()
+    }
+
     suspend fun countHotels(): Long {
         return hotels.countDocuments()
     }

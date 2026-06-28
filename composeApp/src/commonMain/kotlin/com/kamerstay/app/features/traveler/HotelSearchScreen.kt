@@ -19,38 +19,54 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.kamerstay.app.core.components.EmptySearchResults
+import com.kamerstay.app.core.components.HotelCardSkeleton
 import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.SearchResultsMockData
-import com.kamerstay.app.data.model.SearchHotelResult
+import com.kamerstay.app.model.Hotel
 import com.kamerstay.app.viewmodel.TravelerViewModel
-import coil3.compose.AsyncImage
-import androidx.compose.ui.layout.ContentScale
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.absoluteValue
+
+// Dégradé de couleur dérivé de l'ID de l'hôtel (stable, pas de données Color dans le modèle)
+private fun gradientForHotel(hotel: Hotel): List<Color> {
+    val gradients = listOf(
+        listOf(Color(0xFF0D3A5C), Color(0xFF1A2A3A)),
+        listOf(Color(0xFF1A3A2E), Color(0xFF0D2218)),
+        listOf(Color(0xFF2A1A3A), Color(0xFF1A0D28)),
+        listOf(Color(0xFF3A2A1A), Color(0xFF281A0D)),
+        listOf(Color(0xFF1A1A3A), Color(0xFF0D0D28)),
+    )
+    return gradients[hotel.id.hashCode().absoluteValue % gradients.size]
+}
 
 @Composable
 fun HotelSearchScreen(navController: NavController) {
 
-    val viewModel     = koinViewModel<TravelerViewModel>()
-    val state         = viewModel.searchState
-    val filterState   = viewModel.filterState
+    val viewModel      = koinViewModel<TravelerViewModel>()
+    val searchState    = viewModel.searchState
+    val filterState    = viewModel.filterState
+    val isLoading      = viewModel.isLoadingHotels
     val hasActiveFilters = filterState.hasActiveFilters
 
-    val filteredHotels = SearchResultsMockData.hotels.filter { hotel ->
-        filterState.hotelMatches(hotel.pricePerNight, hotel.rating, hotel.amenities, hotel.isVerified) &&
-        (state.destination.isBlank() ||
-         hotel.name.contains(state.destination, ignoreCase = true) ||
-         hotel.location.contains(state.destination, ignoreCase = true))
+    // Filtre les hôtels backend par les critères actifs
+    val filteredHotels = viewModel.displayedHotels.filter { hotel ->
+        filterState.hotelMatches(
+            price      = hotel.pricePerNight.toInt(),
+            rating     = hotel.rating,
+            amenities  = hotel.amenities,
+            isVerified = hotel.isVerified
+        )
     }
 
     Scaffold(
@@ -79,7 +95,7 @@ fun HotelSearchScreen(navController: NavController) {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = "Retour",
                                 tint = Secondary
                             )
                         }
@@ -140,9 +156,9 @@ fun HotelSearchScreen(navController: NavController) {
                                 letterSpacing = 0.5.sp
                             )
                             BasicTextField(
-                                value = state.destination,
-                                onValueChange = {
-                                    state.destination = it
+                                value = searchState.query,
+                                onValueChange = { query ->
+                                    searchState.query = query
                                     viewModel.searchHotels()
                                 },
                                 textStyle = TextStyle(
@@ -151,9 +167,9 @@ fun HotelSearchScreen(navController: NavController) {
                                     fontWeight = FontWeight.SemiBold
                                 ),
                                 decorationBox = { inner ->
-                                    if (state.destination.isEmpty()) {
+                                    if (searchState.query.isEmpty()) {
                                         Text(
-                                            "Where are you going?",
+                                            "Ville, hôtel, adresse…",
                                             fontSize = 15.sp,
                                             color = OnSurfaceSecondary.copy(0.5f)
                                         )
@@ -161,6 +177,20 @@ fun HotelSearchScreen(navController: NavController) {
                                     inner()
                                 }
                             )
+                        }
+                        if (searchState.query.isNotEmpty()) {
+                            Icon(
+                                Icons.Outlined.Close,
+                                contentDescription = "Effacer",
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable {
+                                        searchState.query = ""
+                                        viewModel.searchHotels()
+                                    }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                         }
                         Box {
                             Box(
@@ -203,23 +233,32 @@ fun HotelSearchScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
+                        if (isLoading) {
+                            Text(
+                                text = "Chargement…",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = LocalAppColors.current.textPrimary
+                            )
+                        } else {
+                            Text(
+                                text = "${filteredHotels.size} Hôtel${if (filteredHotels.size > 1) "s" else ""}",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = LocalAppColors.current.textPrimary,
+                                lineHeight = 30.sp
+                            )
+                            Text(
+                                text = "Trouvé${if (filteredHotels.size > 1) "s" else ""}",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = LocalAppColors.current.textPrimary,
+                                lineHeight = 30.sp
+                            )
+                        }
                         Text(
-                            text = "${filteredHotels.size} Hôtel${if (filteredHotels.size > 1) "s" else ""}",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = LocalAppColors.current.textPrimary,
-                            lineHeight = 30.sp
-                        )
-                        Text(
-                            text = "Trouvé${if (filteredHotels.size > 1) "s" else ""}",
-                            fontSize = 26.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = LocalAppColors.current.textPrimary,
-                            lineHeight = 30.sp
-                        )
-                        Text(
-                            text = if (state.destination.isNotBlank()) "Résultats pour « ${state.destination} »"
-                                   else "Meilleurs séjours à Douala",
+                            text = if (searchState.query.isNotBlank()) "Résultats pour « ${searchState.query} »"
+                            else "Meilleurs séjours au Cameroun",
                             fontSize = 13.sp,
                             color = OnSurfaceSecondary
                         )
@@ -236,20 +275,16 @@ fun HotelSearchScreen(navController: NavController) {
                     ) {
                         listOf(
                             "List" to Icons.Outlined.FormatListBulleted,
-                            "Map" to Icons.Outlined.Map
+                            "Map"  to Icons.Outlined.Map
                         ).forEach { (mode, icon) ->
-                            val isSelected = state.viewMode == mode
+                            val isSelected = searchState.viewMode == mode
                             Box(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(
-                                        if (isSelected) Secondary else Color.Transparent
-                                    )
+                                    .background(if (isSelected) Secondary else Color.Transparent)
                                     .clickable {
-                                        state.viewMode = mode
-                                        if (mode == "Map") {
-                                            navController.navigate(Routes.MapLocation.route)
-                                        }
+                                        searchState.viewMode = mode
+                                        if (mode == "Map") navController.navigate(Routes.MapLocation.route)
                                     }
                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                             ) {
@@ -260,16 +295,14 @@ fun HotelSearchScreen(navController: NavController) {
                                     Icon(
                                         icon,
                                         contentDescription = null,
-                                        tint = if (isSelected) Color.White
-                                        else OnSurfaceSecondary,
+                                        tint = if (isSelected) Color.White else OnSurfaceSecondary,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Text(
                                         text = mode,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = if (isSelected) Color.White
-                                        else OnSurfaceSecondary
+                                        color = if (isSelected) Color.White else OnSurfaceSecondary
                                     )
                                 }
                             }
@@ -279,29 +312,39 @@ fun HotelSearchScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // ── Hotel Cards ───────────────────────────
-            items(filteredHotels) { hotel ->
-                SearchResultCard(
-                    hotel = hotel,
-                    isInWishlist = viewModel.wishlistState.isInWishlist(hotel.id),
-                    onClick = {
-                        NavigationState.selectedHotelId = hotel.id
-                        navController.navigate(
-                            Routes.HotelDetails.createRoute(hotel.id)
-                        )
-                    },
-                    onFavorite = { viewModel.wishlistState.toggleFromSearchResult(hotel) }
-                )
-                Spacer(modifier = Modifier.height(14.dp))
-            }
-
-            // ── No Result ─────────────────────────────
-            item {
-                if (filteredHotels.isEmpty()) {
-                    EmptySearchResults(
-                        query = state.destination,
-                        onClearSearch = { navController.navigate(Routes.NoResult.route) }
+            // ── Loading skeleton ──────────────────────
+            if (isLoading) {
+                items(3) {
+                    HotelCardSkeleton()
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+            } else {
+                // ── Hotel Cards ───────────────────────────
+                items(filteredHotels, key = { it.id }) { hotel ->
+                    HotelSearchCard(
+                        hotel = hotel,
+                        isInWishlist = viewModel.wishlistState.isInWishlist(hotel.id),
+                        onClick = {
+                            NavigationState.selectedHotelId = hotel.id
+                            viewModel.selectHotel(hotel.id)
+                            navController.navigate(Routes.HotelDetails.createRoute(hotel.id))
+                        },
+                        onFavorite = { viewModel.wishlistState.toggleFromHotel(hotel) }
                     )
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+
+                // ── No Result ─────────────────────────────
+                item {
+                    if (filteredHotels.isEmpty()) {
+                        EmptySearchResults(
+                            query = searchState.query,
+                            onClearSearch = {
+                                searchState.query = ""
+                                viewModel.searchHotels()
+                            }
+                        )
+                    }
                 }
             }
 
@@ -310,14 +353,17 @@ fun HotelSearchScreen(navController: NavController) {
     }
 }
 
-// ── Search Result Card ────────────────────────────────────
+// ── Hotel Search Card (Hotel model) ──────────────────────────
 @Composable
-fun SearchResultCard(
-    hotel: SearchHotelResult,
+fun HotelSearchCard(
+    hotel: Hotel,
     isInWishlist: Boolean,
     onClick: () -> Unit,
     onFavorite: () -> Unit
 ) {
+    val gradient = gradientForHotel(hotel)
+    val imageUrl = hotel.imageUrls.firstOrNull() ?: ""
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -333,16 +379,17 @@ fun SearchResultCard(
                     .fillMaxWidth()
                     .height(200.dp)
                     .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .background(brush = Brush.verticalGradient(colors = hotel.gradientColors))
+                    .background(brush = Brush.verticalGradient(colors = gradient))
             ) {
-                if (hotel.imageUrl.isNotEmpty()) {
+                if (imageUrl.isNotEmpty()) {
                     AsyncImage(
-                        model = hotel.imageUrl,
+                        model = imageUrl,
                         contentDescription = hotel.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
+
                 // Verified badge
                 if (hotel.isVerified) {
                     Box(
@@ -364,7 +411,7 @@ fun SearchResultCard(
                                 modifier = Modifier.size(12.dp)
                             )
                             Text(
-                                text = "Verified",
+                                text = "Vérifié",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = OnPrimary
@@ -390,6 +437,25 @@ fun SearchResultCard(
                         tint = ErrorColor,
                         modifier = Modifier.size(16.dp)
                     )
+                }
+
+                // Rooms disponibles badge
+                if (hotel.availableRooms > 0) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color.Black.copy(0.55f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "${hotel.availableRooms} chambre${if (hotel.availableRooms > 1) "s" else ""} dispo",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
 
@@ -425,6 +491,11 @@ fun SearchResultCard(
                             fontWeight = FontWeight.Bold,
                             color = LocalAppColors.current.textPrimary
                         )
+                        Text(
+                            text = "(${hotel.reviewCount})",
+                            fontSize = 12.sp,
+                            color = OnSurfaceSecondary
+                        )
                     }
                 }
 
@@ -441,7 +512,7 @@ fun SearchResultCard(
                         modifier = Modifier.size(13.dp)
                     )
                     Text(
-                        text = hotel.location,
+                        text = hotel.city,
                         fontSize = 13.sp,
                         color = OnSurfaceSecondary
                     )
@@ -449,9 +520,9 @@ fun SearchResultCard(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Amenity tags
+                // Amenity tags (3 max)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    hotel.amenities.forEach { amenity ->
+                    hotel.amenities.take(3).forEach { amenity ->
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
@@ -462,7 +533,8 @@ fun SearchResultCard(
                                 text = amenity,
                                 fontSize = 12.sp,
                                 color = OnSurfaceSecondary,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 1
                             )
                         }
                     }
@@ -477,32 +549,14 @@ fun SearchResultCard(
                     verticalAlignment = Alignment.Bottom
                 ) {
                     Column {
-                        if (hotel.originalPrice != null) {
-                            Text(
-                                text = "${
-                                    hotel.originalPrice.toString()
-                                        .reversed()
-                                        .chunked(3)
-                                        .joinToString(",")
-                                        .reversed()
-                                } FCFA",
-                                fontSize = 12.sp,
-                                color = OnSurfaceSecondary,
-                                textDecoration = TextDecoration.LineThrough
-                            )
-                        }
                         Text(
-                            text = hotel.pricePerNight.toString()
-                                .reversed()
-                                .chunked(3)
-                                .joinToString(",")
-                                .reversed(),
+                            text = formatFcfa(hotel.pricePerNight.toInt()),
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Primary
                         )
                         Text(
-                            text = "FCFA/night",
+                            text = "FCFA/nuit",
                             fontSize = 13.sp,
                             color = Primary,
                             fontWeight = FontWeight.Medium
@@ -516,11 +570,10 @@ fun SearchResultCard(
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
                     ) {
                         Text(
-                            text = "Book\nNow",
+                            text = "Réserver",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            color = Color.White
                         )
                     }
                 }
@@ -528,3 +581,6 @@ fun SearchResultCard(
         }
     }
 }
+
+private fun formatFcfa(amount: Int): String =
+    amount.toString().reversed().chunked(3).joinToString(".").reversed()

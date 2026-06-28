@@ -36,6 +36,10 @@ fun BookingCancellationScreen(
     val viewModel = koinViewModel<TravelerViewModel>()
     val state = viewModel.cancellationState
 
+    LaunchedEffect(bookingId) {
+        viewModel.loadCancellationData(bookingId)
+    }
+
     if (state.isConfirmed) {
         CancellationSuccessContent(navController, state.refund.estimatedRefund)
         return
@@ -52,22 +56,49 @@ fun BookingCancellationScreen(
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                // Bandeau d'erreur
+                if (state.error != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(ErrorColor.copy(0.08f))
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(Icons.Outlined.Warning, contentDescription = null, tint = ErrorColor, modifier = Modifier.size(16.dp))
+                            Text(state.error ?: "", fontSize = 13.sp, color = ErrorColor, lineHeight = 17.sp)
+                        }
+                    }
+                }
                 Button(
-                    onClick = { state.isConfirmed = true },
+                    onClick = { viewModel.cancelBooking(bookingId) },
+                    enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorColor)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ErrorColor,
+                        disabledContainerColor = ErrorColor.copy(0.4f)
+                    )
                 ) {
-                    Text("Confirm Cancellation", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    if (state.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text("Confirmer l'annulation", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    }
                 }
                 OutlinedButton(
                     onClick = { navController.popBackStack() },
+                    enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(28.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Secondary),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Secondary)
                 ) {
-                    Text("Keep My Booking", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Secondary)
+                    Text("Garder ma réservation", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Secondary)
                 }
             }
         }

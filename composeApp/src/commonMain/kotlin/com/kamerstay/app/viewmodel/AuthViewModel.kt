@@ -18,6 +18,7 @@ import com.kamerstay.app.features.auth.validateFullName
 import com.kamerstay.app.features.auth.validatePassword
 import com.kamerstay.app.features.auth.validatePhone
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
 
 class AuthViewModel : ViewModel() {
 
@@ -54,11 +55,12 @@ class AuthViewModel : ViewModel() {
                 )
                 val role = if (response.user.role.name == "HOTEL_MANAGER") UserRole.MANAGER else UserRole.TRAVELER
                 UserSession.login(
-                    name  = response.user.fullName,
-                    email = response.user.email,
-                    phone = response.user.phoneNumber,
-                    role  = role,
-                    token = response.token
+                    name      = response.user.fullName,
+                    email     = response.user.email,
+                    phone     = response.user.phoneNumber,
+                    role      = role,
+                    token     = response.token,
+                    expiresAt = Clock.System.now().toEpochMilliseconds() + 24 * 60 * 60 * 1000L
                 )
                 onAuthSuccess?.invoke()
             } catch (e: Exception) {
@@ -89,11 +91,12 @@ class AuthViewModel : ViewModel() {
                     role        = if (signUpState.selectedRole == UserRole.MANAGER) "MANAGER" else "TRAVELER"
                 )
                 UserSession.login(
-                    name  = response.user.fullName,
-                    email = response.user.email,
-                    phone = response.user.phoneNumber,
-                    role  = signUpState.selectedRole,
-                    token = response.token
+                    name      = response.user.fullName,
+                    email     = response.user.email,
+                    phone     = response.user.phoneNumber,
+                    role      = signUpState.selectedRole,
+                    token     = response.token,
+                    expiresAt = Clock.System.now().toEpochMilliseconds() + 24 * 60 * 60 * 1000L
                 )
                 onAuthSuccess?.invoke()
             } catch (e: Exception) {
@@ -109,5 +112,76 @@ class AuthViewModel : ViewModel() {
 
     fun clearError() {
         authError = null
+    }
+
+    // ── Mot de passe oublié ───────────────────────────────────
+    fun sendResetCode(onSuccess: () -> Unit) {
+        val email = forgotPasswordState.email.trim()
+        if (email.isBlank()) { forgotPasswordState.error = "Entrez votre email."; return }
+        viewModelScope.launch {
+            forgotPasswordState.isLoading = true
+            forgotPasswordState.error = null
+            try {
+                val response = authRepository.forgotPassword(email)
+                forgotPasswordState.debugOtp = response.demoCode
+                forgotPasswordState.isEmailSent = true
+                onSuccess()
+            } catch (_: Exception) {
+                forgotPasswordState.error = "Impossible d'envoyer le code. Vérifiez votre connexion."
+            } finally {
+                forgotPasswordState.isLoading = false
+            }
+        }
+    }
+
+    fun verifyResetCode(onSuccess: () -> Unit) {
+        val email = forgotPasswordState.email.trim()
+        val code  = verificationCodeState.code.trim()
+        if (code.length != 4) { verificationCodeState.error = "Entrez les 4 chiffres."; return }
+        viewModelScope.launch {
+            isLoading = true
+            verificationCodeState.error = null
+            try {
+                val response = authRepository.verifyCode(email, code)
+                if (response.valid && response.resetToken.isNotBlank()) {
+                    verificationCodeState.resetToken = response.resetToken
+                    verificationCodeState.isVerified = true
+                    onSuccess()
+                } else {
+                    verificationCodeState.error = response.message.ifBlank { "Code incorrect." }
+                }
+            } catch (_: Exception) {
+                verificationCodeState.error = "Vérification impossible. Réessayez."
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    fun updatePassword(onSuccess: () -> Unit) {
+        val state = resetPasswordState
+        if (state.newPassword != state.confirmPassword) {
+            state.error = "Les mots de passe ne correspondent pas."; return
+        }
+        if (state.newPassword.length < 8) {
+            state.error = "Mot de passe trop court (8 caractères minimum)."; return
+        }
+        val resetToken = verificationCodeState.resetToken
+        if (resetToken.isBlank()) {
+            state.error = "Session expirée. Recommencez la procédure."; return
+        }
+        viewModelScope.launch {
+            state.isLoading = true
+            state.error = null
+            try {
+                authRepository.resetPassword(resetToken, state.newPassword)
+                state.isSuccess = true
+                onSuccess()
+            } catch (_: Exception) {
+                state.error = "Impossible de mettre à jour le mot de passe. Réessayez."
+            } finally {
+                state.isLoading = false
+            }
+        }
     }
 }

@@ -39,7 +39,6 @@ import coil3.compose.AsyncImage
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.model.Room
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import kotlinx.coroutines.launch
@@ -47,14 +46,46 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private val photoLabels = listOf("Extérieur", "Hall d'accueil", "Chambre", "Piscine", "Restaurant")
 
+private fun amenityIcon(label: String): androidx.compose.ui.graphics.vector.ImageVector {
+    val l = label.lowercase()
+    return when {
+        "wifi" in l || "wi-fi" in l -> Icons.Outlined.Wifi
+        "piscine" in l || "pool" in l -> Icons.Outlined.Pool
+        "gym" in l || "fitness" in l -> Icons.Outlined.FitnessCenter
+        "spa" in l -> Icons.Outlined.Spa
+        "parking" in l -> Icons.Outlined.LocalParking
+        "restaurant" in l -> Icons.Outlined.Restaurant
+        "bar" in l -> Icons.Outlined.LocalBar
+        "plage" in l || "beach" in l -> Icons.Outlined.BeachAccess
+        "climatisation" in l || "ac" in l -> Icons.Outlined.AcUnit
+        "tennis" in l -> Icons.Outlined.SportsTennis
+        "golf" in l -> Icons.Outlined.GolfCourse
+        "vue" in l || "panoramique" in l -> Icons.Outlined.Landscape
+        "business" in l -> Icons.Outlined.BusinessCenter
+        else -> Icons.Outlined.CheckCircle
+    }
+}
+
 @Composable
 fun HotelDetailsScreen(
     navController: NavController,
     hotelId: String
 ) {
     val viewModel = koinViewModel<TravelerViewModel>()
-    val hotel = MockData.getHotelById(hotelId) ?: MockData.hotels.first()
-    val rooms = MockData.getRoomsForHotel(hotelId).ifEmpty { MockData.rooms.take(2) }
+    val hotel = viewModel.selectedHotel
+    val rooms = viewModel.hotelRooms
+    val isLoading = viewModel.isLoadingHotelDetail
+
+    LaunchedEffect(hotelId) {
+        viewModel.loadHotelDetail(hotelId)
+    }
+
+    if (hotel == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Secondary)
+        }
+        return
+    }
 
     val isFavorite = viewModel.wishlistState.isInWishlist(hotel.id)
     var showFullDescription by remember { mutableStateOf(false) }
@@ -68,12 +99,7 @@ fun HotelDetailsScreen(
     val heroPagerState = rememberPagerState(pageCount = { photos.size })
     val scope = rememberCoroutineScope()
 
-    val amenities = listOf(
-        Icons.Outlined.Wifi to "Free Wi-Fi",
-        Icons.Outlined.Pool to "Infinity Pool",
-        Icons.Outlined.FitnessCenter to "Gym",
-        Icons.Outlined.Spa to "Luxury Spa"
-    )
+    val amenities = hotel.amenities.map { label -> amenityIcon(label) to label }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -525,30 +551,46 @@ fun HotelDetailsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Available Rooms",
+                            text = "Chambres disponibles",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = LocalAppColors.current.textPrimary
                         )
-                        Text(
-                            text = "2 Adults • Oct 12 - 14",
-                            fontSize = 12.sp,
-                            color = OnSurfaceSecondary
-                        )
+                        if (hotel.availableRooms > 0) {
+                            Text(
+                                text = "${hotel.availableRooms} dispo",
+                                fontSize = 12.sp,
+                                color = Secondary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                items(rooms) { room ->
-                    HotelRoomCard(
-                        room = room,
-                        onClick = {
-                            NavigationState.selectedHotelId = hotel.id
-                            NavigationState.selectedRoomId = room.id
-                            navController.navigate(Routes.RoomDetails.createRoute(room.id))
+                if (isLoading && rooms.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Secondary, modifier = Modifier.size(28.dp))
                         }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    }
+                } else {
+                    items(rooms) { room ->
+                        HotelRoomCard(
+                            room = room,
+                            onClick = {
+                                NavigationState.selectedHotelId = hotel.id
+                                NavigationState.selectedRoomId = room.id
+                                navController.navigate(Routes.RoomDetails.createRoute(room.id))
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
 
                 // ── Location ──────────────────────────────

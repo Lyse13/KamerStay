@@ -4,6 +4,7 @@ import com.kamerstay.app.config.DatabaseConfig
 import com.kamerstay.app.model.User
 import com.kamerstay.app.model.UserCredentials
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Updates
 import kotlinx.coroutines.flow.firstOrNull
 
 class UserRepository {
@@ -36,5 +37,23 @@ class UserRepository {
 
     suspend fun emailExists(email: String): Boolean {
         return findUserByEmail(email) != null
+    }
+
+    suspend fun updatePassword(email: String, newPasswordHash: String) {
+        credentials.updateOne(
+            Filters.eq("email", email),
+            Updates.set("passwordHash", newPasswordHash)
+        )
+    }
+
+    suspend fun updateUser(userId: String, fullName: String, phoneNumber: String): Boolean {
+        val result = users.updateOne(
+            Filters.eq("id", userId),
+            Updates.combine(
+                Updates.set("fullName", fullName),
+                Updates.set("phoneNumber", phoneNumber)
+            )
+        )
+        return result.modifiedCount > 0
     }
 }

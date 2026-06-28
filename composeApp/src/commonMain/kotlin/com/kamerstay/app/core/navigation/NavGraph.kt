@@ -212,11 +212,14 @@ fun KamerStayNavGraph(
         composable(Routes.ManagerDashboard.route) {
             ManagerDashboardScreen(navController)
         }
-        composable(Routes.RoomManagement.route) {
-            RoomManagementScreen(navController)
+        composable(Routes.RoomManagement.route) { entry ->
+            val hotelId = entry.arguments?.getString("hotelId") ?: NavigationState.selectedHotelId
+            RoomManagementScreen(navController, hotelId)
         }
-        composable(Routes.AddEditRoom.route) {
-            AddEditRoomScreen(navController)
+        composable(Routes.AddEditRoom.route) { entry ->
+            val hotelId = entry.arguments?.getString("hotelId") ?: NavigationState.selectedHotelId
+            val roomId  = entry.arguments?.getString("roomId")?.takeIf { it.isNotBlank() }
+            AddEditRoomScreen(navController, hotelId, roomId)
         }
         composable(Routes.Reservations.route) {
             ReservationsScreen(navController)

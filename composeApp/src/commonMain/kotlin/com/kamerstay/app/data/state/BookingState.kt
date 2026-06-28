@@ -94,12 +94,33 @@ class FilterState {
 
 class PaymentState {
     var selectedMethod by mutableStateOf("MTN")
+    var phoneNumber by mutableStateOf("")
     var cardNumber by mutableStateOf("")
     var expiryDate by mutableStateOf("")
     var cvv by mutableStateOf("")
     var isLoading by mutableStateOf(false)
+    var isPolling by mutableStateOf(false)
     var isSuccess by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
+    var paymentReference by mutableStateOf<String?>(null)
+    var statusMessage by mutableStateOf("")
+
+    val isMobileMoney get() = selectedMethod == "MTN" || selectedMethod == "ORANGE"
+
+    // Normalise "6XXXXXXXX" → "237XXXXXXXXX"
+    val normalizedPhone: String get() {
+        val digits = phoneNumber.filter { it.isDigit() }
+        return when {
+            digits.startsWith("237") -> digits
+            digits.startsWith("6") && digits.length == 9 -> "237$digits"
+            else -> digits
+        }
+    }
+
+    val isPhoneValid: Boolean get() {
+        val d = phoneNumber.filter { it.isDigit() }
+        return d.length == 9 && d.startsWith("6")
+    }
 }
 
 class SearchState {

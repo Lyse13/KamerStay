@@ -35,6 +35,12 @@ fun BookingReviewScreen(navController: NavController) {
     val booking = state.booking
     var showPromoDialog by remember { mutableStateOf(false) }
     var promoInput by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.bookingError) {
+        val error = viewModel.bookingError ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(error)
+    }
 
     if (showPromoDialog) {
         AlertDialog(
@@ -82,6 +88,7 @@ fun BookingReviewScreen(navController: NavController) {
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -132,11 +139,14 @@ fun BookingReviewScreen(navController: NavController) {
                     }
                     Button(
                         onClick = {
-                            viewModel.createBooking {
-                                navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
-                                    popUpTo(Routes.TravelerHome.route)
-                                }
-                            }
+                            viewModel.createBooking(
+                                onSuccess = {
+                                    navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
+                                        popUpTo(Routes.TravelerHome.route)
+                                    }
+                                },
+                                onError = {}
+                            )
                         },
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Primary),
@@ -539,11 +549,14 @@ fun BookingReviewScreen(navController: NavController) {
                         // Continue to Payment
                         Button(
                             onClick = {
-                                viewModel.createBooking {
-                                    navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
-                                        popUpTo(Routes.TravelerHome.route)
-                                    }
-                                }
+                                viewModel.createBooking(
+                                    onSuccess = {
+                                        navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
+                                            popUpTo(Routes.TravelerHome.route)
+                                        }
+                                    },
+                                    onError = {}
+                                )
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

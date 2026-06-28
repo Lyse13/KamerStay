@@ -23,5 +23,6 @@ data class DepartureGuest(
     val dates: String,
     val balance: String,
     val balanceLabel: String,
-    val isPaid: Boolean
+    val isPaid: Boolean,
+    val bookingId: String = ""
 )

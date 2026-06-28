@@ -37,10 +37,21 @@ fun WriteReviewScreen(navController: NavController) {
     val state = viewModel.writeReviewState
 
     Scaffold(
-        containerColor = LocalAppColors.current.background,
+        containerColor = Color.Transparent,
         bottomBar = {
             TravelerBottomNavBar(navController = navController, selectedTab = 3)
-        }
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        SecondaryContainer.copy(alpha = 0.35f),
+                        BackgroundLight,
+                        Color(0xFFE8F4F5)
+                    )
+                )
+            )
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -108,6 +119,7 @@ fun WriteReviewScreen(navController: NavController) {
                     .background(LocalAppColors.current.surface)
             ) {
                 Column {
+                    val hotel = viewModel.selectedHotel
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -130,7 +142,7 @@ fun WriteReviewScreen(navController: NavController) {
 
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text(
-                            text = "STAY COMPLETED",
+                            text = "SÉJOUR TERMINÉ",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Primary,
@@ -138,33 +150,16 @@ fun WriteReviewScreen(navController: NavController) {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Azure Bay Resort & Spa",
+                            text = hotel?.name ?: "Hôtel",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary
                         )
                         Text(
-                            text = "Deluxe Ocean View Suite",
+                            text = hotel?.city ?: "",
                             fontSize = 13.sp,
                             color = OnSurfaceSecondary
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                Icons.Outlined.CalendarMonth,
-                                contentDescription = null,
-                                tint = OnSurfaceSecondary,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "Oct 12 - Oct 15, 2023",
-                                fontSize = 13.sp,
-                                color = OnSurfaceSecondary
-                            )
-                        }
                     }
                 }
             }
@@ -189,7 +184,7 @@ fun WriteReviewScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Your feedback helps us maintain the Orion standard of excellence and assists fellow travelers in finding their perfect stay.",
+                        text = "Your feedback helps us maintain the application standard of excellence and assists fellow travelers in finding their perfect stay.",
                         fontSize = 13.sp,
                         color = OnSurfaceSecondary,
                         lineHeight = 18.sp
@@ -415,6 +410,25 @@ fun WriteReviewScreen(navController: NavController) {
                         }
                     }
 
+                    // Message d'erreur
+                    if (state.error != null) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(ErrorColor.copy(0.08f))
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = state.error ?: "",
+                                fontSize = 13.sp,
+                                color = ErrorColor,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // ── Buttons ───────────────────────
@@ -445,15 +459,24 @@ fun WriteReviewScreen(navController: NavController) {
 
                         Button(
                             onClick = {
-                                state.isLoading = true
-                                navController.popBackStack()
+                                val hotelId = viewModel.selectedHotel?.id ?: ""
+                                state.error = null
+                                viewModel.submitReview(
+                                    hotelId  = hotelId,
+                                    rating   = state.selectedRating,
+                                    comment  = state.reviewText,
+                                    onSuccess = { navController.popBackStack() },
+                                    onError   = { msg -> state.error = msg }
+                                )
                             },
+                            enabled = !state.isLoading,
                             modifier = Modifier
                                 .weight(1f)
                                 .height(50.dp),
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Secondary
+                                containerColor = Secondary,
+                                disabledContainerColor = Secondary.copy(0.4f)
                             )
                         ) {
                             if (state.isLoading) {
@@ -464,7 +487,7 @@ fun WriteReviewScreen(navController: NavController) {
                                 )
                             } else {
                                 Text(
-                                    text = "Submit Review",
+                                    text = "Publier l'avis",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = Color.White

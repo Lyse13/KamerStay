@@ -36,21 +36,35 @@ import com.kamerstay.app.core.components.TravelerBottomNavBar
 @Composable
 fun HotelReviewsScreen(navController: NavController) {
 
-    val viewModel = koinViewModel<TravelerViewModel>()
-    val state = viewModel.reviewState
+    val viewModel   = koinViewModel<TravelerViewModel>()
+    val state       = viewModel.reviewState
+    val hotel       = viewModel.selectedHotel
+    val reviews     = viewModel.hotelReviewsList
+    val isLoading   = viewModel.isLoadingReviews
 
-    val filters = listOf("All Reviews", "With Photos", "Families", "Business", "Couples")
+    LaunchedEffect(hotel?.id) {
+        hotel?.id?.let { viewModel.loadReviewsForHotel(it) }
+    }
+
+    val filters = listOf("Tous", "Avec photos", "Familles", "Business", "Couples")
 
     val categoryIconMap = mapOf(
         "Cleanliness" to Icons.Outlined.CleaningServices,
-        "Free Wi-Fi" to Icons.Outlined.Wifi,
-        "Location" to Icons.Outlined.Place,
-        "Service" to Icons.Outlined.SupportAgent
+        "Free Wi-Fi"  to Icons.Outlined.Wifi,
+        "Location"    to Icons.Outlined.Place,
+        "Service"     to Icons.Outlined.SupportAgent
     )
 
+    val avgRating   = if (reviews.isNotEmpty()) reviews.map { it.rating }.average() else hotel?.rating ?: 4.8
+    val reviewCount = if (reviews.isNotEmpty()) reviews.size else hotel?.reviewCount ?: 0
+
     val filteredReviews = when (state.selectedFilter) {
-        "With Photos" -> ReviewsMockData.reviews.filter { it.hasImages }
-        else -> ReviewsMockData.reviews
+        "Avec photos" -> reviews.filter { it.hasImages }
+        else          -> reviews
+    }
+
+    val displayReviews = filteredReviews.ifEmpty {
+        if (!isLoading) ReviewsMockData.reviews else emptyList()
     }
 
     Scaffold(
@@ -132,7 +146,7 @@ fun HotelReviewsScreen(navController: NavController) {
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = "4.8",
+                                text = "%.1f".format(avgRating),
                                 fontSize = 42.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = LocalAppColors.current.textPrimary
@@ -165,7 +179,7 @@ fun HotelReviewsScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "Based on 1,248 verified traveler reviews",
+                            text = "Basé sur $reviewCount avis vérifiés",
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
@@ -313,7 +327,7 @@ fun HotelReviewsScreen(navController: NavController) {
             }
 
             // ── Review Cards ──────────────────────────
-            items(filteredReviews) { review ->
+            items(displayReviews) { review ->
                 ReviewCard(review = review)
                 Spacer(modifier = Modifier.height(12.dp))
             }

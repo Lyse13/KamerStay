@@ -31,10 +31,16 @@ import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun AddEditRoomScreen(navController: NavController) {
+fun AddEditRoomScreen(navController: NavController, hotelId: String, roomId: String? = null) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
     val state = viewModel.roomFormState
+
+    // Si on édite, on charge les données de la chambre
+    LaunchedEffect(roomId) {
+        if (roomId != null) viewModel.loadRoomForEdit(roomId)
+        else state.reset()
+    }
 
     var showCategoryDropdown by remember { mutableStateOf(false) }
 
@@ -88,32 +94,33 @@ fun AddEditRoomScreen(navController: NavController) {
                 // Save Changes button
                 Button(
                     onClick = {
-                        state.isLoading = true
-                        navController.popBackStack()
+                        viewModel.saveRoom(hotelId) { navController.popBackStack() }
                     },
+                    enabled = !state.isLoading,
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Secondary
+                        containerColor = Secondary,
+                        disabledContainerColor = Secondary.copy(0.4f)
                     ),
-                    contentPadding = PaddingValues(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    )
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Text(
-                        text = "Save Changes",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            text = if (roomId != null) "Modifier" else "Créer",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    state.isLoading = true
-                    navController.popBackStack()
+                    viewModel.saveRoom(hotelId) { navController.popBackStack() }
                 },
                 containerColor = Secondary,
                 contentColor = Color.White,
@@ -603,6 +610,20 @@ fun AddEditRoomScreen(navController: NavController) {
                             }
                         }
                     }
+                }
+            }
+
+            // Bandeau d'erreur
+            if (state.error != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(ErrorColor.copy(0.08f))
+                        .padding(12.dp)
+                ) {
+                    Text(state.error ?: "", fontSize = 13.sp, color = ErrorColor)
                 }
             }
 

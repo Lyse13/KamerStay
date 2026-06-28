@@ -22,6 +22,8 @@ application {
 
 tasks.named<JavaExec>("run") {
     environment("ANTHROPIC_API_KEY", localProps.getProperty("ANTHROPIC_API_KEY") ?: "")
+    environment("RESEND_API_KEY",    localProps.getProperty("RESEND_API_KEY")    ?: "")
+    environment("RESEND_FROM_EMAIL", localProps.getProperty("RESEND_FROM_EMAIL") ?: "")
 }
 
 dependencies {

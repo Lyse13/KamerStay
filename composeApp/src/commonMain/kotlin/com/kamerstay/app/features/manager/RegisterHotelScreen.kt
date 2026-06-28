@@ -37,6 +37,11 @@ fun RegisterHotelScreen(navController: NavController) {
     var categoryExpanded by remember { mutableStateOf(false) }
 
     val categories = listOf("Hotel", "Resort", "Villa", "Boutique", "Hostel", "Apart-hotel")
+    val cameroonCities = listOf(
+        "Douala", "Yaoundé", "Bafoussam", "Bamenda", "Garoua",
+        "Maroua", "Ngaoundéré", "Bertoua", "Ebolowa", "Kribi", "Limbé", "Buea"
+    )
+    var cityExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
@@ -226,6 +231,75 @@ fun RegisterHotelScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(14.dp))
 
+                        RegisterFormField(label = "Ville *") {
+                            Box(modifier = Modifier.fillMaxWidth()) {
+                                OutlinedTextField(
+                                    value = state.city,
+                                    onValueChange = { },
+                                    placeholder = { Text("Sélectionnez une ville", color = OnSurfaceSecondary.copy(0.5f)) },
+                                    readOnly = true,
+                                    trailingIcon = {
+                                        IconButton(onClick = { cityExpanded = true }) {
+                                            Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = null, tint = OnSurfaceSecondary)
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth().clickable { cityExpanded = true },
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = registerTextFieldColors(),
+                                    singleLine = true
+                                )
+                                DropdownMenu(
+                                    expanded = cityExpanded,
+                                    onDismissRequest = { cityExpanded = false },
+                                    modifier = Modifier.background(LocalAppColors.current.surface)
+                                ) {
+                                    cameroonCities.forEach { c ->
+                                        DropdownMenuItem(
+                                            text = { Text(c, color = if (state.city == c) Primary else LocalAppColors.current.textPrimary) },
+                                            onClick = { state.city = c; cityExpanded = false }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        RegisterFormField(label = "Prix par nuit (FCFA) *") {
+                            OutlinedTextField(
+                                value = state.pricePerNight,
+                                onValueChange = { state.pricePerNight = it.filter { c -> c.isDigit() || c == '.' } },
+                                placeholder = { Text("ex: 75000", color = OnSurfaceSecondary.copy(0.5f)) },
+                                leadingIcon = { Text("FCFA", fontSize = 12.sp, color = OnSurfaceSecondary, modifier = Modifier.padding(start = 4.dp)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = registerTextFieldColors(),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                                ),
+                                singleLine = true
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        RegisterFormField(label = "Nombre de chambres") {
+                            OutlinedTextField(
+                                value = state.totalRooms,
+                                onValueChange = { state.totalRooms = it.filter { c -> c.isDigit() } },
+                                placeholder = { Text("ex: 50", color = OnSurfaceSecondary.copy(0.5f)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                colors = registerTextFieldColors(),
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                                ),
+                                singleLine = true
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
                         RegisterFormField(label = "Full Address") {
                             OutlinedTextField(
                                 value = state.address,
@@ -345,20 +419,21 @@ fun RegisterHotelScreen(navController: NavController) {
 
                 Button(
                     onClick = {
-                        if (state.hotelName.isEmpty() || state.selectedCategory.isEmpty()) {
-                            state.error = "Please fill in all required fields."
-                        } else {
-                            state.error = null
+                        viewModel.registerHotel {
                             navController.navigate(Routes.ManagerOnboarding.route) {
-                                    popUpTo(Routes.RegisterHotel.route) { inclusive = true }
-                                }
+                                popUpTo(Routes.RegisterHotel.route) { inclusive = true }
+                            }
                         }
                     },
+                    enabled = !state.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Secondary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Secondary,
+                        disabledContainerColor = Secondary.copy(0.4f)
+                    )
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
@@ -368,7 +443,7 @@ fun RegisterHotelScreen(navController: NavController) {
                         )
                     } else {
                         Text(
-                            text = "Complete Registration",
+                            text = "Enregistrer l'hôtel",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White

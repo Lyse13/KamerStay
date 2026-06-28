@@ -38,6 +38,14 @@ fun AddEditStaffScreen(
     var staffImagePicked by remember { mutableStateOf(false) }
     var roleExpanded by remember { mutableStateOf(false) }
 
+    LaunchedEffect(staffId) {
+        viewModel.loadStaffForEdit(staffId)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { state.reset() }
+    }
+
     val roles = listOf(
         "Receptionist", "Manager", "Housekeeper",
         "Concierge", "Security", "Chef"
@@ -455,16 +463,15 @@ fun AddEditStaffScreen(
 
                 Button(
                     onClick = {
-                        if (state.fullName.isEmpty() || state.email.isEmpty()) {
-                            state.error = "Please fill all required fields."
-                        } else {
-                            state.error = null
-                            navController.popBackStack()
-                        }
+                        viewModel.saveStaff { navController.popBackStack() }
                     },
+                    enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Primary,
+                        disabledContainerColor = Primary.copy(0.4f)
+                    )
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
@@ -479,7 +486,7 @@ fun AddEditStaffScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Invite Staff Member",
+                            text = if (staffId.isEmpty()) "Ajouter au staff" else "Enregistrer",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = OnPrimary

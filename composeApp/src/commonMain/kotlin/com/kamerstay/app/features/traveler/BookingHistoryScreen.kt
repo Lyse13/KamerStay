@@ -31,11 +31,9 @@ import com.kamerstay.app.core.components.EmptyBookingsUpcoming
 import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.BookingsMockData
 import com.kamerstay.app.data.model.Booking
 import com.kamerstay.app.data.model.BookingStatus
 import com.kamerstay.app.viewmodel.TravelerViewModel
-import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -43,18 +41,18 @@ fun BookingHistoryScreen(navController: NavController) {
 
     val viewModel = koinViewModel<TravelerViewModel>()
     var selectedTab by remember { mutableStateOf("Upcoming") }
-    var isLoading by remember { mutableStateOf(true) }
+    val isLoading = viewModel.isLoadingBookings
+
     LaunchedEffect(Unit) {
-        delay(1000L)
-        isLoading = false
+        viewModel.loadMyBookings()
     }
 
     val tabs = listOf("Upcoming", "Past", "Cancelled")
 
     val currentBookings = when (selectedTab) {
-        "Past" -> BookingsMockData.past
-        "Cancelled" -> BookingsMockData.cancelled
-        else -> BookingsMockData.upcoming
+        "Past"      -> viewModel.pastBookings
+        "Cancelled" -> viewModel.cancelledBookings
+        else        -> viewModel.upcomingBookings
     }
 
     Scaffold(

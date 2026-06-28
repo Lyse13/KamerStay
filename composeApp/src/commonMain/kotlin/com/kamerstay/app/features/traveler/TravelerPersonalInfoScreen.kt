@@ -33,6 +33,12 @@ fun TravelerPersonalInfoScreen(navController: NavController) {
 
     val viewModel = koinViewModel<TravelerViewModel>()
     val state = viewModel.travelerPersonalInfoState
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(state.error) {
+        val error = state.error ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(error)
+    }
 
     val cities = listOf(
         "Douala, Littoral Region",
@@ -47,6 +53,7 @@ fun TravelerPersonalInfoScreen(navController: NavController) {
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Box(
                 modifier = Modifier
@@ -56,8 +63,7 @@ fun TravelerPersonalInfoScreen(navController: NavController) {
             ) {
                 Button(
                     onClick = {
-                        state.isLoading = true
-                        navController.popBackStack()
+                        viewModel.updateProfile { navController.popBackStack() }
                     },
                     modifier = Modifier
                         .fillMaxWidth()

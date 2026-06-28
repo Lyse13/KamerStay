@@ -9,11 +9,17 @@ import io.ktor.server.routing.*
 import com.kamerstay.app.config.JwtConfig
 import com.kamerstay.app.repository.BookingRepository
 import com.kamerstay.app.repository.HotelRepository
+import com.kamerstay.app.repository.RoomRepository
 import com.kamerstay.app.repository.UserRepository
 import com.kamerstay.app.routes.aiRoutes
 import com.kamerstay.app.routes.authRoutes
 import com.kamerstay.app.routes.bookingRoutes
 import com.kamerstay.app.routes.hotelRoutes
+import com.kamerstay.app.repository.ReviewRepository
+import com.kamerstay.app.repository.StaffRepository
+import com.kamerstay.app.routes.paymentRoutes
+import com.kamerstay.app.routes.reviewRoutes
+import com.kamerstay.app.routes.staffRoutes
 import com.kamerstay.app.util.SeedData
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -38,11 +44,15 @@ fun main() {
 
 fun Application.module() {
 
-    val userRepository = UserRepository()
-    val hotelRepository = HotelRepository()
+    val userRepository    = UserRepository()
+    val hotelRepository   = HotelRepository()
+    val roomRepository    = RoomRepository()
     val bookingRepository = BookingRepository()
+    val reviewRepository  = ReviewRepository()
+    val staffRepository   = StaffRepository()
 
     SeedData.seedIfEmpty(hotelRepository)
+    SeedData.seedRoomsIfEmpty(roomRepository)
     SeedData.seedAdminIfNotExists(userRepository)
 
     install(ContentNegotiation) {
@@ -81,8 +91,11 @@ fun Application.module() {
 
     routing {
         authRoutes(userRepository)
-        hotelRoutes(hotelRepository)
+        hotelRoutes(hotelRepository, roomRepository)
         bookingRoutes(bookingRepository, hotelRepository)
+        paymentRoutes()
+        reviewRoutes(reviewRepository)
+        staffRoutes(staffRepository)
         aiRoutes()
     }
 }

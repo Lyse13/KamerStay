@@ -144,7 +144,38 @@ fun VerificationCodeScreen(navController: NavController) {
                     )
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Erreur
+                if (state.error != null) {
+                    Text(
+                        text = state.error ?: "",
+                        fontSize = 13.sp,
+                        color = androidx.compose.ui.graphics.Color(0xFFE53935),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                }
+
+                // Bandeau dev : visible uniquement si RESEND_API_KEY n'est pas configurée
+                val demoOtp = viewModel.forgotPasswordState.debugOtp
+                if (demoOtp.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Primary.copy(0.1f))
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "Code de test : $demoOtp",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
 
                 // Timer
                 Row(
@@ -177,27 +208,35 @@ fun VerificationCodeScreen(navController: NavController) {
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
             ) {
                 Button(
-                    onClick = { navController.navigate(Routes.ResetPassword.route) },
+                    onClick = {
+                        viewModel.verifyResetCode {
+                            navController.navigate(Routes.ResetPassword.route)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    enabled = state.code.length == 4
+                    enabled = state.code.length == 4 && !viewModel.isLoading
                 ) {
-                    Text(
-                        text = "Verify",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if (viewModel.isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text(
+                            text = "Vérifier",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

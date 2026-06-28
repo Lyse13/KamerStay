@@ -2,6 +2,8 @@ package com.kamerstay.app.config
 
 import com.kamerstay.app.model.Booking
 import com.kamerstay.app.model.Hotel
+import com.kamerstay.app.model.Review
+import com.kamerstay.app.model.Staff
 import com.kamerstay.app.model.Room
 import com.kamerstay.app.model.User
 import com.kamerstay.app.model.UserCredentials
@@ -23,4 +25,6 @@ object DatabaseConfig {
     val hotelsCollection = database.getCollection<Hotel>("hotels")
     val roomsCollection = database.getCollection<Room>("rooms")
     val bookingsCollection = database.getCollection<Booking>("bookings")
+    val reviewsCollection  = database.getCollection<Review>("reviews")
+    val staffCollection    = database.getCollection<Staff>("staff")
 }

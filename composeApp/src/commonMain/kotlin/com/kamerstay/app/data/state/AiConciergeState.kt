@@ -34,6 +34,8 @@ class AiConciergeState {
     var inputText by mutableStateOf("")
     var hasShownProactive by mutableStateOf(false)
 
+    private var idCounter = 0
+
     private fun buildWelcome(): UiChatMessage {
         val name = UserSession.fullName.trim().ifBlank { null }
         val greeting = if (name != null) "Bonjour $name !" else "Bonjour !"
@@ -50,17 +52,17 @@ class AiConciergeState {
     }
 
     fun addUserMessage(content: String) {
-        messages.add(UiChatMessage(id = "u_${messages.size}", role = "user", content = content))
+        messages.add(UiChatMessage(id = "msg_${idCounter++}", role = "user", content = content))
     }
 
     fun addAssistantMessage(content: String, isError: Boolean = false) {
-        messages.add(UiChatMessage(id = "a_${messages.size}", role = "assistant", content = content, isError = isError))
+        messages.add(UiChatMessage(id = "msg_${idCounter++}", role = "assistant", content = content, isError = isError))
     }
 
     fun addProactiveMessage(content: String) {
         if (hasShownProactive) return
         hasShownProactive = true
-        messages.add(1, UiChatMessage(id = "proactive_0", role = "assistant", content = content, isProactive = true))
+        messages.add(1, UiChatMessage(id = "msg_${idCounter++}", role = "assistant", content = content, isProactive = true))
     }
 
     val hasOnlyWelcome: Boolean get() = messages.none { !it.isWelcome && !it.isProactive }
@@ -108,6 +110,7 @@ class AiConciergeState {
         extractedCriteria = null
         inputText = ""
         hasShownProactive = false
+        idCounter = 0
         messages.add(buildWelcome())
     }
 }

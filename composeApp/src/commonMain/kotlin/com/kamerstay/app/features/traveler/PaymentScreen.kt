@@ -23,7 +23,6 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockData
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,26 +30,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.uuid.ExperimentalUuidApi
 
-
-fun formatPrice(value: Double): String {
-    val intPart = value.toLong()
-    val decPart = ((value - intPart) * 100).toLong()
-    return "$intPart.${decPart.toString().padStart(2, '0')}"
-}
+@OptIn(ExperimentalUuidApi::class)
 @Composable
 fun PaymentScreen(
     navController: NavController,
     bookingId: String
 ) {
-    val viewModel = koinViewModel<TravelerViewModel>()
-    val state = viewModel.paymentState
+    val viewModel    = koinViewModel<TravelerViewModel>()
+    val state        = viewModel.paymentState
     val bookingState = viewModel.bookingState
+    val hotel        = viewModel.selectedHotel
+    val room         = viewModel.hotelRooms.find { it.id == NavigationState.selectedRoomId }
+        ?: viewModel.hotelRooms.firstOrNull()
 
-    val hotel = MockData.getHotelById(NavigationState.selectedHotelId)
-        ?: MockData.hotels.first()
-    val room = MockData.rooms.find { it.id == NavigationState.selectedRoomId }
-        ?: MockData.rooms.first()
+    if (hotel == null || room == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Secondary)
+        }
+        return
+    }
 
     val nights = bookingState.nights.takeIf { it > 0 } ?: 1
     val roomTotal = room.pricePerNight * nights
@@ -133,7 +133,7 @@ fun PaymentScreen(
                         logo = "MTN",
                         logoBg = Color(0xFFFFC107),
                         name = "MTN MoMo",
-                        subtitle = "Instant confirmation"
+                        subtitle = "Prompt USSD instantané"
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -145,8 +145,57 @@ fun PaymentScreen(
                         logo = "OR",
                         logoBg = Color(0xFFFF6600),
                         name = "Orange Money",
-                        subtitle = "Secure & fast"
+                        subtitle = "Sécurisé & rapide"
                     )
+
+                    // Champ numéro de téléphone (visible uniquement pour Mobile Money)
+                    if (state.isMobileMoney) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Text(
+                            text = "Numéro ${if (state.selectedMethod == "MTN") "MTN" else "Orange"}",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = LocalAppColors.current.textPrimary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = state.phoneNumber,
+                            onValueChange = { if (it.length <= 9) state.phoneNumber = it.filter { c -> c.isDigit() } },
+                            placeholder = {
+                                Text("6XXXXXXXX", color = OnSurfaceSecondary.copy(0.4f))
+                            },
+                            leadingIcon = {
+                                Text(
+                                    "+237",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = OnSurfaceSecondary,
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = if (state.isPhoneValid) Primary else ErrorColor,
+                                unfocusedBorderColor = if (state.phoneNumber.isEmpty()) Divider
+                                    else if (state.isPhoneValid) Primary.copy(0.5f) else ErrorColor.copy(0.5f),
+                                focusedContainerColor = LocalAppColors.current.surface,
+                                unfocusedContainerColor = LocalAppColors.current.surface,
+                                cursorColor = Primary
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            singleLine = true,
+                            isError = state.phoneNumber.isNotEmpty() && !state.isPhoneValid
+                        )
+                        if (state.phoneNumber.isNotEmpty() && !state.isPhoneValid) {
+                            Text(
+                                text = "Entrez un numéro valide (ex: 691234567)",
+                                fontSize = 12.sp,
+                                color = ErrorColor,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -431,19 +480,118 @@ fun PaymentScreen(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Pay button
+                        // Bandeau d'attente USSD
+                        if (state.isPolling) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(Secondary.copy(0.08f))
+                                    .padding(14.dp)
+                            ) {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(18.dp),
+                                            color = Secondary,
+                                            strokeWidth = 2.dp
+                                        )
+                                        Text(
+                                            text = state.statusMessage,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Secondary
+                                        )
+                                    }
+                                    Text(
+                                        text = "Vérifiez votre téléphone et confirmez le paiement via le prompt USSD.",
+                                        fontSize = 12.sp,
+                                        color = OnSurfaceSecondary,
+                                        lineHeight = 17.sp
+                                    )
+                                    TextButton(
+                                        onClick = { viewModel.cancelPaymentPolling() },
+                                        contentPadding = PaddingValues(0.dp)
+                                    ) {
+                                        Text("Annuler", fontSize = 12.sp, color = ErrorColor)
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        // Message d'erreur
+                        if (state.error != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(ErrorColor.copy(0.08f))
+                                    .padding(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.ErrorOutline,
+                                        contentDescription = null,
+                                        tint = ErrorColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        text = state.error ?: "",
+                                        fontSize = 13.sp,
+                                        color = ErrorColor,
+                                        lineHeight = 18.sp
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        // Bouton payer
+                        val canPay = !state.isLoading && !state.isPolling &&
+                            (!state.isMobileMoney || state.isPhoneValid)
+
                         Button(
                             onClick = {
-                                state.isLoading = true
-                                navController.navigate(Routes.BookingConfirmation.createRoute(bookingId)) {
-                                    popUpTo(Routes.TravelerHome.route)
+                                state.error = null
+                                if (state.isMobileMoney) {
+                                    val timestamp = kotlin.uuid.Uuid.random().toString().takeLast(8)
+                                    val bookingRef = viewModel.createdBooking?.bookingReference
+                                        ?: "KS-$timestamp"
+
+                                    viewModel.initiatePayment(
+                                        amount      = depositAmount,
+                                        description = "Acompte réservation $bookingRef — ${hotel.name}",
+                                        onSuccess   = {
+                                            navController.navigate(
+                                                Routes.BookingConfirmation.createRoute(bookingId)
+                                            ) { popUpTo(Routes.TravelerHome.route) }
+                                        },
+                                        onFailure   = { msg ->
+                                            state.error = msg
+                                            navController.navigate(Routes.PaymentFailed.route)
+                                        }
+                                    )
+                                } else {
+                                    // Paiement par carte (placeholder — intégration future)
+                                    state.error = "Le paiement par carte sera disponible prochainement."
                                 }
                             },
+                            enabled = canPay,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(54.dp),
                             shape = RoundedCornerShape(28.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Secondary)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Secondary,
+                                disabledContainerColor = Secondary.copy(0.4f)
+                            )
                         ) {
                             if (state.isLoading) {
                                 CircularProgressIndicator(
@@ -466,19 +614,6 @@ fun PaymentScreen(
                                     color = Color.White
                                 )
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        TextButton(
-                            onClick = { navController.navigate(Routes.PaymentFailed.route) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Simulate Failed Payment",
-                                fontSize = 12.sp,
-                                color = ErrorColor
-                            )
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

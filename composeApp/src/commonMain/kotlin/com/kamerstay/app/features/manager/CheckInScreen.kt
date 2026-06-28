@@ -238,8 +238,9 @@ fun CheckInScreen(
                 guests.forEach { guest ->
                     CheckInGuestCard(
                         guest = guest,
+                        isActionLoading = state.isLoading,
                         onCheckIn = {
-                            navController.navigate(Routes.CheckIn.createRoute(guest.id))
+                            viewModel.performCheckIn(guest.id)
                         },
                         onDetails = {
                             navController.navigate(Routes.ReservationDetails.route)
@@ -268,7 +269,8 @@ fun CheckInScreen(
 fun CheckInGuestCard(
     guest: CheckInGuest,
     onCheckIn: () -> Unit,
-    onDetails: () -> Unit
+    onDetails: () -> Unit,
+    isActionLoading: Boolean = false
 ) {
     Box(
         modifier = Modifier
@@ -418,20 +420,30 @@ fun CheckInGuestCard(
 
                     Button(
                         onClick = onCheckIn,
+                        enabled = !isActionLoading,
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
                         shape = RoundedCornerShape(22.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Secondary
+                            containerColor = Secondary,
+                            disabledContainerColor = Secondary.copy(0.4f)
                         )
                     ) {
-                        Text(
-                            text = "Check-In",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White
-                        )
+                        if (isActionLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "Check-In",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
                     }
                 }
             }

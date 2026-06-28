@@ -34,25 +34,30 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.components.ManagerBottomNavBar
 
 @Composable
-fun RoomManagementScreen(navController: NavController) {
+fun RoomManagementScreen(navController: NavController, hotelId: String) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All Rooms") }
 
-    val filters = listOf("All Rooms", "Suites", "Deluxe Single")
+    LaunchedEffect(hotelId) {
+        viewModel.loadManagerRooms(hotelId)
+    }
 
-    val rooms = RoomsMockData.rooms.filter { room ->
+    val filters = listOf("All Rooms", "Suites", "Deluxe", "Single")
+
+    val allRooms = viewModel.managerRoomsUi
+    val rooms = allRooms.filter { room ->
         val matchesSearch = searchQuery.isEmpty() ||
                 room.number.contains(searchQuery, ignoreCase = true) ||
                 room.type.contains(searchQuery, ignoreCase = true)
         val matchesFilter = selectedFilter == "All Rooms" ||
-                room.type.contains(selectedFilter.replace(" Single", ""), ignoreCase = true)
+                room.type.contains(selectedFilter, ignoreCase = true)
         matchesSearch && matchesFilter
     }
 
-    val availableCount = RoomsMockData.rooms.count { it.status == RoomStatus.AVAILABLE }
-    val occupiedCount = RoomsMockData.rooms.count { it.status == RoomStatus.OCCUPIED }
+    val availableCount = allRooms.count { it.status == RoomStatus.AVAILABLE }
+    val occupiedCount  = allRooms.count { it.status == RoomStatus.OCCUPIED }
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
@@ -61,7 +66,7 @@ fun RoomManagementScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.AddEditRoom.route) },
+                onClick = { navController.navigate(Routes.AddEditRoom.createRoute(hotelId)) },
                 containerColor = Secondary,
                 contentColor = Color.White,
                 shape = CircleShape
@@ -228,7 +233,7 @@ fun RoomManagementScreen(navController: NavController) {
                     room = room,
                     onQuickEdit = {
                         navController.navigate(
-                            Routes.AddEditRoom.createRoute(room.id)
+                            Routes.AddEditRoom.createRoute(hotelId, room.id)
                         )
                     },
                     onMore = { }
@@ -245,7 +250,7 @@ fun RoomManagementScreen(navController: NavController) {
                         .clip(RoundedCornerShape(16.dp))
                         .border(1.5.dp, Divider, RoundedCornerShape(16.dp))
                         .background(LocalAppColors.current.surface)
-                        .clickable { navController.navigate(Routes.AddEditRoom.route) }
+                        .clickable { navController.navigate(Routes.AddEditRoom.createRoute(hotelId)) }
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {

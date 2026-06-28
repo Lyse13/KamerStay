@@ -394,7 +394,13 @@ fun CheckOutScreen(
 
                         // Departure rows
                         departures.forEach { guest ->
-                            DepartureRow(guest = guest)
+                            DepartureRow(
+                                guest = guest,
+                                isActionLoading = viewModel.checkOutState.isLoading,
+                                onCheckOut = {
+                                    viewModel.performCheckOut(guest.bookingId)
+                                }
+                            )
                             HorizontalDivider(color = Divider.copy(0.5f))
                         }
 
@@ -407,7 +413,7 @@ fun CheckOutScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Showing 4 of 24 departures for today",
+                                text = "${departures.size} départ${if (departures.size > 1) "s" else ""} en attente",
                                 fontSize = 12.sp,
                                 color = OnSurfaceSecondary
                             )
@@ -464,11 +470,18 @@ fun CheckOutScreen(
 
 // ── Departure Row ─────────────────────────────────────────
 @Composable
-fun DepartureRow(guest: DepartureGuest) {
-    Row(
+fun DepartureRow(
+    guest: DepartureGuest,
+    onCheckOut: (() -> Unit)? = null,
+    isActionLoading: Boolean = false
+) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ) {
         // Avatar + Info
@@ -559,5 +572,45 @@ fun DepartureRow(guest: DepartureGuest) {
                 )
             }
         }
+    }
+    // Bouton Check-Out (uniquement si callback fourni et pas encore parti)
+    if (onCheckOut != null && guest.bookingId.isNotBlank()) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onCheckOut,
+            enabled = !isActionLoading,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Secondary,
+                disabledContainerColor = Secondary.copy(0.4f)
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+        ) {
+            if (isActionLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = androidx.compose.ui.graphics.Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(
+                    Icons.Outlined.Logout,
+                    contentDescription = null,
+                    tint = androidx.compose.ui.graphics.Color.White,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Confirmer Check-Out",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = androidx.compose.ui.graphics.Color.White
+                )
+            }
+        }
+    }
     }
 }

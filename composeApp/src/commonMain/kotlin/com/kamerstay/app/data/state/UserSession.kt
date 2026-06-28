@@ -3,6 +3,7 @@ package com.kamerstay.app.data.state
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.kamerstay.app.data.store.SessionStore
 
 enum class UserRole { TRAVELER, MANAGER }
 
@@ -19,16 +20,27 @@ object UserSession {
         email: String,
         phone: String = "",
         role: UserRole = UserRole.TRAVELER,
-        token: String = ""
+        token: String = "",
+        expiresAt: Long = 0L
     ) {
-        this.fullName = name.ifBlank { "Utilisateur KamerStay" }
+        val resolvedName = name.ifBlank { "Utilisateur KamerStay" }
+        this.fullName = resolvedName
         this.email    = email
         this.phone    = phone
         this.role     = role
         this.token    = token
+        SessionStore.save(
+            token     = token,
+            fullName  = resolvedName,
+            email     = email,
+            phone     = phone,
+            role      = role.name,
+            expiresAt = expiresAt
+        )
     }
 
     fun logout() {
         fullName = ""; email = ""; phone = ""; role = UserRole.TRAVELER; token = ""
+        SessionStore.clear()
     }
 }

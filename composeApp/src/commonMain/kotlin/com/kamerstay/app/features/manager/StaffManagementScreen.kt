@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.StaffMockData
 import com.kamerstay.app.data.model.StaffMember
 import com.kamerstay.app.data.model.StaffStatus
 import com.kamerstay.app.viewmodel.ManagerViewModel
@@ -38,6 +37,10 @@ fun StaffManagementScreen(navController: NavController) {
     val viewModel = koinViewModel<ManagerViewModel>()
     var searchQuery by remember { mutableStateOf("") }
     var staffToDelete by remember { mutableStateOf<StaffMember?>(null) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadStaff()
+    }
 
     if (staffToDelete != null) {
         AlertDialog(
@@ -57,10 +60,13 @@ fun StaffManagementScreen(navController: NavController) {
             },
             confirmButton = {
                 Button(
-                    onClick = { staffToDelete = null },
+                    onClick = {
+                        staffToDelete?.let { viewModel.deleteStaffMember(it.id) }
+                        staffToDelete = null
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorColor),
                     shape = RoundedCornerShape(10.dp)
-                ) { Text("Remove", color = Color.White) }
+                ) { Text("Supprimer", color = Color.White) }
             },
             dismissButton = {
                 TextButton(onClick = { staffToDelete = null }) {
@@ -72,7 +78,7 @@ fun StaffManagementScreen(navController: NavController) {
         )
     }
 
-    val staff = StaffMockData.staffMembers.filter { member ->
+    val staff = viewModel.staffMembers.filter { member ->
         searchQuery.isEmpty() ||
                 member.name.contains(searchQuery, ignoreCase = true) ||
                 member.role.contains(searchQuery, ignoreCase = true)
@@ -197,13 +203,13 @@ fun StaffManagementScreen(navController: NavController) {
                     ) {
                         StaffStatCard(
                             label = "TOTAL STAFF",
-                            value = StaffMockData.totalStaff.toString(),
+                            value = viewModel.totalStaff.toString(),
                             dotColor = null,
                             modifier = Modifier.weight(1f)
                         )
                         StaffStatCard(
                             label = "ON DUTY",
-                            value = StaffMockData.onDuty.toString(),
+                            value = viewModel.onDutyStaff.toString(),
                             dotColor = Primary,
                             modifier = Modifier.weight(1f)
                         )
@@ -217,13 +223,13 @@ fun StaffManagementScreen(navController: NavController) {
                     ) {
                         StaffStatCard(
                             label = "AWAY",
-                            value = StaffMockData.away.toString(),
+                            value = viewModel.awayStaff.toString(),
                             dotColor = Color(0xFFFFA500),
                             modifier = Modifier.weight(1f)
                         )
                         StaffStatCard(
                             label = "NEW RECRUITS",
-                            value = StaffMockData.newRecruits.toString(),
+                            value = "0",
                             dotColor = null,
                             valueColor = Secondary,
                             modifier = Modifier.weight(1f)
@@ -245,7 +251,7 @@ fun StaffManagementScreen(navController: NavController) {
                 items(staff) { member ->
                     StaffCard(
                         member = member,
-                        onEdit = { navController.navigate(Routes.AddEditStaff.createRoute()) },
+                        onEdit = { navController.navigate(Routes.AddEditStaff.createRoute(member.id)) },
                         onDelete = { staffToDelete = member }
                     )
                     Spacer(modifier = Modifier.height(12.dp))

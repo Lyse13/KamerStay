@@ -38,8 +38,20 @@ fun ReservationDetailsScreen(
     reservationId: String
 ) {
     val viewModel = koinViewModel<ManagerViewModel>()
-    val reservation = ReservationMockData.getById(reservationId)
+
+    LaunchedEffect(reservationId) {
+        viewModel.selectReservation(reservationId)
+    }
+
+    val reservation = viewModel.selectedReservationDetail
     var showCancelDialog by remember { mutableStateOf(false) }
+
+    if (reservation == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Secondary)
+        }
+        return
+    }
     var internalToolMessage by remember { mutableStateOf<String?>(null) }
 
     if (internalToolMessage != null) {
@@ -70,8 +82,11 @@ fun ReservationDetailsScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showCancelDialog = false }) {
-                    Text("Yes, Cancel", color = ErrorColor, fontWeight = FontWeight.SemiBold)
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    viewModel.cancelReservation(reservation.id)
+                }) {
+                    Text("Oui, annuler", color = ErrorColor, fontWeight = FontWeight.SemiBold)
                 }
             },
             dismissButton = {

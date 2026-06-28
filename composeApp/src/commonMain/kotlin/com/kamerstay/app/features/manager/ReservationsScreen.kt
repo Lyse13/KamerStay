@@ -34,7 +34,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.components.EmptyReservationsSearch
 import com.kamerstay.app.core.components.ManagerBottomNavBar
 import com.kamerstay.app.core.components.ReservationCardSkeleton
-import kotlinx.coroutines.delay
 
 private const val MODE_LIST = "list"
 private const val MODE_CALENDAR = "calendar"
@@ -44,11 +43,12 @@ private const val MODE_CALENDAR = "calendar"
 fun ReservationsScreen(navController: NavController) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
-    var isLoading by remember { mutableStateOf(true) }
+    val isLoading = viewModel.isLoadingBookings
+
     LaunchedEffect(Unit) {
-        delay(1000L)
-        isLoading = false
+        viewModel.loadBookings()
     }
+
     var viewMode by remember { mutableStateOf(MODE_LIST) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Filters") }
@@ -56,13 +56,16 @@ fun ReservationsScreen(navController: NavController) {
     var calendarYear by remember { mutableStateOf(2024) }
     var selectedCalendarDay by remember { mutableStateOf<Int?>(null) }
 
-    val filters = listOf("Filters", "Today", "This Week")
+    val filters = listOf("Filters", "Confirmé", "En attente", "Annulé")
 
-    val reservations = ReservationMockData.reservations.filter { r ->
-        searchQuery.isEmpty() ||
+    val reservations = viewModel.reservationsList.filter { r ->
+        val matchesSearch = searchQuery.isEmpty() ||
                 r.guestName.contains(searchQuery, ignoreCase = true) ||
                 r.roomType.contains(searchQuery, ignoreCase = true) ||
                 r.bookingId.contains(searchQuery, ignoreCase = true)
+        val matchesFilter = selectedFilter == "Filters" ||
+                r.status.contains(selectedFilter, ignoreCase = true)
+        matchesSearch && matchesFilter
     }
 
     Scaffold(
@@ -204,7 +207,7 @@ fun ReservationsScreen(navController: NavController) {
                             Column {
                                 Text("Total Bookings", fontSize = 12.sp, color = OnSurfaceSecondary)
                                 Text(
-                                    "124",
+                                    "${viewModel.totalBookings}",
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = LocalAppColors.current.textPrimary
@@ -219,9 +222,9 @@ fun ReservationsScreen(navController: NavController) {
                                 .padding(14.dp)
                         ) {
                             Column {
-                                Text("Pending Approval", fontSize = 12.sp, color = OnSurfaceSecondary)
+                                Text("En attente", fontSize = 12.sp, color = OnSurfaceSecondary)
                                 Text(
-                                    "12",
+                                    "${viewModel.pendingBookings}",
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = LocalAppColors.current.textPrimary

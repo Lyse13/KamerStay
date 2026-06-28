@@ -179,17 +179,24 @@ fun ForgotPasswordScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Erreur
+                if (state.error != null) {
+                    Text(state.error ?: "", fontSize = 13.sp, color = androidx.compose.ui.graphics.Color(0xFFE53935))
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 Button(
                     onClick = {
-                        state.isLoading = true
-                        navController.navigate(Routes.VerificationCode.route)
+                        viewModel.sendResetCode {
+                            navController.navigate(Routes.VerificationCode.route)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    enabled = state.email.isNotBlank()
+                    enabled = state.email.isNotBlank() && !state.isLoading
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
@@ -199,7 +206,7 @@ fun ForgotPasswordScreen(navController: NavController) {
                         )
                     } else {
                         Text(
-                            text = "Send Reset Link",
+                            text = "Envoyer le code",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = OnPrimary

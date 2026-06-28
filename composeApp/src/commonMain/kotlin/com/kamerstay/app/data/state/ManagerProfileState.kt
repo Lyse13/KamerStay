@@ -30,6 +30,7 @@ class ManagerPersonalInfoState {
     var region by mutableStateOf("Douala, Littoral")
     var emailNotifications by mutableStateOf(true)
     var isLoading by mutableStateOf(false)
+    var error by mutableStateOf<String?>(null)
     var regionExpanded by mutableStateOf(false)
     var profileImagePicked by mutableStateOf(false)
 }

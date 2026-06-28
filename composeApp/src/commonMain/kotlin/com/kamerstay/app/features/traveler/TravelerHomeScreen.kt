@@ -68,10 +68,21 @@ fun TravelerHomeScreen(navController: NavController) {
     )
 
     Scaffold(
-        containerColor = LocalAppColors.current.background,
+        containerColor = Color.Transparent,
         bottomBar = {
             TravelerBottomNavBar(navController = navController, selectedTab = 0)
-        }
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        SecondaryContainer.copy(alpha = 0.35f),
+                        BackgroundLight,
+                        Color(0xFFE8F4F5)
+                    )
+                )
+            )
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -498,6 +509,7 @@ fun TravelerHomeScreen(navController: NavController) {
                     onFavoriteToggle = { viewModel.wishlistState.toggleFromHotel(hotel) },
                     onClick = {
                         NavigationState.selectedHotelId = hotel.id
+                        viewModel.selectHotel(hotel.id)
                         navController.navigate(
                             Routes.HotelDetails.createRoute(hotel.id)
                         )

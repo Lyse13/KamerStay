@@ -10,5 +10,6 @@ class WriteReviewState {
     var reviewText by mutableStateOf("")
     var isLoading by mutableStateOf(false)
     var isSubmitted by mutableStateOf(false)
+    var error by mutableStateOf<String?>(null)
     var photoCount by mutableIntStateOf(2)
 }
