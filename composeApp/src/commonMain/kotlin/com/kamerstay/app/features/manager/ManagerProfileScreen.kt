@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.components.ManagerBottomNavBar
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -50,6 +51,7 @@ fun ManagerProfileScreen(navController: NavController) {
                 Button(
                     onClick = {
                         showLogoutDialog = false
+                        UserSession.logout()
                         navController.navigate(Routes.Welcome.route) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -164,7 +166,7 @@ fun ManagerProfileScreen(navController: NavController) {
                 )
 
                 Text(
-                    text = "Property Manager • Akwa Palace",
+                    text = "Property Manager${viewModel.managedHotel?.name?.let { " • $it" } ?: ""}",
                     fontSize = 14.sp,
                     color = OnSurfaceSecondary
                 )

@@ -30,8 +30,6 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.DashboardMockData
-import com.kamerstay.app.data.model.RecentActivity
 import com.kamerstay.app.core.components.ManagerBottomNavBar
 import com.kamerstay.app.data.state.UserSession
 
@@ -39,8 +37,45 @@ import com.kamerstay.app.data.state.UserSession
 fun ManagerDashboardScreen(navController: NavController) {
 
     val viewModel = koinViewModel<ManagerViewModel>()
-    val activities = DashboardMockData.recentActivities
-    val barHeights = DashboardMockData.revenueBarHeights
+
+    // Guard : redirige vers Welcome si non connecté
+    LaunchedEffect(UserSession.isLoggedIn) {
+        if (!UserSession.isLoggedIn) {
+            navController.navigate(Routes.Welcome.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
+    // Guard : redirige vers RegisterHotel si le manager n'a pas encore créé son hôtel
+    LaunchedEffect(viewModel.isLoadingHotel, viewModel.managedHotelId) {
+        if (!viewModel.isLoadingHotel && viewModel.managedHotelId.isBlank()) {
+            navController.navigate(Routes.RegisterHotel.route) {
+                popUpTo(Routes.ManagerDashboard.route) { inclusive = true }
+            }
+        }
+    }
+
+    // Hauteurs des barres dérivées des montants réels des réservations (7 dernières)
+    val barHeights = remember(viewModel.bookings) {
+        val sorted = viewModel.bookings
+            .groupBy { it.checkInDate.take(10) }
+            .entries.sortedBy { it.key }
+            .takeLast(7)
+        val maxAmount = sorted.maxOfOrNull { e -> e.value.sumOf { it.totalAmount } }
+            ?.takeIf { it > 0 } ?: 1.0
+        val computed = sorted.map { e ->
+            (e.value.sumOf { it.totalAmount } / maxAmount).toFloat().coerceIn(0.1f, 1f)
+        }
+        if (computed.isEmpty()) List(7) { 0.1f }
+        else List(7) { i -> computed.getOrElse(i) { 0.05f } }
+    }
+
+    // Ratio réservations confirmées / total pour la progress bar mensuelle
+    val occupancyRatio = remember(viewModel.bookings) {
+        if (viewModel.bookings.isEmpty()) 0f
+        else (viewModel.confirmedBookings.toFloat() / viewModel.totalBookings.toFloat()).coerceIn(0f, 1f)
+    }
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
@@ -49,7 +84,10 @@ fun ManagerDashboardScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.AddEditRoom.createRoute("1")) },
+                onClick = {
+                    val hotelId = viewModel.managedHotelId
+                    if (hotelId.isNotBlank()) navController.navigate(Routes.AddEditRoom.createRoute(hotelId))
+                },
                 containerColor = Primary,
                 contentColor = OnPrimary,
                 shape = CircleShape
@@ -329,7 +367,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                                 )
                             }
                             Text(
-                                text = "Target: \$120k",
+                                text = "${viewModel.confirmedBookings} confirmées",
                                 fontSize = 12.sp,
                                 color = Color.White.copy(0.7f)
                             )
@@ -338,7 +376,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = "Monthly Revenue",
+                            text = "Revenu total",
                             fontSize = 13.sp,
                             color = Color.White.copy(0.7f)
                         )
@@ -351,9 +389,9 @@ fun ManagerDashboardScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Progress bar
+                        // Progress bar — ratio réservations confirmées / total
                         LinearProgressIndicator(
-                            progress = { 0.82f },
+                            progress = { occupancyRatio },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
@@ -365,7 +403,7 @@ fun ManagerDashboardScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "82% of Monthly Goal",
+                            text = "${(occupancyRatio * 100).toInt()}% des réservations confirmées",
                             fontSize = 12.sp,
                             color = Color.White.copy(0.7f)
                         )
@@ -711,72 +749,3 @@ fun ManagerDashboardScreen(navController: NavController) {
     }
 }
 
-// ── Activity Row ──────────────────────────────────────────
-@Composable
-fun ActivityRow(activity: RecentActivity) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Avatar
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(OnSurfaceSecondary.copy(0.15f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.Outlined.Person,
-                contentDescription = null,
-                tint = OnSurfaceSecondary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = activity.title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = LocalAppColors.current.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = activity.room,
-                fontSize = 12.sp,
-                color = OnSurfaceSecondary,
-                maxLines = 2
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column(horizontalAlignment = Alignment.End) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(activity.badgeColor)
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = activity.badge,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = activity.badgeTextColor
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = activity.time,
-                fontSize = 12.sp,
-                color = OnSurfaceSecondary
-            )
-        }
-    }
-}

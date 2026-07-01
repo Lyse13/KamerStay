@@ -27,6 +27,7 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.model.CurrencyOption
 import com.kamerstay.app.data.model.LanguageOption
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.components.TravelerBottomNavBar
@@ -48,6 +49,7 @@ fun SettingsScreen(navController: NavController) {
                 Button(
                     onClick = {
                         showLogoutDialog = false
+                        UserSession.logout()
                         navController.navigate(Routes.Welcome.route) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -168,13 +170,13 @@ fun SettingsScreen(navController: NavController) {
                         }
                         Column {
                             Text(
-                                text = "Jean-Pierre Dupont",
+                                text = UserSession.fullName.ifBlank { "Utilisateur KamerStay" },
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = LocalAppColors.current.textPrimary
                             )
                             Text(
-                                text = "Premium Member",
+                                text = UserSession.email.ifBlank { "Voyageur" },
                                 fontSize = 13.sp,
                                 color = OnSurfaceSecondary
                             )

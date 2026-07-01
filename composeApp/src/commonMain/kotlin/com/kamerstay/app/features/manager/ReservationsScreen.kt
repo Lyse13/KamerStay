@@ -34,6 +34,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.components.EmptyReservationsSearch
 import com.kamerstay.app.core.components.ManagerBottomNavBar
 import com.kamerstay.app.core.components.ReservationCardSkeleton
+import com.kamerstay.app.data.state.UserSession
 
 private const val MODE_LIST = "list"
 private const val MODE_CALENDAR = "calendar"
@@ -123,7 +124,12 @@ fun ReservationsScreen(navController: NavController) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "JD",
+                                text = UserSession.fullName
+                                    .split(" ")
+                                    .filter { it.isNotEmpty() }
+                                    .take(2)
+                                    .joinToString("") { it.first().uppercaseChar().toString() }
+                                    .ifBlank { "?" },
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Secondary
@@ -337,7 +343,11 @@ fun ReservationsScreen(navController: NavController) {
                             onDetails = {
                                 navController.navigate(Routes.ReservationDetails.createRoute(reservation.id))
                             },
-                            onApprove = { },
+                            onApprove = {
+                                viewModel.approveBooking(reservation.id) {
+                                    viewModel.loadBookings(viewModel.managedHotelId.ifBlank { null })
+                                }
+                            },
                             onMessage = {
                                 navController.navigate(Routes.ReservationDetails.createRoute(reservation.id))
                             },

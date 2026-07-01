@@ -6,8 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kamerstay.app.core.navigation.NavigationState
-import com.kamerstay.app.data.mock.BookingsMockData
-import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.data.mock.NotificationsMockData
 import com.kamerstay.app.data.model.AppNotification
 import com.kamerstay.app.data.model.Booking
@@ -43,6 +41,28 @@ import com.kamerstay.app.data.state.WishlistState
 import com.kamerstay.app.data.state.WriteReviewState
 import com.kamerstay.app.model.Hotel
 import kotlinx.coroutines.launch
+
+// Mapping clé de recherche → nom canonique (pour normaliser les variantes sans accent)
+private val CITY_NORMALIZER = mapOf(
+    "douala"      to "Douala",
+    "yaoundé"     to "Yaoundé",
+    "yaounde"     to "Yaoundé",
+    "kribi"       to "Kribi",
+    "limbé"       to "Limbé",
+    "limbe"       to "Limbé",
+    "bafoussam"   to "Bafoussam",
+    "garoua"      to "Garoua",
+    "maroua"      to "Maroua",
+    "ngaoundéré"  to "Ngaoundéré",
+    "ngaoundere"  to "Ngaoundéré",
+    "bertoua"     to "Bertoua",
+    "ebolowa"     to "Ebolowa",
+    "kumba"       to "Kumba",
+    "bamenda"     to "Bamenda",
+    "buea"        to "Buea"
+)
+
+private val CAMEROON_CITIES = CITY_NORMALIZER.keys.toList()
 
 class TravelerViewModel : ViewModel() {
 
@@ -127,22 +147,104 @@ class TravelerViewModel : ViewModel() {
     var isLoadingHotelDetail by mutableStateOf(false)
         private set
 
-    var upcomingBookings by mutableStateOf<List<Booking>>(BookingsMockData.upcoming)
+    var upcomingBookings by mutableStateOf<List<Booking>>(emptyList())
         private set
 
-    var pastBookings by mutableStateOf<List<Booking>>(BookingsMockData.past)
+    var pastBookings by mutableStateOf<List<Booking>>(emptyList())
         private set
 
-    var cancelledBookings by mutableStateOf<List<Booking>>(BookingsMockData.cancelled)
+    var cancelledBookings by mutableStateOf<List<Booking>>(emptyList())
         private set
 
     var isLoadingBookings by mutableStateOf(false)
         private set
 
-    // Chargement initial des hôtels au démarrage du ViewModel
+    var isChangingPassword by mutableStateOf(false)
+        private set
+
+    var changePasswordError by mutableStateOf<String?>(null)
+        private set
+
+    // Chargement initial
     init {
         loadHotels()
+        loadUserBookings()
         loadChatHistory()
+    }
+
+    fun loadUserBookings() {
+        viewModelScope.launch {
+            isLoadingBookings = true
+            try {
+                val rawBookings = bookingRepository.getMyBookings()
+                val gradientPalette = listOf(
+                    listOf(androidx.compose.ui.graphics.Color(0xFF0D3A5C), androidx.compose.ui.graphics.Color(0xFF1A6B8A)),
+                    listOf(androidx.compose.ui.graphics.Color(0xFF1A3A1A), androidx.compose.ui.graphics.Color(0xFF0D2A0D)),
+                    listOf(androidx.compose.ui.graphics.Color(0xFF3A1A2A), androidx.compose.ui.graphics.Color(0xFF2A0D1A)),
+                    listOf(androidx.compose.ui.graphics.Color(0xFF1A2A3A), androidx.compose.ui.graphics.Color(0xFF0D1A28)),
+                )
+                fun gradientFor(id: String) = gradientPalette[kotlin.math.abs(id.hashCode()) % gradientPalette.size]
+                fun formatFcfa(amount: Double) =
+                    "${amount.toLong().toString().reversed().chunked(3).joinToString(" ").reversed()} FCFA"
+
+                val uiBookings = rawBookings.map { b ->
+                    val hotelName = b.hotel?.name ?: "Hôtel"
+                    val city      = b.hotel?.city ?: ""
+                    val location  = if (city.isNotBlank()) "$city, Cameroun" else "Cameroun"
+                    val uiStatus  = when (b.bookingStatus.name) {
+                        "CONFIRMED"              -> BookingStatus.CONFIRMED
+                        "CHECKED_IN"             -> BookingStatus.CONFIRMED
+                        "CHECKED_OUT", "COMPLETED" -> BookingStatus.PAST
+                        "CANCELLED"              -> BookingStatus.CANCELLED
+                        else                     -> BookingStatus.UPCOMING
+                    }
+                    Booking(
+                        id            = b.id,
+                        hotelName     = hotelName,
+                        location      = location,
+                        checkIn       = b.checkInDate,
+                        checkOut      = b.checkOutDate,
+                        totalPrice    = formatFcfa(b.totalAmount),
+                        status        = uiStatus,
+                        gradientColors = gradientFor(b.id),
+                        imageUrl      = b.hotel?.imageUrls?.firstOrNull() ?: ""
+                    )
+                }
+                upcomingBookings  = uiBookings.filter { it.status in listOf(BookingStatus.CONFIRMED, BookingStatus.UPCOMING) }
+                pastBookings      = uiBookings.filter { it.status == BookingStatus.PAST }
+                cancelledBookings = uiBookings.filter { it.status == BookingStatus.CANCELLED }
+            } catch (_: Exception) {
+                // Garder les listes vides — l'UI affiche un état vide
+            } finally {
+                isLoadingBookings = false
+            }
+        }
+    }
+
+    fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            isChangingPassword = true
+            changePasswordError = null
+            try {
+                authRepository.changePassword(currentPassword, newPassword)
+                onSuccess()
+            } catch (e: Exception) {
+                val msg = e.message?.let {
+                    if (it.contains("incorrect", ignoreCase = true) || it.contains("actuel", ignoreCase = true))
+                        "Mot de passe actuel incorrect."
+                    else "Impossible de mettre à jour le mot de passe. Vérifiez votre connexion."
+                } ?: "Impossible de mettre à jour le mot de passe."
+                changePasswordError = msg
+                onError(msg)
+            } finally {
+                isChangingPassword = false
+            }
+        }
     }
 
     fun loadHotels() {
@@ -155,8 +257,7 @@ class TravelerViewModel : ViewModel() {
                 hotels = result
             } catch (e: Exception) {
                 hotelsError = "Impossible de charger les hôtels. Vérifiez votre connexion."
-                // Fallback sur MockData si le backend est inaccessible
-                // hotels = MockData.hotels
+                // L'UI affiche hotelsError si le chargement échoue
             } finally {
                 isLoadingHotels = false
             }
@@ -213,25 +314,42 @@ class TravelerViewModel : ViewModel() {
 
     // ── AI Concierge ──────────────────────────────────────────
     fun sendConciergeMessage(message: String) {
+        // Capture l'historique AVANT d'ajouter le placeholder streaming
+        val history      = aiConciergeState.historyForApi()
+        val hotelsCtx    = buildHotelsContext(message)
         viewModelScope.launch {
             aiConciergeState.isTyping = true
+            aiConciergeState.beginStreamingMessage()
             try {
-                val response = aiRepository.sendMessage(
+                var firstChunk = true
+                aiRepository.streamMessage(
                     ConciergeRequest(
-                        message = message,
-                        history = aiConciergeState.historyForApi(),
-                        userName = UserSession.fullName.ifBlank { null },
-                        userContext = buildUserContext()
+                        message       = message,
+                        history       = history,
+                        userName      = UserSession.fullName.ifBlank { null },
+                        userContext   = buildUserContext(),
+                        hotelsContext = hotelsCtx
                     )
-                )
-                aiConciergeState.addAssistantMessage(response.message)
-                response.criteria?.let { criteria ->
-                    if (criteria.hasContent()) aiConciergeState.extractedCriteria = criteria
+                ).collect { chunk ->
+                    if (firstChunk) {
+                        aiConciergeState.isTyping = false
+                        firstChunk = false
+                    }
+                    aiConciergeState.appendStreamingChunk(chunk)
+                }
+                aiConciergeState.finalizeStreamingMessage()
+                // Extraire les critères du dernier message de Kamsa (sans appel API)
+                val lastKamsaMessage = aiConciergeState.messages
+                    .lastOrNull { it.role == "assistant" && !it.isWelcome && !it.isError }
+                    ?.content ?: ""
+                extractCriteriaFromText(lastKamsaMessage)?.let {
+                    aiConciergeState.extractedCriteria = it
                 }
                 saveChatHistory()
             } catch (_: Exception) {
+                aiConciergeState.finalizeStreamingMessage()
                 aiConciergeState.addAssistantMessage(
-                    "Désolé, je ne peux pas vous répondre pour l'instant. Vérifiez votre connexion et réessayez.",
+                    "Désolé, je ne peux pas vous répondre pour l'instant. Vérifiez votre connexion.",
                     isError = true
                 )
             } finally {
@@ -260,6 +378,90 @@ class TravelerViewModel : ViewModel() {
         }.trim()
     }
 
+    private fun buildHotelsContext(currentMessage: String): String? {
+        val hotels = allHotels.ifEmpty { return null }
+
+        // Détecte la ville mentionnée dans le message ou les critères extraits
+        val mentionedCity = aiConciergeState.extractedCriteria?.city?.lowercase()
+            ?: CAMEROON_CITIES.firstOrNull { currentMessage.contains(it, ignoreCase = true) }
+
+        val relevantHotels = if (mentionedCity != null) {
+            hotels.filter { it.city.lowercase().contains(mentionedCity) }
+                .ifEmpty { hotels } // fallback sur tous si aucun match
+        } else {
+            hotels
+        }
+
+        if (relevantHotels.isEmpty()) return null
+
+        return buildString {
+            appendLine("HÔTELS RÉELS DISPONIBLES SUR KAMERSTAY (données live, ne les invente pas) :")
+            relevantHotels
+                .sortedWith(compareBy({ it.city }, { -it.rating }))
+                .groupBy { it.city }
+                .forEach { (city, cityHotels) ->
+                    appendLine("── $city ──")
+                    cityHotels.take(8).forEach { h ->
+                        val rating = if (h.rating > 0) {
+                            val t = (h.rating * 10).toInt()
+                            "★${t / 10}.${t % 10}"
+                        } else "non noté"
+                        val price = "${formatFcfa(h.pricePerNight)} FCFA/nuit"
+                        val amenities = h.amenities.take(4).joinToString(", ")
+                            .ifBlank { "équipements standard" }
+                        appendLine("• [ID:${h.id}] ${h.name} | $rating | $price | ${h.address.ifBlank { city }} | $amenities")
+                    }
+                }
+            append("Important : utilise les noms et prix exacts ci-dessus. Ne mentionne que des hôtels de cette liste.")
+        }.trim()
+    }
+
+    // ── Extraction de critères côté client (après streaming) ──────────────────
+    // Pas d'appel API supplémentaire — analyse le texte de Kamsa localement.
+
+    private fun extractCriteriaFromText(text: String): com.kamerstay.app.data.model.SearchCriteria? {
+        val lower = text.lowercase()
+
+        // Ville
+        val city = CITY_NORMALIZER.entries.firstOrNull { (key, _) -> lower.contains(key) }?.value
+
+        // Budget — ex : "50 000 FCFA", "50.000 FCFA", "50000 FCFA", "50 000 XAF"
+        val budget = extractBudget(text)
+
+        // Type de voyage
+        val travelType = when {
+            lower.contains("famille") || lower.contains("family") || lower.contains("enfant") -> "family"
+            lower.contains("business") || lower.contains("affaires") || lower.contains("professionnel") -> "business"
+            lower.contains("couple") || lower.contains("romantique") || lower.contains("lune de miel") -> "couple"
+            lower.contains(" solo") || lower.contains("seul ") || lower.contains("alone") -> "solo"
+            else -> null
+        }
+
+        if (city == null && budget == null && travelType == null) return null
+
+        // Fusionne avec les critères déjà extraits pour ne pas les effacer au fil de la conversation
+        val existing = aiConciergeState.extractedCriteria
+        return com.kamerstay.app.data.model.SearchCriteria(
+            city       = city       ?: existing?.city,
+            budgetFcfa = budget     ?: existing?.budgetFcfa,
+            travelType = travelType ?: existing?.travelType,
+            checkIn    = existing?.checkIn,
+            checkOut   = existing?.checkOut,
+            amenities  = existing?.amenities ?: emptyList()
+        )
+    }
+
+    private fun extractBudget(text: String): Int? {
+        // Cherche un nombre suivi de FCFA / XAF / CFA / francs (avec espaces et points comme séparateurs)
+        val pattern = Regex("""(\d[\d\s.]{0,10}\d|\d)\s*(?:FCFA|XAF|CFA|francs?)""", RegexOption.IGNORE_CASE)
+        val raw = pattern.find(text)?.groupValues?.get(1)
+            ?.filter { it.isDigit() }
+            ?: return null
+        val value = raw.toLongOrNull() ?: return null
+        // Garde seulement des montants plausibles (1 000 à 10 000 000 FCFA)
+        return if (value in 1_000L..10_000_000L) value.toInt() else null
+    }
+
     fun checkProactiveMessage() {
         if (aiConciergeState.hasShownProactive) return
         val nextBooking = upcomingBookings.firstOrNull {
@@ -282,6 +484,7 @@ class TravelerViewModel : ViewModel() {
     fun initiatePayment(
         amount: Double,
         description: String,
+        bookingId: String = createdBooking?.id ?: "",
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
     ) {
@@ -591,8 +794,8 @@ class TravelerViewModel : ViewModel() {
 
     fun createBooking(onSuccess: () -> Unit, onError: (String) -> Unit = {}) {
         val hotel = selectedHotel
-            ?: MockData.hotels.find { it.id == NavigationState.selectedHotelId }
-            ?: MockData.hotels.first()
+            ?: allHotels.find { it.id == NavigationState.selectedHotelId }
+            ?: run { onError("Aucun hôtel sélectionné."); return }
         val state = bookingState
 
         viewModelScope.launch {

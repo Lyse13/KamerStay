@@ -29,17 +29,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockData
+import com.kamerstay.app.viewmodel.TravelerViewModel
 import kotlinx.coroutines.launch
-
-private const val BOOKING_ID = "MS-8829-QX"
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingVoucherScreen(navController: NavController) {
 
-    val hotel = MockData.getHotelById(NavigationState.selectedHotelId)
-        ?: MockData.hotels.first()
+    val viewModel = koinViewModel<TravelerViewModel>()
+    val booking = viewModel.createdBooking
+    val hotel = viewModel.selectedHotel
+    val bookingReference = booking?.bookingReference?.ifBlank { null } ?: "—"
 
     val clipboard = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
@@ -51,13 +52,14 @@ fun BookingVoucherScreen(navController: NavController) {
     // ── Share bottom sheet ────────────────────────────────
     if (showShareSheet) {
         VoucherShareSheet(
-            hotelName = hotel.name,
+            hotelName = hotel?.name ?: "—",
+            bookingReference = bookingReference,
             onCopyId = {
                 idCopied = true
                 showShareSheet = false
                 scope.launch {
-                    clipboard.setText(AnnotatedString(BOOKING_ID))
-                    snackbarHostState.showSnackbar("Booking ID copied to clipboard")
+                    clipboard.setText(AnnotatedString(bookingReference))
+                    snackbarHostState.showSnackbar("Booking ID copié")
                 }
             },
             onShareWhatsApp = {
@@ -172,7 +174,7 @@ fun BookingVoucherScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = hotel.name,
+                        text = hotel?.name ?: "—",
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White,
@@ -184,7 +186,7 @@ fun BookingVoucherScreen(navController: NavController) {
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(Icons.Outlined.Place, contentDescription = null, tint = Color.White.copy(0.7f), modifier = Modifier.size(13.dp))
-                        Text(text = hotel.address, fontSize = 12.sp, color = Color.White.copy(0.7f))
+                        Text(text = hotel?.address ?: "—", fontSize = 12.sp, color = Color.White.copy(0.7f))
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     // Booking ID — tap to copy
@@ -193,9 +195,9 @@ fun BookingVoucherScreen(navController: NavController) {
                             .clip(RoundedCornerShape(10.dp))
                             .background(if (idCopied) Primary.copy(0.7f) else Primary)
                             .clickable {
-                                clipboard.setText(AnnotatedString(BOOKING_ID))
+                                clipboard.setText(AnnotatedString(bookingReference))
                                 idCopied = true
-                                scope.launch { snackbarHostState.showSnackbar("Booking ID copied!") }
+                                scope.launch { snackbarHostState.showSnackbar("Booking ID copié !") }
                             }
                             .padding(horizontal = 14.dp, vertical = 10.dp)
                     ) {
@@ -205,7 +207,7 @@ fun BookingVoucherScreen(navController: NavController) {
                         ) {
                             Column {
                                 Text(text = "BOOKING ID", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = OnPrimary.copy(0.7f), letterSpacing = 0.8.sp)
-                                Text(text = BOOKING_ID, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = OnPrimary)
+                                Text(text = bookingReference, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = OnPrimary)
                             }
                             Icon(
                                 if (idCopied) Icons.Outlined.CheckCircle else Icons.Outlined.ContentCopy,
@@ -256,18 +258,19 @@ fun BookingVoucherScreen(navController: NavController) {
                     .background(LocalAppColors.current.surface)
                     .padding(20.dp)
             ) {
+                val nights = booking?.numberOfNights ?: 1
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = "CHECK-IN", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
-                    Text(text = "Oct 24", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold, color = LocalAppColors.current.textPrimary)
-                    Text(text = "Thursday, 3:00 PM", fontSize = 13.sp, color = OnSurfaceSecondary)
+                    Text(text = booking?.checkInDate ?: "—", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = LocalAppColors.current.textPrimary)
+                    Text(text = "À partir de 14h00", fontSize = 13.sp, color = OnSurfaceSecondary)
                     Spacer(modifier = Modifier.height(12.dp))
                     Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(Primary).padding(horizontal = 14.dp, vertical = 6.dp)) {
-                        Text(text = "4 NIGHTS", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimary)
+                        Text(text = "$nights NUIT${if (nights > 1) "S" else ""}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = OnPrimary)
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(text = "CHECK-OUT", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = OnSurfaceSecondary, letterSpacing = 0.8.sp)
-                    Text(text = "Oct 28", fontSize = 36.sp, fontWeight = FontWeight.ExtraBold, color = LocalAppColors.current.textPrimary)
-                    Text(text = "Monday, 11:00 AM", fontSize = 13.sp, color = OnSurfaceSecondary)
+                    Text(text = booking?.checkOutDate ?: "—", fontSize = 28.sp, fontWeight = FontWeight.ExtraBold, color = LocalAppColors.current.textPrimary)
+                    Text(text = "Avant 12h00", fontSize = 13.sp, color = OnSurfaceSecondary)
                 }
             }
 
@@ -377,7 +380,7 @@ fun BookingVoucherScreen(navController: NavController) {
             ) {
                 Box(modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)) {
                     Column {
-                        Text(text = "See you in ${hotel.city}", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                        Text(text = "À bientôt à ${hotel?.city ?: ""}", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Color.White)
                         Text(text = "Tap to view resort guide and dining menus", fontSize = 12.sp, color = Color.White.copy(0.6f))
                     }
                 }
@@ -410,6 +413,7 @@ fun BookingVoucherScreen(navController: NavController) {
 @Composable
 private fun VoucherShareSheet(
     hotelName: String,
+    bookingReference: String,
     onCopyId: () -> Unit,
     onShareWhatsApp: () -> Unit,
     onShareEmail: () -> Unit,
@@ -439,7 +443,7 @@ private fun VoucherShareSheet(
             }
 
             Text(text = hotelName, fontSize = 13.sp, color = OnSurfaceSecondary)
-            Text(text = "Booking ID: $BOOKING_ID", fontSize = 13.sp, color = Primary, fontWeight = FontWeight.SemiBold)
+            Text(text = "Booking ID: $bookingReference", fontSize = 13.sp, color = Primary, fontWeight = FontWeight.SemiBold)
 
             Spacer(modifier = Modifier.height(20.dp))
 

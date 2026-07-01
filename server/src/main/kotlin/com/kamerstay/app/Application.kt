@@ -94,6 +94,6 @@ fun Application.module() {
         landmarkRoutes(landmarkRepository, hotelRepository)
         reviewRoutes(reviewRepository)
         staffRoutes(staffRepository)
-        aiRoutes()
+        aiRoutes(hotelRepository)
     }
 }

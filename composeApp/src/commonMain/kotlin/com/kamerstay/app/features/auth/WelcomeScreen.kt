@@ -1,7 +1,11 @@
 package com.kamerstay.app.features.auth
 
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,10 +33,13 @@ import com.kamerstay.app.core.theme.*
 import kamerstay.composeapp.generated.resources.Res
 import kamerstay.composeapp.generated.resources.hotel_hero
 import org.jetbrains.compose.resources.painterResource
+import coil3.compose.AsyncImage
 
 
 @Composable
 fun WelcomeScreen(navController: NavController) {
+
+    val year = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
     Box(
         modifier = Modifier
@@ -86,22 +93,6 @@ fun WelcomeScreen(navController: NavController) {
                         fontWeight = FontWeight.Bold,
                         color = Primary
                     )
-
-//                    // Avatar
-//                    Box(
-//                        modifier = Modifier
-//                            .size(38.dp)
-//                            .clip(RoundedCornerShape(50))
-//                            .background(SurfaceVariant),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Icon(
-//                            Icons.Outlined.Person,
-//                            contentDescription = null,
-//                            tint = Primary,
-//                            modifier = Modifier.size(22.dp)
-//                        )
-//                    }
                 }
 
                 // ── Hero Content ──────────────────────
@@ -150,49 +141,6 @@ fun WelcomeScreen(navController: NavController) {
                     ) {
                         Text("Get Started →")
                     }
-
-//                    // Sign In Button
-//                    Button(
-//                        onClick = { navController.navigate(Routes.SignIn.route) },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(52.dp),
-//                        shape = RoundedCornerShape(10.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = Primary
-//                        )
-//                    ) {
-//                        Text(
-//                            text = "Sign In  →",
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.SemiBold,
-//                            color = OnPrimary
-//                        )
-//                    }
-//
-//                    Spacer(modifier = Modifier.height(12.dp))
-//
-//                    // Register Button
-//                    OutlinedButton(
-//                        onClick = { navController.navigate(Routes.SignUp.route) },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(52.dp),
-//                        shape = RoundedCornerShape(10.dp),
-//                        border = androidx.compose.foundation.BorderStroke(
-//                            1.5.dp, Primary
-//                        ),
-//                        colors = ButtonDefaults.outlinedButtonColors(
-//                            contentColor = Primary
-//                        )
-//                    ) {
-//                        Text(
-//                            text = "Register",
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.SemiBold,
-//                            color = Primary
-//                        )
-//                    }
                 }
             }
 
@@ -215,7 +163,10 @@ fun WelcomeScreen(navController: NavController) {
                         fontWeight = FontWeight.Bold,
                         color = LocalAppColors.current.textPrimary
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { navController.navigate(Routes.SignIn.route) }
+                    ) {
                         Text(
                             text = "View all",
                             fontSize = 14.sp,
@@ -236,17 +187,29 @@ fun WelcomeScreen(navController: NavController) {
 
                 // Destination cards
                 val destinations = listOf(
-                    Triple("Kribi Resorts", "Pristine beaches and Atlantic luxury", "COASTAL BLISS"),
-                    Triple("Yaoundé Heights", "Urban elegance in the capital", ""),
-                    Triple("Buea Escapes", "Mountain serenity and nature trails", ""),
-                    Triple("Douala Central", "Business hub with premium comfort", ""),
+                    DestinationData(
+                        "Kribi Resorts", "Pristine beaches and Atlantic luxury", "COASTAL BLISS",
+                        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&fit=crop&auto=format"
+                    ),
+                    DestinationData(
+                        "Yaoundé Heights", "Urban elegance in the capital", "",
+                        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&fit=crop&auto=format"
+                    ),
+                    DestinationData(
+                        "Buea Escapes", "Mountain serenity and nature trails", "",
+                        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&fit=crop&auto=format"
+                    ),
+                    DestinationData(
+                        "Douala Central", "Business hub with premium comfort", "",
+                        "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&fit=crop&auto=format"
+                    ),
                 )
-
-                destinations.forEach { (name, desc, badge) ->
+                destinations.forEach { dest ->
                     DestinationCard(
-                        name = name,
-                        description = desc,
-                        badge = badge
+                        name = dest.name,
+                        description = dest.description,
+                        badge = dest.badge,
+                        imageUrl = dest.imageUrl
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -255,7 +218,7 @@ fun WelcomeScreen(navController: NavController) {
 
                 // Footer
                 Text(
-                    text = "© 2025 KamerStay · Smart Hotel Booking for Cameroon",
+                    text = "© $year KamerStay · Smart Hotel Booking for Cameroon",
                     fontSize = 12.sp,
                     color = DarkNavy,
                     textAlign = TextAlign.Center,
@@ -268,12 +231,19 @@ fun WelcomeScreen(navController: NavController) {
     }
 }
 
+data class DestinationData(
+    val name: String,
+    val description: String,
+    val badge: String,
+    val imageUrl: String
+)
 // ── Destination Card ──────────────────────────────────────
 @Composable
 fun DestinationCard(
     name: String,
     description: String,
-    badge: String = ""
+    badge: String = "",
+    imageUrl: String = ""
 ) {
     Box(
         modifier = Modifier
@@ -282,6 +252,14 @@ fun DestinationCard(
             .clip(RoundedCornerShape(14.dp))
             .background(SurfaceVariant)
     ) {
+        if (imageUrl.isNotEmpty()) {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
         // Gradient overlay
         Box(
             modifier = Modifier

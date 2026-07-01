@@ -13,6 +13,7 @@ object UserSession {
     var phone    by mutableStateOf("")
     var role     by mutableStateOf(UserRole.TRAVELER)
     var token    by mutableStateOf("")
+    var language by mutableStateOf("fr")  // "fr" | "en" — détecté depuis le device au démarrage
     val isLoggedIn get() = token.isNotBlank()
 
     fun login(

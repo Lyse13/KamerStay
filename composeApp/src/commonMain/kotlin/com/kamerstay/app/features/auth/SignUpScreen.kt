@@ -1,5 +1,8 @@
 package com.kamerstay.app.features.auth
 
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -94,6 +97,7 @@ fun validatePassword(password: String): String? {
 @Composable
 fun SignUpScreen(navController: NavController) {
 
+    val year = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
     val viewModel = koinViewModel<AuthViewModel>()
     val state = viewModel.signUpState
     val scale = remember { Animatable(1f) }
@@ -188,7 +192,7 @@ fun SignUpScreen(navController: NavController) {
                         value = state.fullName,
                         onValueChange = { state.fullName = it },
                         placeholder = {
-                            Text("Mouandeu Lysette", color = OnSurfaceSecondary.copy(0.5f))
+                            Text("Ex: Marie Dupont", color = OnSurfaceSecondary.copy(0.5f))
                         },
                         leadingIcon = {
                             Icon(
@@ -217,7 +221,7 @@ fun SignUpScreen(navController: NavController) {
                         value = state.email,
                         onValueChange = { state.email = it },
                         placeholder = {
-                            Text("lysette@example.com", color = OnSurfaceSecondary.copy(0.5f))
+                            Text("nom@email.com", color = OnSurfaceSecondary.copy(0.5f))
                         },
                         leadingIcon = {
                             Icon(
@@ -458,7 +462,7 @@ fun SignUpScreen(navController: NavController) {
 
             // ── Footer ────────────────────────────────
             Text(
-                text = "© 2024 KamerStay Hospitality Group. All rights reserved.",
+                text = "© $year KamerStay Hospitality Group. All rights reserved.",
                 fontSize = 12.sp,
                 color = OnSurfaceSecondary.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,

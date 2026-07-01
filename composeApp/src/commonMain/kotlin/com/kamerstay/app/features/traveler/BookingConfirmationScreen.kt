@@ -17,8 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,7 +34,6 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -297,47 +299,19 @@ fun BookingConfirmationScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // QR code placeholder
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(1.dp, Divider, RoundedCornerShape(12.dp))
-                                .background(LocalAppColors.current.background),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                // QR arrows decoration
-                                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                                    Icon(
-                                        Icons.Outlined.ArrowBack,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Icon(
-                                        Icons.Outlined.ArrowForward,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Icon(
-                                    Icons.Outlined.QrCode,
-                                    contentDescription = null,
-                                    tint = OnSurfaceSecondary,
-                                    modifier = Modifier.size(36.dp)
-                                )
-                            }
-                        }
+                        val bookingRef = booking?.bookingReference ?: "KS-XXXXXXXX"
+                        BookingQrCode(
+                            data = bookingRef,
+                            modifier = Modifier.size(130.dp)
+                        )
 
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "Show this at check-in",
+                            text = "Présentez votre référence à l'accueil",
                             fontSize = 12.sp,
-                            color = OnSurfaceSecondary
+                            color = OnSurfaceSecondary,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
@@ -468,6 +442,61 @@ fun BookingConfirmationScreen(
                     color = OnSurfaceSecondary,
                     textAlign = TextAlign.Center,
                     lineHeight = 18.sp
+                )
+            }
+        }
+    }
+}
+
+// ── QR Code visuel (basé sur la référence de réservation) ─────
+@Composable
+fun BookingQrCode(data: String, modifier: Modifier = Modifier) {
+    val modules = 21
+    val seed    = data.hashCode().toLong()
+    val rng     = kotlin.random.Random(seed)
+    val matrix  = Array(modules) { r ->
+        BooleanArray(modules) { c ->
+            val inTL = r < 8 && c < 8
+            val inTR = r < 8 && c >= modules - 8
+            val inBL = r >= modules - 8 && c < 8
+            when {
+                inTL || inTR || inBL -> false
+                else                 -> rng.nextBoolean()
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.White)
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            val cell = size.width / modules
+            val dark = Color(0xFF1A2A3A)
+
+            fun drawFinder(startCol: Int, startRow: Int) {
+                for (r in 0..6) for (c in 0..6) {
+                    val fill = r == 0 || r == 6 || c == 0 || c == 6 || (r in 2..4 && c in 2..4)
+                    if (fill) drawRect(
+                        color    = dark,
+                        topLeft  = Offset((startCol + c) * cell, (startRow + r) * cell),
+                        size     = Size(cell, cell)
+                    )
+                }
+            }
+
+            drawFinder(0, 0)
+            drawFinder(modules - 7, 0)
+            drawFinder(0, modules - 7)
+
+            for (r in 0 until modules) for (c in 0 until modules) {
+                if (matrix[r][c]) drawRect(
+                    color    = dark,
+                    topLeft  = Offset(c * cell + cell * 0.05f, r * cell + cell * 0.05f),
+                    size     = Size(cell * 0.9f, cell * 0.9f)
                 )
             }
         }

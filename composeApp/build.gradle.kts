@@ -170,6 +170,10 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+    // Firebase Cloud Messaging (Android seulement)
+    // ⚠️  Prérequis : ajouter google-services.json dans composeApp/ et le plugin gms dans plugins {}
+    add("androidMainImplementation", platform("com.google.firebase:firebase-bom:33.7.0"))
+    add("androidMainImplementation", "com.google.firebase:firebase-messaging-ktx")
 }
 
 compose.desktop {

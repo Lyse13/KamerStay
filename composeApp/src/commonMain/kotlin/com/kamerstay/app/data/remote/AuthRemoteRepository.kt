@@ -81,4 +81,12 @@ class AuthRemoteRepository {
             setBody(mapOf("fullName" to fullName, "phoneNumber" to phoneNumber))
         }
     }
+
+    suspend fun changePassword(currentPassword: String, newPassword: String) {
+        client.put("$baseUrl/auth/change-password") {
+            contentType(ContentType.Application.Json)
+            headers { append(HttpHeaders.Authorization, "Bearer ${UserSession.token}") }
+            setBody(mapOf("currentPassword" to currentPassword, "newPassword" to newPassword))
+        }
+    }
 }

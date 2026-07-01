@@ -28,6 +28,7 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import com.kamerstay.app.data.state.UserSession
 
 @Composable
 fun ManagerPersonalInfoScreen(navController: NavController) {
@@ -155,7 +156,7 @@ fun ManagerPersonalInfoScreen(navController: NavController) {
                     color = Secondary
                 )
                 Text(
-                    text = "Hotel Akwa Palace • Admin Access",
+                    text = "${viewModel.managedHotel?.name?.let { "$it • " } ?: ""}Administrateur",
                     fontSize = 13.sp,
                     color = OnSurfaceSecondary
                 )

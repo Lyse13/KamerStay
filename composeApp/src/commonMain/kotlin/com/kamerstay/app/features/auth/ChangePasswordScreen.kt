@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -25,9 +26,13 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.components.SignUpLabel
 import com.kamerstay.app.core.components.authTextFieldColors
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.viewmodel.TravelerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ChangePasswordScreen(navController: NavController) {
+
+    val viewModel = koinViewModel<TravelerViewModel>()
 
     var currentPassword by remember { mutableStateOf("") }
     var currentPasswordVisible by remember { mutableStateOf(false) }
@@ -36,6 +41,7 @@ fun ChangePasswordScreen(navController: NavController) {
     var confirmPassword by remember { mutableStateOf("") }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var apiError by remember { mutableStateOf<String?>(null) }
 
     val hasMinLength = newPassword.length >= 8
     val hasUppercase = newPassword.any { it.isUpperCase() }
@@ -299,29 +305,75 @@ fun ChangePasswordScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // ── Erreur API ────────────────────────────
+                if (apiError != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(ErrorColor.copy(0.08f))
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Outlined.ErrorOutline,
+                                contentDescription = null,
+                                tint = ErrorColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = apiError ?: "",
+                                fontSize = 13.sp,
+                                color = ErrorColor,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 // ── Update Button ─────────────────────────
                 Button(
-                    onClick = { showSuccessDialog = true },
+                    onClick = {
+                        apiError = null
+                        viewModel.changePassword(
+                            currentPassword = currentPassword,
+                            newPassword     = newPassword,
+                            onSuccess       = { showSuccessDialog = true },
+                            onError         = { msg -> apiError = msg }
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    enabled = canSubmit
+                    enabled = canSubmit && !viewModel.isChangingPassword
                 ) {
-                    Text(
-                        text = "Update Password",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = OnPrimary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.Outlined.LockReset,
-                        contentDescription = null,
-                        tint = OnPrimary,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if (viewModel.isChangingPassword) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = OnPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Update Password",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = OnPrimary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            Icons.Outlined.LockReset,
+                            contentDescription = null,
+                            tint = OnPrimary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))

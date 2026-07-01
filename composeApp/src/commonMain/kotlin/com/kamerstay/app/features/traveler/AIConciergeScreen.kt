@@ -1,7 +1,11 @@
 package com.kamerstay.app.features.traveler
 
 import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import com.kamerstay.app.core.components.MarkdownText
+import com.kamerstay.app.data.state.UserSession
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.BorderStroke
@@ -32,7 +36,7 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.model.SearchCriteria
-import com.kamerstay.app.data.state.QUICK_REPLIES
+import com.kamerstay.app.data.state.getQuickReplies
 import com.kamerstay.app.data.state.UiChatMessage
 import com.kamerstay.app.viewmodel.TravelerViewModel
 import kotlinx.coroutines.launch
@@ -48,6 +52,10 @@ fun AIConciergeScreen(navController: NavController) {
     val messages = state.messages
     val isTyping = state.isTyping
     val criteria = state.extractedCriteria
+
+    // Nombre de messages réels (hors bienvenue/erreurs) — pour détecter le dépassement de fenêtre
+    val realMessageCount = messages.count { !it.isWelcome && !it.isError && !it.isStreaming }
+    val isContextTruncated = realMessageCount > 21  // > MAX_HISTORY_FOR_API + 1 (message courant)
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -143,13 +151,21 @@ fun AIConciergeScreen(navController: NavController) {
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                itemsIndexed(messages) { index, message ->
+                // Bandeau affiché quand les anciens messages ne font plus partie du contexte envoyé à Claude
+                if (isContextTruncated) {
+                    item(key = "context_limit_banner") {
+                        ContextLimitBanner()
+                    }
+                }
+                itemsIndexed(messages, key = { _, msg -> msg.id }) { _, message ->
+                    // Masque le placeholder streaming tant qu'il est encore vide
+                    if (message.isStreaming && message.content.isEmpty()) return@itemsIndexed
                     MessageBubble(message)
                 }
                 // Quick replies — visibles seulement quand la conversation est vide
                 if (state.hasOnlyWelcome && !isTyping) {
                     item(key = "quick_replies") {
-                        QuickRepliesRow(QUICK_REPLIES) { reply ->
+                        QuickRepliesRow(getQuickReplies()) { reply ->
                             state.addUserMessage(reply)
                             viewModel.sendConciergeMessage(reply)
                             coroutineScope.launch {
@@ -207,9 +223,54 @@ fun AIConciergeScreen(navController: NavController) {
 
 // ── Message Bubble ────────────────────────────────────────────────────────────
 
+// ── Bandeau limite de contexte ────────────────────────────────
+
+@Composable
+private fun ContextLimitBanner() {
+    val isEn = UserSession.language == "en"
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(OnSurfaceSecondary.copy(0.07f))
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Outlined.HistoryToggleOff,
+            contentDescription = null,
+            tint = OnSurfaceSecondary,
+            modifier = Modifier.size(13.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = if (isEn)
+                "Kamsa only remembers the last 10 exchanges"
+            else
+                "Kamsa ne mémorise que les 10 derniers échanges",
+            fontSize = 11.sp,
+            color = OnSurfaceSecondary,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
 @Composable
 private fun MessageBubble(message: UiChatMessage) {
     val isUser = message.role == "user"
+
+    // Curseur clignotant pour les messages en cours de streaming
+    val cursorAlpha by if (message.isStreaming) {
+        rememberInfiniteTransition(label = "cursor").animateFloat(
+            initialValue = 1f, targetValue = 0f,
+            animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse),
+            label = "cursor_alpha"
+        )
+    } else {
+        remember { mutableStateOf(0f) }
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -275,12 +336,25 @@ private fun MessageBubble(message: UiChatMessage) {
                         letterSpacing = 1.sp
                     )
                 }
-                Text(
-                    text = message.content,
-                    fontSize = 14.sp,
-                    color = textColor,
-                    lineHeight = 20.sp
-                )
+                if (message.isStreaming) {
+                    // Pendant le streaming : texte brut + curseur clignotant
+                    // (évite les artefacts de Markdown incomplet genre **texte sans fermeture)
+                    Text(
+                        text = message.content +
+                            if (cursorAlpha > 0.5f) "▋" else " ",
+                        fontSize   = 14.sp,
+                        color      = textColor,
+                        lineHeight = 20.sp
+                    )
+                } else {
+                    // Message complet : rendu Markdown
+                    MarkdownText(
+                        text      = message.content,
+                        baseColor = textColor,
+                        fontSize  = 14.sp,
+                        lineHeight = 20.sp
+                    )
+                }
             }
         }
 
@@ -402,45 +476,70 @@ private fun QuickRepliesRow(replies: List<String>, onReply: (String) -> Unit) {
 @Composable
 private fun CriteriaCard(criteria: SearchCriteria, onSearch: () -> Unit, onBook: () -> Unit) {
     val readyToBook = criteria.hasReadyToBook()
+    val isEn = UserSession.language == "en"
+
+    val labelDetected   = if (isEn) "Kamsa understood" else "Kamsa a compris"
+    val btnSeeHotels    = if (isEn) "See matching hotels" else "Voir les hôtels correspondants"
+    val btnSeeShort     = if (isEn) "See" else "Voir"
+    val btnBook         = if (isEn) "Book now" else "Réserver maintenant"
+
+    // Entrée animée pour attirer l'attention
+    val scale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+        label = "criteria_scale"
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(Primary.copy(0.08f))
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Secondary.copy(0.12f), Primary.copy(0.06f))
+                )
+            )
+            .border(1.dp, Secondary.copy(0.25f), RoundedCornerShape(16.dp))
             .padding(14.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+            // En-tête
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
-                    Icons.Outlined.Hotel,
+                    Icons.Outlined.AutoAwesome,
                     contentDescription = null,
                     tint = Secondary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(15.dp)
                 )
                 Text(
-                    "Critères détectés",
-                    fontSize = 13.sp,
+                    labelDetected,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Secondary
+                    color = Secondary,
+                    letterSpacing = 0.3.sp
                 )
             }
+
+            // Chips des critères
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement   = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                criteria.city?.let { CriteriaChip(Icons.Outlined.Place, it) }
-                criteria.budgetFcfa?.let { CriteriaChip(Icons.Outlined.Payments, "${it.toFcfa()} FCFA") }
-                criteria.checkIn?.let { CriteriaChip(Icons.Outlined.CalendarMonth, it) }
-                criteria.checkOut?.let { CriteriaChip(Icons.Outlined.CalendarMonth, it) }
-                criteria.travelType?.let { CriteriaChip(Icons.Outlined.Group, it.capitalize()) }
+                criteria.city?.let       { CriteriaChip(Icons.Outlined.Place,         it) }
+                criteria.budgetFcfa?.let { CriteriaChip(Icons.Outlined.Payments,      "max ${it.toFcfa()} FCFA") }
+                criteria.checkIn?.let    { CriteriaChip(Icons.Outlined.CalendarMonth,  it) }
+                criteria.checkOut?.let   { CriteriaChip(Icons.Outlined.CalendarMonth,  it) }
+                criteria.travelType?.let { CriteriaChip(Icons.Outlined.Group,          it.replaceFirstChar { c -> c.uppercase() }) }
             }
+
+            // Bouton(s) d'action
             if (readyToBook) {
-                // Réservation directe : critères complets (ville + dates)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -448,37 +547,38 @@ private fun CriteriaCard(criteria: SearchCriteria, onSearch: () -> Unit, onBook:
                     OutlinedButton(
                         onClick = onSearch,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(10.dp),
+                        shape  = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, Secondary),
                         contentPadding = PaddingValues(vertical = 10.dp)
                     ) {
                         Icon(Icons.Outlined.Search, null, modifier = Modifier.size(14.dp), tint = Secondary)
                         Spacer(Modifier.width(4.dp))
-                        Text("Voir", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Secondary)
+                        Text(btnSeeShort, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Secondary)
                     }
                     Button(
                         onClick = onBook,
                         modifier = Modifier.weight(2f),
-                        shape = RoundedCornerShape(10.dp),
+                        shape  = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Secondary),
                         contentPadding = PaddingValues(vertical = 10.dp)
                     ) {
                         Icon(Icons.Outlined.Hotel, null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Réserver maintenant", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(btnBook, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             } else {
+                // Bouton principal — pleine largeur, bien visible
                 Button(
                     onClick = onSearch,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
+                    shape  = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Secondary),
-                    contentPadding = PaddingValues(vertical = 10.dp)
+                    contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Icon(Icons.Outlined.Search, null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Rechercher ces hôtels", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.width(8.dp))
+                    Text(btnSeeHotels, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }

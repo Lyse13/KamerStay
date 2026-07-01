@@ -30,6 +30,7 @@ import com.kamerstay.app.core.utils.APP_NAME
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.components.ManagerBottomNavBar
+import com.kamerstay.app.data.state.UserSession
 
 @Composable
 fun ManageHotelScreen(navController: NavController) {
@@ -124,7 +125,10 @@ fun ManageHotelScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(14.dp))
 
                 OutlinedButton(
-                    onClick = { navController.navigate(Routes.HotelDetails.createRoute("1")) },
+                    onClick = {
+                        val hotelId = viewModel.managedHotelId
+                        if (hotelId.isNotBlank()) navController.navigate(Routes.HotelDetails.createRoute(hotelId))
+                    },
                     shape = RoundedCornerShape(20.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = LocalAppColors.current.textPrimary),
@@ -516,7 +520,7 @@ fun ManageHotelScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(4.dp))
 
                         Text(
-                            text = "Last edited 3 days ago by J. Doe",
+                            text = "Dernière modification par ${UserSession.fullName.ifBlank { "Gestionnaire" }}",
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
@@ -524,7 +528,10 @@ fun ManageHotelScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(14.dp))
 
                         OutlinedButton(
-                            onClick = { navController.navigate(Routes.HotelDetails.createRoute("1")) },
+                            onClick = {
+                                val hotelId = viewModel.managedHotelId
+                                if (hotelId.isNotBlank()) navController.navigate(Routes.HotelDetails.createRoute(hotelId))
+                            },
                             modifier = Modifier.fillMaxWidth().height(46.dp),
                             shape = RoundedCornerShape(10.dp),
                             border = androidx.compose.foundation.BorderStroke(1.dp, Divider),

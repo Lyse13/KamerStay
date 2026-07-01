@@ -13,7 +13,8 @@ data class ConciergeRequest(
     val message: String,
     val history: List<ConciergeChatMessage> = emptyList(),
     val userName: String? = null,
-    val userContext: String? = null
+    val userContext: String? = null,
+    val hotelsContext: String? = null
 )
 
 @Serializable

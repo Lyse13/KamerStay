@@ -12,7 +12,6 @@ import com.kamerstay.app.features.auth.ResetPasswordScreen
 import com.kamerstay.app.features.auth.RoleSelectionScreen
 import com.kamerstay.app.features.auth.SignInScreen
 import com.kamerstay.app.features.auth.SignUpScreen
-import com.kamerstay.app.features.auth.OnboardingScreen
 import com.kamerstay.app.features.auth.SplashScreen
 import com.kamerstay.app.features.auth.VerificationCodeScreen
 import com.kamerstay.app.features.auth.WelcomeScreen
@@ -84,9 +83,6 @@ fun KamerStayNavGraph(
         // ── Auth ──────────────────────────────────────
         composable(Routes.Splash.route) {
             SplashScreen(navController)
-        }
-        composable(Routes.Onboarding.route) {
-            OnboardingScreen(navController)
         }
         composable(Routes.Welcome.route) {
             WelcomeScreen(navController)

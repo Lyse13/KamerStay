@@ -29,6 +29,7 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.mock.RoomsMockData
 import com.kamerstay.app.data.model.ManagerRoom
 import com.kamerstay.app.model.enums.RoomStatus
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.kamerstay.app.core.components.ManagerBottomNavBar
@@ -115,7 +116,10 @@ fun RoomManagementScreen(navController: NavController, hotelId: String) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "AB",
+                            text = UserSession.fullName
+                                .split(" ").filter { it.isNotEmpty() }.take(2)
+                                .joinToString("") { it.first().uppercaseChar().toString() }
+                                .ifBlank { "?" },
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Secondary
@@ -368,13 +372,13 @@ fun RoomManagementCard(
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "\$${room.price}",
+                            text = "${room.price} FCFA",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary
                         )
                         Text(
-                            text = "per night",
+                            text = "/ nuit",
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )

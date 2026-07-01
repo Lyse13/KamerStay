@@ -434,7 +434,7 @@ fun BookingDetailsScreen(
 
                         // Pay Deposit Button
                         Button(
-                            onClick = { navController.navigate(Routes.Payment.route) },
+                            onClick = { navController.navigate(Routes.Payment.createRoute(bookingId)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp),

@@ -17,5 +17,5 @@ data class BookingReviewData(
     val taxesFees: Double
 ) {
     val roomTotal get() = pricePerNight * nights
-    val totalUSD get() = roomTotal + serviceFee + taxesFees
+    val total get() = roomTotal + serviceFee + taxesFees
 }

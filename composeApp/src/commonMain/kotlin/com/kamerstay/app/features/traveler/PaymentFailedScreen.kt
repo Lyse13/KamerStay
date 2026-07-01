@@ -247,7 +247,7 @@ fun PaymentFailedScreen(navController: NavController) {
                                     letterSpacing = 0.5.sp
                                 )
                                 Text(
-                                    text = "\$${state.amountDue}",
+                                    text = "${state.amountDue} FCFA",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = LocalAppColors.current.textPrimary

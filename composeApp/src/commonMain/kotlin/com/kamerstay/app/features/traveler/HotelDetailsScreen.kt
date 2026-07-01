@@ -118,19 +118,19 @@ fun HotelDetailsScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Starts from",
+                                text = "À partir de",
                                 fontSize = 12.sp,
                                 color = OnSurfaceSecondary
                             )
                             Row(verticalAlignment = Alignment.Bottom) {
                                 Text(
-                                    text = "\$${hotel.pricePerNight.toInt()}",
+                                    text = "${hotel.pricePerNight.toInt()} FCFA",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = LocalAppColors.current.textPrimary
                                 )
                                 Text(
-                                    text = " /night",
+                                    text = " /nuit",
                                     fontSize = 13.sp,
                                     color = OnSurfaceSecondary
                                 )
@@ -138,9 +138,11 @@ fun HotelDetailsScreen(
                         }
                         Button(
                             onClick = {
-                                NavigationState.selectedHotelId = hotel.id
-                                NavigationState.selectedRoomId = rooms.firstOrNull()?.id ?: ""
-                                navController.navigate(Routes.Booking.route)
+                                val hotelId = hotel.id
+                                val roomId  = rooms.firstOrNull()?.id ?: ""
+                                NavigationState.selectedHotelId = hotelId
+                                NavigationState.selectedRoomId  = roomId
+                                navController.navigate(Routes.Booking.createRoute(hotelId, roomId))
                             },
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Secondary),
@@ -914,12 +916,12 @@ fun HotelRoomCard(
                 ) {
                     Column {
                         Text(
-                            text = "Price for 2 nights",
+                            text = "Prix pour 2 nuits",
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "\$${(room.pricePerNight * 2).toInt()}",
+                            text = "${(room.pricePerNight * 2).toInt()} FCFA",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary

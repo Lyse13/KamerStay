@@ -32,6 +32,7 @@ import com.kamerstay.app.features.traveler.SettingsRowItem
 import com.kamerstay.app.features.traveler.SettingsRowWithValue
 import com.kamerstay.app.features.traveler.SettingsSectionHeader
 import com.kamerstay.app.features.traveler.SettingsToggleRow
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.viewmodel.ManagerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -51,6 +52,7 @@ fun ManagerSettingsScreen(navController: NavController) {
                 Button(
                     onClick = {
                         showLogoutDialog = false
+                        UserSession.logout()
                         navController.navigate(Routes.Welcome.route) {
                             popUpTo(0) { inclusive = true }
                         }
@@ -127,7 +129,10 @@ fun ManagerSettingsScreen(navController: NavController) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "AB",
+                                text = UserSession.fullName
+                                    .split(" ").filter { it.isNotEmpty() }.take(2)
+                                    .joinToString("") { it.first().uppercaseChar().toString() }
+                                    .ifBlank { "?" },
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -135,13 +140,13 @@ fun ManagerSettingsScreen(navController: NavController) {
                         }
                         Column {
                             Text(
-                                text = "Amina B.",
+                                text = UserSession.fullName.ifBlank { "Gestionnaire" },
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = LocalAppColors.current.textPrimary
                             )
                             Text(
-                                text = "Property Manager • Akwa Palace",
+                                text = "Property Manager${viewModel.managedHotel?.name?.let { " • $it" } ?: ""}",
                                 fontSize = 13.sp,
                                 color = OnSurfaceSecondary
                             )

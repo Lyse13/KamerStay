@@ -24,9 +24,9 @@ class VerificationState {
 
 class ManagerPersonalInfoState {
     var fullName by mutableStateOf(UserSession.fullName.ifBlank { "Gestionnaire d'Hôtel" })
-    var email    by mutableStateOf(UserSession.email.ifBlank { "contact@akwa-palace.cm" })
+    var email    by mutableStateOf(UserSession.email)
     var phoneCode   by mutableStateOf("+237")
-    var phoneNumber by mutableStateOf(UserSession.phone.ifBlank { "670 000 000" })
+    var phoneNumber by mutableStateOf(UserSession.phone)
     var region by mutableStateOf("Douala, Littoral")
     var emailNotifications by mutableStateOf(true)
     var isLoading by mutableStateOf(false)

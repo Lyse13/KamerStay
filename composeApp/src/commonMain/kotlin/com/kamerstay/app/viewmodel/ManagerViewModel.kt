@@ -5,11 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kamerstay.app.data.mock.CheckInMockData
 import com.kamerstay.app.data.mock.ManagerNotificationsMockData
-import com.kamerstay.app.data.mock.ReservationMockData
-import com.kamerstay.app.data.mock.RoomsMockData
-import com.kamerstay.app.data.mock.StaffMockData
 import com.kamerstay.app.data.model.CheckInGuest
 import com.kamerstay.app.data.model.DepartureGuest
 import com.kamerstay.app.data.model.ManagerNotification
@@ -83,11 +79,10 @@ class ManagerViewModel : ViewModel() {
 
     private var allBookings: List<Booking> = emptyList()
 
-    // ── Reservations mock (fallback) ──────────
-    var reservations by mutableStateOf<List<Reservation>>(ReservationMockData.reservations)
+    var reservations by mutableStateOf<List<Reservation>>(emptyList())
         private set
 
-    var rooms by mutableStateOf<List<ManagerRoom>>(RoomsMockData.rooms)
+    var rooms by mutableStateOf<List<ManagerRoom>>(emptyList())
         private set
 
     var managerRooms by mutableStateOf<List<com.kamerstay.app.model.Room>>(emptyList())
@@ -96,10 +91,10 @@ class ManagerViewModel : ViewModel() {
     var isLoadingManagerRooms by mutableStateOf(false)
         private set
 
-    var arrivals by mutableStateOf<List<CheckInGuest>>(CheckInMockData.arrivals)
+    var arrivals by mutableStateOf<List<CheckInGuest>>(emptyList())
         private set
 
-    var departures by mutableStateOf<List<DepartureGuest>>(CheckInMockData.departures)
+    var departures by mutableStateOf<List<DepartureGuest>>(emptyList())
         private set
 
     var managedHotelId by mutableStateOf("")
@@ -111,7 +106,7 @@ class ManagerViewModel : ViewModel() {
     var isLoadingHotel by mutableStateOf(false)
         private set
 
-    var staffMembers by mutableStateOf<List<StaffMember>>(StaffMockData.staffMembers)
+    var staffMembers by mutableStateOf<List<StaffMember>>(emptyList())
         private set
 
     var isLoadingStaff by mutableStateOf(false)
@@ -179,11 +174,9 @@ class ManagerViewModel : ViewModel() {
 
     val reservationsList: List<com.kamerstay.app.data.model.Reservation>
         get() = bookings.map { it.toReservation() }
-            .ifEmpty { ReservationMockData.reservations }
 
     fun selectReservation(bookingId: String) {
         selectedReservationDetail = bookings.find { it.id == bookingId }?.toReservationDetail()
-            ?: ReservationMockData.getById(bookingId)
     }
 
     fun cancelReservation(bookingId: String, onDone: () -> Unit = {}) {
@@ -194,6 +187,19 @@ class ManagerViewModel : ViewModel() {
                     if (it.id == bookingId) it.copy(bookingStatus = com.kamerstay.app.model.enums.BookingStatus.CANCELLED) else it
                 }
                 selectedReservationDetail = selectedReservationDetail?.copy(status = "Annulé")
+                onDone()
+            } catch (_: Exception) { /* ignorer */ }
+        }
+    }
+
+    fun approveBooking(bookingId: String, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                bookingRepository.updateBookingStatus(bookingId, "CONFIRMED")
+                bookings = bookings.map {
+                    if (it.id == bookingId) it.copy(bookingStatus = com.kamerstay.app.model.enums.BookingStatus.CONFIRMED) else it
+                }
+                selectedReservationDetail = selectedReservationDetail?.copy(status = "Confirmé")
                 onDone()
             } catch (_: Exception) { /* ignorer */ }
         }
@@ -269,15 +275,15 @@ class ManagerViewModel : ViewModel() {
         amount.toLong().toString().reversed().chunked(3).joinToString(" ").reversed()
 
     private fun updateCheckInOutLists(all: List<Booking>) {
-        arrivals = all
+        allArrivals = all
             .filter { it.bookingStatus.name in listOf("CONFIRMED", "PENDING") }
             .map { it.toCheckInGuest() }
-            .ifEmpty { CheckInMockData.arrivals }
+        arrivals = allArrivals
 
-        departures = all
+        allDepartures = all
             .filter { it.bookingStatus.name == "CHECKED_IN" }
             .map { it.toDepartureGuest() }
-            .ifEmpty { CheckInMockData.departures }
+        departures = allDepartures
     }
 
     private fun Booking.toCheckInGuest(): CheckInGuest {
@@ -468,8 +474,7 @@ class ManagerViewModel : ViewModel() {
     }
 
     val managerRoomsUi: List<ManagerRoom>
-        get() = if (managerRooms.isNotEmpty()) managerRooms.map { it.toManagerRoom() }
-                else RoomsMockData.rooms
+        get() = managerRooms.map { it.toManagerRoom() }
 
     // ── Enregistrement hôtel ─────────────────
     fun registerHotel(onSuccess: () -> Unit) {
@@ -514,7 +519,7 @@ class ManagerViewModel : ViewModel() {
             try {
                 val list = staffRepository.getStaff(managedHotelId)
                 rawStaffList = list
-                staffMembers = list.map { it.toStaffMember() }.ifEmpty { StaffMockData.staffMembers }
+                staffMembers = list.map { it.toStaffMember() }
             } catch (_: Exception) { /* garder le mock */ }
             finally { isLoadingStaff = false }
         }
@@ -632,71 +637,33 @@ class ManagerViewModel : ViewModel() {
         }
     }
 
-    // ── Fonctions mock (inchangées) ───────────
-    fun filterReservations(status: String) {
-        reservations = if (status == "All Bookings") {
-            ReservationMockData.reservations
-        } else {
-            ReservationMockData.reservations.filter {
-                it.status.equals(status, ignoreCase = true)
-            }
-        }
-    }
-
-    fun searchReservations(query: String) {
-        reservations = if (query.isEmpty()) {
-            ReservationMockData.reservations
-        } else {
-            ReservationMockData.reservations.filter {
-                it.guestName.contains(query, ignoreCase = true) ||
-                        it.roomType.contains(query, ignoreCase = true) ||
-                        it.bookingId.contains(query, ignoreCase = true)
-            }
-        }
-    }
-
-    fun filterRooms(status: String) {
-        rooms = if (status == "All Rooms") {
-            RoomsMockData.rooms
-        } else {
-            RoomsMockData.rooms.filter {
-                it.type.contains(status, ignoreCase = true)
-            }
-        }
-    }
+    // ── Filtrage / recherche sur données réelles ──────────────
+    private var allArrivals:   List<CheckInGuest>   = emptyList()
+    private var allDepartures: List<DepartureGuest> = emptyList()
 
     fun searchArrivals(query: String) {
-        arrivals = if (query.isEmpty()) {
-            CheckInMockData.arrivals
-        } else {
-            CheckInMockData.arrivals.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                        it.room.contains(query, ignoreCase = true) ||
-                        it.bookingId.contains(query, ignoreCase = true)
-            }
+        arrivals = if (query.isEmpty()) allArrivals
+        else allArrivals.filter {
+            it.name.contains(query, ignoreCase = true) ||
+            it.room.contains(query, ignoreCase = true) ||
+            it.bookingId.contains(query, ignoreCase = true)
         }
     }
 
     fun searchDepartures(query: String) {
-        departures = if (query.isEmpty()) {
-            CheckInMockData.departures
-        } else {
-            CheckInMockData.departures.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                        it.room.contains(query, ignoreCase = true)
-            }
+        departures = if (query.isEmpty()) allDepartures
+        else allDepartures.filter {
+            it.name.contains(query, ignoreCase = true) ||
+            it.room.contains(query, ignoreCase = true)
         }
     }
 
     fun searchStaff(query: String) {
-        staffMembers = if (query.isEmpty()) {
-            StaffMockData.staffMembers
-        } else {
-            StaffMockData.staffMembers.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                        it.role.contains(query, ignoreCase = true)
-            }
-        }
+        staffMembers = if (query.isEmpty()) rawStaffList.map { it.toStaffMember() }
+        else rawStaffList.filter {
+            it.fullName.contains(query, ignoreCase = true) ||
+            it.role.contains(query, ignoreCase = true)
+        }.map { it.toStaffMember() }
     }
 
     fun updateProfile(onSuccess: () -> Unit) {

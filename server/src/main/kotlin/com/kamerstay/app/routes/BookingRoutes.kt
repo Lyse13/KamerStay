@@ -6,6 +6,8 @@ import com.kamerstay.app.model.enums.BookingStatus
 import com.kamerstay.app.model.enums.PaymentStatus
 import com.kamerstay.app.repository.BookingRepository
 import com.kamerstay.app.repository.HotelRepository
+import com.kamerstay.app.repository.NotificationRepository
+import com.kamerstay.app.util.NotificationSender
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -22,7 +24,8 @@ import java.util.UUID
 
 fun Route.bookingRoutes(
     bookingRepository: BookingRepository,
-    hotelRepository: HotelRepository
+    hotelRepository: HotelRepository,
+    notificationRepository: NotificationRepository = NotificationRepository()
 ) {
     route("/bookings") {
 
@@ -46,10 +49,10 @@ fun Route.bookingRoutes(
                     travelerId = travelerId,
                     hotel = hotel,
                     bookingReference = "KS-${System.currentTimeMillis().toString().takeLast(8)}",
-                    bookingStatus = BookingStatus.CONFIRMED,
-                    paymentStatus = PaymentStatus.DEPOSIT_PAID,
+                    bookingStatus = BookingStatus.PENDING,
+                    paymentStatus = PaymentStatus.UNPAID,
                     createdAt = Clock.System.now().toString(),
-                    confirmedAt = Clock.System.now().toString()
+                    confirmedAt = ""
                 )
 
                 bookingRepository.createBooking(booking)
@@ -107,6 +110,28 @@ fun Route.bookingRoutes(
 
                 val updated = bookingRepository.updateBookingStatus(id, status)
                 if (updated) {
+                    // Envoyer notification push au voyageur
+                    val booking = bookingRepository.getBookingById(id)
+                    if (booking != null) {
+                        val fcmToken = notificationRepository.getToken(booking.travelerId)
+                        if (!fcmToken.isNullOrBlank()) {
+                            val (title, body) = when (status.uppercase()) {
+                                "CHECKED_IN"  -> "✅ Check-in confirmé"  to "Votre arrivée à ${booking.hotel?.name ?: "l'hôtel"} a été enregistrée."
+                                "CHECKED_OUT" -> "👋 Check-out effectué" to "Merci pour votre séjour à ${booking.hotel?.name ?: "l'hôtel"}. À bientôt !"
+                                "CANCELLED"   -> "❌ Réservation annulée" to "Votre réservation #${booking.bookingReference} a été annulée."
+                                "CONFIRMED"   -> "🎉 Réservation confirmée" to "Votre réservation à ${booking.hotel?.name ?: "l'hôtel"} est confirmée !"
+                                else -> null to null
+                            }
+                            if (title != null && body != null) {
+                                NotificationSender.send(
+                                    fcmToken = fcmToken,
+                                    title    = title,
+                                    body     = body,
+                                    data     = mapOf("type" to "BOOKING_UPDATE", "bookingId" to id, "status" to status)
+                                )
+                            }
+                        }
+                    }
                     call.respond(HttpStatusCode.OK, mapOf("message" to "Statut mis à jour"))
                 } else {
                     call.respond(HttpStatusCode.NotFound, ErrorResponse("Réservation introuvable"))

@@ -131,7 +131,7 @@ fun BookingReviewScreen(navController: NavController) {
                             color = OnSurfaceSecondary
                         )
                         Text(
-                            text = "\$${formatPrice(booking.totalUSD)}",
+                            text = "${booking.total.toInt()} FCFA",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary
@@ -141,9 +141,8 @@ fun BookingReviewScreen(navController: NavController) {
                         onClick = {
                             viewModel.createBooking(
                                 onSuccess = {
-                                    navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
-                                        popUpTo(Routes.TravelerHome.route)
-                                    }
+                                    val bookingId = viewModel.createdBooking?.id ?: ""
+                                    navController.navigate(Routes.Payment.createRoute(bookingId))
                                 },
                                 onError = {}
                             )
@@ -462,18 +461,18 @@ fun BookingReviewScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(14.dp))
 
                         PriceSummaryRow(
-                            label = "\$${booking.pricePerNight.toInt()}.00 x ${booking.nights} nights",
-                            amount = "\$${formatPrice(booking.roomTotal)}"
+                            label = "${booking.pricePerNight.toInt()} FCFA × ${booking.nights} nuits",
+                            amount = "${booking.roomTotal.toInt()} FCFA"
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         PriceSummaryRow(
-                            label = "Service fee",
-                            amount = "\$${formatPrice(booking.serviceFee)}"
+                            label = "Frais de service",
+                            amount = "${booking.serviceFee.toInt()} FCFA"
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         PriceSummaryRow(
-                            label = "Taxes & occupancy fees",
-                            amount = "\$${formatPrice(booking.taxesFees)}"
+                            label = "Taxes & frais d'occupation",
+                            amount = "${booking.taxesFees.toInt()} FCFA"
                         )
 
                         HorizontalDivider(
@@ -488,19 +487,19 @@ fun BookingReviewScreen(navController: NavController) {
                         ) {
                             Column {
                                 Text(
-                                    text = "Total (USD)",
+                                    text = "Total (FCFA)",
                                     fontSize = 12.sp,
                                     color = Color.White.copy(0.7f)
                                 )
                                 Text(
-                                    text = "\$${formatPrice(booking.totalUSD)}",
+                                    text = "${booking.total.toInt()} FCFA",
                                     fontSize = 28.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color.White
                                 )
                             }
                             Text(
-                                text = "Includes all taxes",
+                                text = "Toutes taxes comprises",
                                 fontSize = 12.sp,
                                 color = Color.White.copy(0.6f),
                                 modifier = Modifier.padding(bottom = 4.dp)

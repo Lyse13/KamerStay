@@ -34,6 +34,7 @@ import com.kamerstay.app.core.components.TravelerBottomNavBar
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.model.Hotel
 import com.kamerstay.app.viewmodel.TravelerViewModel
@@ -46,6 +47,15 @@ fun TravelerHomeScreen(navController: NavController) {
     val viewModel = koinViewModel<TravelerViewModel>()
     val state = viewModel.searchState
     val hotels = viewModel.hotels
+
+    // Guard : redirige vers Welcome si l'utilisateur n'est pas connecté
+    LaunchedEffect(UserSession.isLoggedIn) {
+        if (!UserSession.isLoggedIn) {
+            navController.navigate(Routes.Welcome.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     var isLoading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {

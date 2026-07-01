@@ -108,13 +108,13 @@ fun RoomDetailsScreen(
                 ) {
                     Column {
                         Text(
-                            text = "\$${pricePerNight.toInt()}",
+                            text = "${pricePerNight.toInt()} FCFA",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary
                         )
                         Text(
-                            text = "/ night",
+                            text = "/ nuit",
                             fontSize = 12.sp,
                             color = OnSurfaceSecondary
                         )
@@ -459,13 +459,13 @@ fun RoomDetailsScreen(
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                text = "\$${pricePerNight.toInt()}",
+                                text = "${pricePerNight.toInt()} FCFA",
                                 fontSize = 32.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White
                             )
                             Text(
-                                text = "/ night",
+                                text = "/ nuit",
                                 fontSize = 14.sp,
                                 color = Color.White.copy(0.7f),
                                 modifier = Modifier.padding(bottom = 4.dp)
@@ -562,13 +562,13 @@ fun RoomDetailsScreen(
 
                         // Price breakdown
                         PriceLineItem(
-                            label = "\$${pricePerNight.toInt()} x $nights nights",
-                            amount = "\$${roomTotal.toInt()}"
+                            label = "${pricePerNight.toInt()} FCFA × $nights nuits",
+                            amount = "${roomTotal.toInt()} FCFA"
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        PriceLineItem(label = "Cleaning fee", amount = "\$${cleaningFee.toInt()}")
+                        PriceLineItem(label = "Frais de nettoyage", amount = "${cleaningFee.toInt()} FCFA")
                         Spacer(modifier = Modifier.height(6.dp))
-                        PriceLineItem(label = "Service fee", amount = "\$${serviceFee.toInt()}")
+                        PriceLineItem(label = "Frais de service", amount = "${serviceFee.toInt()} FCFA")
 
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -587,7 +587,7 @@ fun RoomDetailsScreen(
                                 color = Color.White
                             )
                             Text(
-                                text = "\$${total.toInt()}",
+                                text = "${total.toInt()} FCFA",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White
@@ -649,7 +649,7 @@ fun RoomDetailsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Map placeholder
+                    // Carte interactive — navigue vers l'écran carte au clic
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -663,7 +663,52 @@ fun RoomDetailsScreen(
                                     )
                                 )
                             )
+                            .clickable { navController.navigate(Routes.MapLocation.route) }
                     ) {
+                        // Grille de points simulant une carte
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            val dotColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.06f)
+                            val spacing = 20f
+                            var y = 0f
+                            while (y < size.height) {
+                                var x = 0f
+                                while (x < size.width) {
+                                    drawCircle(color = dotColor, radius = 1.5f, center = androidx.compose.ui.geometry.Offset(x, y))
+                                    x += spacing
+                                }
+                                y += spacing
+                            }
+                        }
+
+                        // Indicateur "Voir sur la carte"
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(Primary.copy(0.85f))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    androidx.compose.material.icons.Icons.Outlined.Map,
+                                    contentDescription = null,
+                                    tint = androidx.compose.ui.graphics.Color.White,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Voir sur la carte",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = androidx.compose.ui.graphics.Color.White
+                                )
+                            }
+                        }
+
+                        // Adresse en bas à gauche
                         Box(
                             modifier = Modifier
                                 .align(Alignment.BottomStart)

@@ -45,8 +45,13 @@ private val otpStore = ConcurrentHashMap<String, OtpEntry>()
 
 @Serializable data class UpdateProfileRequest(val fullName: String, val phoneNumber: String)
 @Serializable data class UpdateProfileResponse(val success: Boolean, val fullName: String, val phoneNumber: String)
+@Serializable data class FcmTokenRequest(val token: String)
+@Serializable data class ChangePasswordRequest(val currentPassword: String, val newPassword: String)
 
-fun Route.authRoutes(userRepository: UserRepository) {
+fun Route.authRoutes(
+    userRepository: UserRepository,
+    notificationRepository: com.kamerstay.app.repository.NotificationRepository = com.kamerstay.app.repository.NotificationRepository()
+) {
 
     route("/auth") {
 
@@ -189,6 +194,51 @@ fun Route.authRoutes(userRepository: UserRepository) {
                     fullName    = req.fullName.trim(),
                     phoneNumber = req.phoneNumber.trim()
                 ))
+            }
+        }
+
+        // ── Changer le mot de passe (utilisateur connecté) ───
+        authenticate("auth-jwt") {
+            put("/change-password") {
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal?.payload?.getClaim("userId")?.asString()
+                    ?: return@put call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Non authentifié"))
+
+                val req = call.receive<ChangePasswordRequest>()
+                if (req.newPassword.length < 8) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Mot de passe trop court (8 caractères min.)"))
+                    return@put
+                }
+
+                val user = userRepository.findUserById(userId)
+                    ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("Utilisateur introuvable"))
+
+                val credentials = userRepository.findCredentialsByEmail(user.email)
+                    ?: return@put call.respond(HttpStatusCode.NotFound, ErrorResponse("Identifiants introuvables"))
+
+                if (!PasswordHasher.verify(req.currentPassword, credentials.passwordHash)) {
+                    call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Mot de passe actuel incorrect"))
+                    return@put
+                }
+
+                userRepository.updatePassword(user.email, PasswordHasher.hash(req.newPassword))
+                call.respond(HttpStatusCode.OK, mapOf("success" to true, "message" to "Mot de passe mis à jour."))
+            }
+        }
+
+        // ── Enregistrer le token FCM ──────────────────────────
+        authenticate("auth-jwt") {
+            put("/fcm-token") {
+                val principal = call.principal<JWTPrincipal>()
+                val userId = principal?.payload?.getClaim("userId")?.asString()
+                    ?: return@put call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Non authentifié"))
+                val req = call.receive<FcmTokenRequest>()
+                if (req.token.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Token FCM requis"))
+                    return@put
+                }
+                notificationRepository.upsertToken(userId, req.token)
+                call.respond(HttpStatusCode.OK, mapOf("success" to true))
             }
         }
 

@@ -26,10 +26,15 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.core.utils.APP_NAME
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import com.kamerstay.app.core.components.TravelerBottomNavBar
 
 @Composable
 fun PrivacyTermsScreen(navController: NavController) {
+
+    val year = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
@@ -341,7 +346,7 @@ fun PrivacyTermsScreen(navController: NavController) {
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        text = "© 2023 All Rights Reserved",
+                        text = "© $year All Rights Reserved",
                         fontSize = 12.sp,
                         color = OnSurfaceSecondary,
                         textAlign = TextAlign.Center

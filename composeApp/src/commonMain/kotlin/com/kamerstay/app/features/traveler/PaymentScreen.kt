@@ -54,9 +54,9 @@ fun PaymentScreen(
 
     val nights = bookingState.nights.takeIf { it > 0 } ?: 1
     val roomTotal = room.pricePerNight * nights
-    val serviceFee = roomTotal * 0.068
-    val totalAmount = roomTotal + serviceFee
-    val depositAmount = totalAmount * 0.30
+    val taxesFees = roomTotal * 0.085
+    val totalTTC = roomTotal + taxesFees
+    val depositAmount = totalTTC * 0.20
 
     Scaffold(
         containerColor = LocalAppColors.current.background,
@@ -222,12 +222,30 @@ fun PaymentScreen(
                             fontWeight = FontWeight.Bold,
                             color = LocalAppColors.current.textPrimary
                         )
-                        Icon(
-                            Icons.Outlined.CreditCard,
-                            contentDescription = null,
-                            tint = OnSurfaceSecondary,
-                            modifier = Modifier.size(22.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(OnSurfaceSecondary.copy(0.12f))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = "Prochainement",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = OnSurfaceSecondary
+                                )
+                            }
+                            Icon(
+                                Icons.Outlined.CreditCard,
+                                contentDescription = null,
+                                tint = OnSurfaceSecondary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -236,34 +254,34 @@ fun PaymentScreen(
                     Text(
                         text = "Card Number",
                         fontSize = 12.sp,
-                        color = OnSurfaceSecondary
+                        color = OnSurfaceSecondary.copy(0.5f)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = state.cardNumber,
-                        onValueChange = { state.cardNumber = it },
+                        onValueChange = { },
                         placeholder = {
                             Text(
                                 "XXXX XXXX XXXX XXXX",
-                                color = OnSurfaceSecondary.copy(0.4f)
+                                color = OnSurfaceSecondary.copy(0.25f)
                             )
                         },
                         trailingIcon = {
                             Icon(
                                 Icons.Outlined.Lock,
                                 contentDescription = null,
-                                tint = OnSurfaceSecondary,
+                                tint = OnSurfaceSecondary.copy(0.4f),
                                 modifier = Modifier.size(18.dp)
                             )
                         },
+                        enabled = false,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Primary,
-                            unfocusedBorderColor = Divider,
-                            focusedContainerColor = LocalAppColors.current.surface,
-                            unfocusedContainerColor = LocalAppColors.current.surface,
-                            cursorColor = Primary
+                            disabledBorderColor = Divider.copy(0.5f),
+                            disabledContainerColor = LocalAppColors.current.surface.copy(0.5f),
+                            disabledTextColor = OnSurfaceSecondary.copy(0.4f),
+                            disabledPlaceholderColor = OnSurfaceSecondary.copy(0.25f)
                         ),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number
@@ -281,23 +299,23 @@ fun PaymentScreen(
                             Text(
                                 text = "Expiry Date",
                                 fontSize = 12.sp,
-                                color = OnSurfaceSecondary
+                                color = OnSurfaceSecondary.copy(0.5f)
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             OutlinedTextField(
                                 value = state.expiryDate,
-                                onValueChange = { state.expiryDate = it },
+                                onValueChange = { },
                                 placeholder = {
-                                    Text("MM / YY", color = OnSurfaceSecondary.copy(0.4f))
+                                    Text("MM / YY", color = OnSurfaceSecondary.copy(0.25f))
                                 },
+                                enabled = false,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(10.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Primary,
-                                    unfocusedBorderColor = Divider,
-                                    focusedContainerColor = LocalAppColors.current.surface,
-                                    unfocusedContainerColor = LocalAppColors.current.surface,
-                                    cursorColor = Primary
+                                    disabledBorderColor = Divider.copy(0.5f),
+                                    disabledContainerColor = LocalAppColors.current.surface.copy(0.5f),
+                                    disabledTextColor = OnSurfaceSecondary.copy(0.4f),
+                                    disabledPlaceholderColor = OnSurfaceSecondary.copy(0.25f)
                                 ),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Number
@@ -310,23 +328,23 @@ fun PaymentScreen(
                             Text(
                                 text = "CVV",
                                 fontSize = 12.sp,
-                                color = OnSurfaceSecondary
+                                color = OnSurfaceSecondary.copy(0.5f)
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             OutlinedTextField(
                                 value = state.cvv,
-                                onValueChange = { state.cvv = it },
+                                onValueChange = { },
                                 placeholder = {
-                                    Text("***", color = OnSurfaceSecondary.copy(0.4f))
+                                    Text("***", color = OnSurfaceSecondary.copy(0.25f))
                                 },
+                                enabled = false,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(10.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Primary,
-                                    unfocusedBorderColor = Divider,
-                                    focusedContainerColor = LocalAppColors.current.surface,
-                                    unfocusedContainerColor = LocalAppColors.current.surface,
-                                    cursorColor = Primary
+                                    disabledBorderColor = Divider.copy(0.5f),
+                                    disabledContainerColor = LocalAppColors.current.surface.copy(0.5f),
+                                    disabledTextColor = OnSurfaceSecondary.copy(0.4f),
+                                    disabledPlaceholderColor = OnSurfaceSecondary.copy(0.25f)
                                 ),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Number
@@ -409,12 +427,12 @@ fun PaymentScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Frais de service (6.8%)",
+                                text = "Taxes & frais (8,5%)",
                                 fontSize = 14.sp,
                                 color = OnSurfaceSecondary
                             )
                             Text(
-                                text = "${serviceFee.toInt()} FCFA",
+                                text = "${taxesFees.toInt()} FCFA",
                                 fontSize = 14.sp,
                                 color = LocalAppColors.current.textPrimary,
                                 fontWeight = FontWeight.Medium
@@ -435,7 +453,7 @@ fun PaymentScreen(
                             letterSpacing = 0.5.sp
                         )
                         Text(
-                            text = "${totalAmount.toInt()} FCFA",
+                            text = "${totalTTC.toInt()} FCFA",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = LocalAppColors.current.textPrimary
@@ -458,7 +476,7 @@ fun PaymentScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = "Acompte à payer (30%)",
+                                        text = "Acompte à payer (20%)",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = LocalAppColors.current.textPrimary

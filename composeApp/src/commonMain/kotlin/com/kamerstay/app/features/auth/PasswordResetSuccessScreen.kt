@@ -27,9 +27,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun PasswordResetSuccessScreen(navController: NavController) {
+
+    val year = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
     Box(
         modifier = Modifier
@@ -222,7 +227,7 @@ fun PasswordResetSuccessScreen(navController: NavController) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "© 2024 KamerStay Concierge. All travel rights reserved.",
+                        text = "© $year KamerStay Concierge. All travel rights reserved.",
                         fontSize = 12.sp,
                         color = OnSurfaceSecondary.copy(0.6f),
                         textAlign = TextAlign.Center,
