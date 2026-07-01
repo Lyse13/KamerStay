@@ -50,7 +50,7 @@ fun Route.bookingRoutes(
                     hotel = hotel,
                     bookingReference = "KS-${System.currentTimeMillis().toString().takeLast(8)}",
                     bookingStatus = BookingStatus.PENDING,
-                    paymentStatus = PaymentStatus.UNPAID,
+                    paymentStatus = PaymentStatus.PENDING,
                     createdAt = Clock.System.now().toString(),
                     confirmedAt = ""
                 )
