@@ -148,8 +148,11 @@ class AiConciergeState {
             if (saved.isNotEmpty()) {
                 messages.clear()
                 messages.add(buildWelcome())
-                messages.addAll(saved)
-                // Restaure les critères depuis le dernier message si présents
+                // Réattribue un id unique à chaque message restauré
+                // pour éviter toute collision avec les futurs messages (msg_0, msg_1...)
+                saved.forEach { msg ->
+                    messages.add(msg.copy(id = "restored_${idCounter++}"))
+                }
             }
         } catch (_: Exception) { /* Si JSON corrompu, on repart à zéro */ }
     }

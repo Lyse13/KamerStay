@@ -38,7 +38,7 @@ import com.kamerstay.app.viewmodel.TravelerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.absoluteValue
 
-// Dégradé de couleur dérivé de l'ID de l'hôtel (stable, pas de données Color dans le modèle)
+
 private fun gradientForHotel(hotel: Hotel): List<Color> {
     val gradients = listOf(
         listOf(Color(0xFF0D3A5C), Color(0xFF1A2A3A)),

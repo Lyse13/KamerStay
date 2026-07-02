@@ -32,9 +32,12 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import kamerstay.composeapp.generated.resources.Res
 import kamerstay.composeapp.generated.resources.hotel_hero
+import org.jetbrains.compose.resources.DrawableResource
+import kamerstay.composeapp.generated.resources.kribi_resort
+import kamerstay.composeapp.generated.resources.yaounde_heights
+import kamerstay.composeapp.generated.resources.buea_escapes
+import kamerstay.composeapp.generated.resources.douala_central
 import org.jetbrains.compose.resources.painterResource
-import coil3.compose.AsyncImage
-
 
 @Composable
 fun WelcomeScreen(navController: NavController) {
@@ -188,20 +191,20 @@ fun WelcomeScreen(navController: NavController) {
                 // Destination cards
                 val destinations = listOf(
                     DestinationData(
-                        "Kribi Resorts", "Pristine beaches and Atlantic luxury", "COASTAL BLISS",
-                        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&fit=crop&auto=format"
+                        name = "Kribi Resorts", "Pristine beaches and Atlantic luxury", "COASTAL BLISS",
+                        image = Res.drawable.kribi_resort
                     ),
                     DestinationData(
-                        "Yaoundé Heights", "Urban elegance in the capital", "",
-                        "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&fit=crop&auto=format"
+                        name = "Yaoundé Heights", "Urban elegance in the capital", "",
+                        image =Res.drawable.yaounde_heights
                     ),
                     DestinationData(
-                        "Buea Escapes", "Mountain serenity and nature trails", "",
-                        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&fit=crop&auto=format"
+                        name = "Buea Escapes", "Mountain serenity and nature trails", "",
+                        image = Res.drawable.buea_escapes
                     ),
                     DestinationData(
-                        "Douala Central", "Business hub with premium comfort", "",
-                        "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&fit=crop&auto=format"
+                        name = "Douala Central", "Business hub with premium comfort", "",
+                        image = Res.drawable.douala_central
                     ),
                 )
                 destinations.forEach { dest ->
@@ -209,7 +212,7 @@ fun WelcomeScreen(navController: NavController) {
                         name = dest.name,
                         description = dest.description,
                         badge = dest.badge,
-                        imageUrl = dest.imageUrl
+                        image = dest.image
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -235,7 +238,7 @@ data class DestinationData(
     val name: String,
     val description: String,
     val badge: String,
-    val imageUrl: String
+    val image: DrawableResource
 )
 // ── Destination Card ──────────────────────────────────────
 @Composable
@@ -243,7 +246,7 @@ fun DestinationCard(
     name: String,
     description: String,
     badge: String = "",
-    imageUrl: String = ""
+    image: DrawableResource
 ) {
     Box(
         modifier = Modifier
@@ -252,14 +255,12 @@ fun DestinationCard(
             .clip(RoundedCornerShape(14.dp))
             .background(SurfaceVariant)
     ) {
-        if (imageUrl.isNotEmpty()) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = name,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        Image(
+            painter = painterResource(image),
+            contentDescription = name,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
         // Gradient overlay
         Box(
             modifier = Modifier

@@ -33,6 +33,7 @@ import com.kamerstay.app.data.state.PaymentMethodsState
 import com.kamerstay.app.data.state.PaymentState
 import com.kamerstay.app.data.state.ReviewState
 import com.kamerstay.app.data.state.SearchState
+import com.kamerstay.app.data.state.SharedTravelerState
 import com.kamerstay.app.data.state.TravelerPaymentMethodsState
 import com.kamerstay.app.data.state.TravelerPersonalInfoState
 import com.kamerstay.app.data.state.TravelerSettingsState
@@ -64,7 +65,7 @@ private val CITY_NORMALIZER = mapOf(
 
 private val CAMEROON_CITIES = CITY_NORMALIZER.keys.toList()
 
-class TravelerViewModel : ViewModel() {
+class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
 
     private val hotelRepository      = HotelRemoteRepository()
     private val bookingRepository    = BookingRemoteRepository()
@@ -76,9 +77,11 @@ class TravelerViewModel : ViewModel() {
 
     val aiConciergeState = AiConciergeState()
 
-    val searchState = SearchState()
+    // Shared across all screens via Koin singleton
+    val searchState get() = shared.searchState
+    val filterState get() = shared.filterState
+
     val bookingState = BookingState()
-    val filterState = FilterState()
     val paymentState = PaymentState()
     val reviewState = ReviewState()
     val mapState = MapState()
@@ -109,34 +112,14 @@ class TravelerViewModel : ViewModel() {
     val unreadNotificationCount get() =
         todayNotifications.count { !it.isRead } + earlierNotifications.count { !it.isRead }
 
-    // ── Hotels (chargés depuis le vrai backend) ────────────────────────
-    var hotels by mutableStateOf<List<Hotel>>(emptyList())
-        private set
+    // ── Hotels — délégués au singleton partagé ────────────────────────
+    val hotels get() = shared.hotels
+    val isLoadingHotels get() = shared.isLoadingHotels
+    val hotelsError get() = shared.hotelsError
+    val displayedHotels get() = shared.displayedHotels
+    val priceSortAscending get() = shared.priceSortAscending
 
-    var isLoadingHotels by mutableStateOf(false)
-        private set
-
-    var hotelsError by mutableStateOf<String?>(null)
-        private set
-
-    // Cache local pour la recherche (tous les hôtels chargés)
-    private var allHotels: List<Hotel> = emptyList()
-
-    var priceSortAscending by mutableStateOf<Boolean?>(null)
-
-    val displayedHotels get() = when (priceSortAscending) {
-        true  -> hotels.sortedBy { it.pricePerNight }
-        false -> hotels.sortedByDescending { it.pricePerNight }
-        null  -> hotels
-    }
-
-    fun togglePriceSort() {
-        priceSortAscending = when (priceSortAscending) {
-            null  -> true
-            true  -> false
-            false -> null
-        }
-    }
+    fun togglePriceSort() = shared.togglePriceSort()
 
     var selectedHotel by mutableStateOf<Hotel?>(null)
         private set
@@ -248,30 +231,30 @@ class TravelerViewModel : ViewModel() {
     }
 
     fun loadHotels() {
+        if (shared.allHotels.isNotEmpty()) return  // Déjà chargé dans le singleton, on ne recharge pas
         viewModelScope.launch {
-            isLoadingHotels = true
-            hotelsError = null
+            shared.isLoadingHotels = true
+            shared.hotelsError = null
             try {
                 val result = hotelRepository.getAllHotels()
-                allHotels = result
-                hotels = result
+                shared.allHotels = result
+                shared.hotels = result
             } catch (e: Exception) {
-                hotelsError = "Impossible de charger les hôtels. Vérifiez votre connexion."
-                // L'UI affiche hotelsError si le chargement échoue
+                shared.hotelsError = "Impossible de charger les hôtels. Vérifiez votre connexion."
             } finally {
-                isLoadingHotels = false
+                shared.isLoadingHotels = false
             }
         }
     }
 
     fun selectHotel(hotelId: String) {
-        selectedHotel = allHotels.find { it.id == hotelId }
-            ?: hotels.find { it.id == hotelId }
+        selectedHotel = shared.allHotels.find { it.id == hotelId }
+            ?: shared.hotels.find { it.id == hotelId }
     }
 
     fun loadHotelDetail(hotelId: String) {
         // Chemin rapide : hôtel déjà en mémoire
-        val cached = allHotels.find { it.id == hotelId } ?: hotels.find { it.id == hotelId }
+        val cached = shared.allHotels.find { it.id == hotelId } ?: shared.hotels.find { it.id == hotelId }
         if (cached != null) selectedHotel = cached
 
         viewModelScope.launch {
@@ -291,17 +274,7 @@ class TravelerViewModel : ViewModel() {
         }
     }
 
-    fun searchHotels() {
-        hotels = if (searchState.query.isEmpty()) {
-            allHotels
-        } else {
-            allHotels.filter {
-                it.name.contains(searchState.query, ignoreCase = true) ||
-                        it.city.contains(searchState.query, ignoreCase = true) ||
-                        it.address.contains(searchState.query, ignoreCase = true)
-            }
-        }
-    }
+    fun searchHotels() = shared.searchHotels()
 
     var createdBooking by mutableStateOf<SharedBooking?>(null)
         private set
@@ -379,7 +352,7 @@ class TravelerViewModel : ViewModel() {
     }
 
     private fun buildHotelsContext(currentMessage: String): String? {
-        val hotels = allHotels.ifEmpty { return null }
+        val hotels = shared.allHotels.ifEmpty { return null }
 
         // Détecte la ville mentionnée dans le message ou les critères extraits
         val mentionedCity = aiConciergeState.extractedCriteria?.city?.lowercase()
@@ -794,7 +767,7 @@ class TravelerViewModel : ViewModel() {
 
     fun createBooking(onSuccess: () -> Unit, onError: (String) -> Unit = {}) {
         val hotel = selectedHotel
-            ?: allHotels.find { it.id == NavigationState.selectedHotelId }
+            ?: shared.allHotels.find { it.id == NavigationState.selectedHotelId }
             ?: run { onError("Aucun hôtel sélectionné."); return }
         val state = bookingState
 

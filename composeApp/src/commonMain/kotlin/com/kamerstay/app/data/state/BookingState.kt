@@ -47,22 +47,21 @@ class FilterState {
     var selectedStars by mutableStateOf(setOf<Int>())
     var selectedPropertyType by mutableStateOf("")
     var selectedAmenities by mutableStateOf(setOf<String>())
-    var selectedLandmark by mutableStateOf("")
     var isVerifiedOnly by mutableStateOf(false)
 
     val hasActiveFilters get() =
         isVerifiedOnly ||
         selectedAmenities.isNotEmpty() ||
-        selectedLandmark.isNotEmpty() ||
         selectedPropertyType.isNotEmpty() ||
-        selectedStars.isNotEmpty()
+        selectedStars.isNotEmpty() ||
+        minPrice != 15000f ||
+        maxPrice != 450000f
 
     fun clearAll() {
         isVerifiedOnly = false
         selectedStars = setOf()
         selectedPropertyType = ""
         selectedAmenities = setOf()
-        selectedLandmark = ""
         minPrice = 15000f
         maxPrice = 450000f
     }

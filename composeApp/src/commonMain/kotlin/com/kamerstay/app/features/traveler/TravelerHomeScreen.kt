@@ -48,7 +48,6 @@ fun TravelerHomeScreen(navController: NavController) {
     val state = viewModel.searchState
     val hotels = viewModel.hotels
 
-    // Guard : redirige vers Welcome si l'utilisateur n'est pas connecté
     LaunchedEffect(UserSession.isLoggedIn) {
         if (!UserSession.isLoggedIn) {
             navController.navigate(Routes.Welcome.route) {
@@ -71,10 +70,8 @@ fun TravelerHomeScreen(navController: NavController) {
     )
 
     val filterChips = listOf(
-        Triple(Icons.Outlined.Verified, "Verified Hotels",  { viewModel.filterState.clearAll(); viewModel.filterState.isVerifiedOnly = true }),
-        Triple(Icons.Outlined.Place,    "Near Landmarks",   { viewModel.filterState.clearAll(); viewModel.filterState.selectedLandmark = "City Center" }),
-        Triple(Icons.Outlined.Hotel,    "Suites",           { viewModel.filterState.clearAll(); viewModel.filterState.selectedPropertyType = "Suite" }),
-        Triple(Icons.Outlined.Pool,     "With Pool",        { viewModel.filterState.clearAll(); viewModel.filterState.selectedAmenities = setOf("Pool") })
+        Triple(Icons.Outlined.Verified, "Verified Hotels", { viewModel.filterState.clearAll(); viewModel.filterState.isVerifiedOnly = true }),
+        Triple(Icons.Outlined.Pool,     "With Pool",       { viewModel.filterState.clearAll(); viewModel.filterState.selectedAmenities = setOf("Pool") })
     )
 
     Scaffold(
@@ -124,14 +121,14 @@ fun TravelerHomeScreen(navController: NavController) {
                             text = "KamerStay",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Secondary
+                            color = SecondaryContainer
                         )
                     }
                     Box(
                         modifier = Modifier
                             .size(42.dp)
                             .clip(CircleShape)
-                            .border(2.dp, Primary, CircleShape)
+                            .border(2.dp, SecondaryContainer, CircleShape)
                             .background(Primary.copy(0.15f))
                             .clickable { navController.navigate(Routes.TravelerProfile.route) },
                         contentAlignment = Alignment.Center
@@ -168,14 +165,14 @@ fun TravelerHomeScreen(navController: NavController) {
                         .clip(RoundedCornerShape(24.dp))
                         .background(LocalAppColors.current.surface)
                         .border(1.dp, Divider, RoundedCornerShape(24.dp))
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         Icons.Outlined.Search,
                         contentDescription = null,
-                        tint = OnSurfaceSecondary,
-                        modifier = Modifier.size(18.dp)
+                        tint = SecondaryContainer,
+                        modifier = Modifier.size(22.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     BasicTextField(
@@ -189,28 +186,29 @@ fun TravelerHomeScreen(navController: NavController) {
                         decorationBox = { inner ->
                             if (state.query.isEmpty()) {
                                 Text(
-                                    "Search near University, Hospi...",
+                                    "Where are you traveling next ?",
                                     fontSize = 14.sp,
-                                    color = OnSurfaceSecondary.copy(0.5f)
+                                    color = Outline
                                 )
                             }
                             inner()
                         }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(LocalAppColors.current.background)
-                            .clickable { navController.navigate(Routes.Filter.route) },
-                        contentAlignment = Alignment.Center
+                    Button(
+                        onClick = {
+                            viewModel.searchHotels()
+                            navController.navigate(Routes.HotelSearch.route)
+                        },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SecondaryContainer),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Icon(
-                            Icons.Outlined.Tune,
-                            contentDescription = null,
-                            tint = Secondary,
-                            modifier = Modifier.size(20.dp)
+                        Text(
+                            text = "Search",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
                     }
                 }
@@ -227,7 +225,7 @@ fun TravelerHomeScreen(navController: NavController) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(Secondary)
+                                .background(Primary)
                                 .clickable {
                                     applyFilter()
                                     navController.navigate(Routes.HotelSearch.route)
@@ -512,7 +510,7 @@ fun TravelerHomeScreen(navController: NavController) {
                                 text = "Explore Like a Local",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Secondary
+                                color = SecondaryContainer
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
@@ -525,7 +523,7 @@ fun TravelerHomeScreen(navController: NavController) {
                             Button(
                                 onClick = { navController.navigate(Routes.LocalGuide.route) },
                                 shape = RoundedCornerShape(20.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                                colors = ButtonDefaults.buttonColors(containerColor = SecondaryContainer),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                             ) {
                                 Text(
@@ -793,7 +791,7 @@ fun HomeHotelCard(hotel: Hotel, isInWishlist: Boolean, onFavoriteToggle: () -> U
                     Button(
                         onClick = onClick,
                         shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                        colors = ButtonDefaults.buttonColors(containerColor = SecondaryContainer),
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp)
                     ) {
                         Text(

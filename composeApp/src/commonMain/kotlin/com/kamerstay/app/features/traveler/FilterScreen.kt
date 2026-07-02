@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,24 +35,11 @@ fun FilterScreen(navController: NavController) {
 
     val starRatings = listOf(1, 2, 3, 4, 5)
 
-    val propertyTypes = listOf(
-        Icons.Outlined.Apartment to "Hotel",
-        Icons.Outlined.BeachAccess to "Resort",
-        Icons.Outlined.Villa to "Villa",
-        Icons.Outlined.KingBed to "Suite"
-    )
-
     val amenities = listOf(
         Icons.Outlined.Wifi to "Wi-Fi",
         Icons.Outlined.Pool to "Pool",
         Icons.Outlined.FitnessCenter to "Gym",
-        Icons.Outlined.Spa to "Spa",
-        Icons.Outlined.AcUnit to "AC"
-    )
-
-    val landmarks = listOf(
-        Icons.Outlined.Place to "City Center" to "Within 2km",
-        Icons.Outlined.FlightTakeoff to "Airport" to "Under 15 mins drive"
+        Icons.Outlined.Spa to "Spa"
     )
 
     Scaffold(
@@ -66,7 +52,11 @@ fun FilterScreen(navController: NavController) {
                     .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
                 Button(
-                    onClick = { navController.popBackStack() },
+                    onClick = {
+                        navController.navigate(Routes.HotelSearch.route) {
+                            popUpTo(Routes.HotelSearch.route) { inclusive = true }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -277,8 +267,8 @@ fun FilterScreen(navController: NavController) {
                                 )
                                 .clickable {
                                     state.selectedStars = if (star in state.selectedStars)
-                                        state.selectedStars - star
-                                    else state.selectedStars + star
+                                        setOf()
+                                    else setOf(star)
                                 }
                                 .padding(horizontal = 14.dp, vertical = 10.dp)
                         ) {
@@ -298,74 +288,6 @@ fun FilterScreen(navController: NavController) {
                                     fontWeight = FontWeight.SemiBold,
                                     color = if (isSelected) OnPrimary else LocalAppColors.current.textPrimary
                                 )
-                            }
-                        }
-                    }
-                }
-            }
-
-            FilterDivider()
-
-            // ── Property Type ─────────────────────────
-            FilterSection(title = "Property Type") {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    propertyTypes.chunked(2).forEach { rowItems ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            rowItems.forEach { (icon, label) ->
-                                val isSelected = state.selectedPropertyType == label
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(LocalAppColors.current.surface)
-                                        .border(
-                                            if (isSelected) 2.dp else 1.dp,
-                                            if (isSelected) Primary else Divider,
-                                            RoundedCornerShape(12.dp)
-                                        )
-                                        .clickable {
-                                            state.selectedPropertyType =
-                                                if (state.selectedPropertyType == label) "" else label
-                                        }
-                                        .padding(20.dp)
-                                ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.Start
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(44.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(
-                                                    if (isSelected) Primary
-                                                    else LocalAppColors.current.background
-                                                ),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                icon,
-                                                contentDescription = null,
-                                                tint = if (isSelected) OnPrimary
-                                                else OnSurfaceSecondary,
-                                                modifier = Modifier.size(22.dp)
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.height(10.dp))
-                                        Text(
-                                            text = label,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = LocalAppColors.current.textPrimary
-                                        )
-                                    }
-                                }
-                            }
-                            // Fill empty space if odd number
-                            if (rowItems.size == 1) {
-                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
@@ -418,110 +340,6 @@ fun FilterScreen(navController: NavController) {
                                     color = if (isSelected) Secondary else LocalAppColors.current.textPrimary
                                 )
                             }
-                        }
-                    }
-                }
-            }
-
-            FilterDivider()
-
-            // ── Landmarks Proximity ───────────────────
-            FilterSection(title = "Landmarks Proximity") {
-                // View Map button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Landmarks Proximity",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = LocalAppColors.current.textPrimary
-                    )
-                    Text(
-                        text = "View Map",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Primary,
-                        modifier = Modifier.clickable { navController.navigate(Routes.MapLocation.route) }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Radio options
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(LocalAppColors.current.surface)
-                ) {
-                    landmarks.forEachIndexed { index, (iconLabel, distance) ->
-                        val (icon, label) = iconLabel
-                        val isSelected = state.selectedLandmark == label
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { state.selectedLandmark = label }
-                                .padding(horizontal = 16.dp, vertical = 14.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Icon(
-                                    icon,
-                                    contentDescription = null,
-                                    tint = OnSurfaceSecondary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Column {
-                                    Text(
-                                        text = label,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = LocalAppColors.current.textPrimary
-                                    )
-                                    Text(
-                                        text = distance,
-                                        fontSize = 12.sp,
-                                        color = OnSurfaceSecondary
-                                    )
-                                }
-                            }
-
-                            // Radio button
-                            Box(
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .border(
-                                        2.dp,
-                                        if (isSelected) Primary else Divider,
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (isSelected) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(12.dp)
-                                            .clip(CircleShape)
-                                            .background(Primary)
-                                    )
-                                }
-                            }
-                        }
-
-                        if (index < landmarks.lastIndex) {
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = Divider
-                            )
                         }
                     }
                 }
