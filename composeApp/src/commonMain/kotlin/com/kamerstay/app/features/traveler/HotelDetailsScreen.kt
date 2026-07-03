@@ -103,13 +103,20 @@ fun HotelDetailsScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
-            containerColor = LocalAppColors.current.background,
+            containerColor = Color.Transparent,
             bottomBar = {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(LocalAppColors.current.surface)
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .fillMaxSize()
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    SecondaryContainer.copy(alpha = 0.35f),
+                                    BackgroundLight,
+                                    Color(0xFFE8F4F5)
+                                )
+                            )
+                        )
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -145,7 +152,7 @@ fun HotelDetailsScreen(
                                 navController.navigate(Routes.Booking.createRoute(hotelId, roomId))
                             },
                             shape = RoundedCornerShape(28.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Secondary),
+                            colors = ButtonDefaults.buttonColors(containerColor = Primary),
                             contentPadding = PaddingValues(horizontal = 28.dp, vertical = 14.dp)
                         ) {
                             Text(

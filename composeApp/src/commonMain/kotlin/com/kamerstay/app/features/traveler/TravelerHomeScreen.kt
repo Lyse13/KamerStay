@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.painter.Painter
 import coil3.compose.AsyncImage
 import com.kamerstay.app.core.components.HotelCardSkeleton
 import com.kamerstay.app.core.components.TravelerBottomNavBar
@@ -35,11 +35,16 @@ import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.state.UserSession
-import com.kamerstay.app.data.mock.MockData
 import com.kamerstay.app.model.Hotel
 import com.kamerstay.app.viewmodel.TravelerViewModel
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.city_douala
+import kamerstay.composeapp.generated.resources.city_yaounde
+import kamerstay.composeapp.generated.resources.city_kribi
+import kamerstay.composeapp.generated.resources.city_limbe
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun TravelerHomeScreen(navController: NavController) {
@@ -63,10 +68,10 @@ fun TravelerHomeScreen(navController: NavController) {
     }
 
     val featuredCities = listOf(
-        "Douala" to listOf(Color(0xFF1A2A3A), Color(0xFF0D1A28)),
-        "Yaoundé" to listOf(Color(0xFF1A3A2E), Color(0xFF0D2218)),
-        "Kribi" to listOf(Color(0xFF2A1A3A), Color(0xFF1A0D28)),
-        "Limbe" to listOf(Color(0xFF3A2A1A), Color(0xFF281A0D))
+        Triple("Douala", Res.drawable.city_douala, Unit),
+        Triple("Yaoundé", Res.drawable.city_yaounde, Unit),
+        Triple("Kribi", Res.drawable.city_kribi, Unit),
+        Triple("Limbe", Res.drawable.city_limbe, Unit)
     )
 
     val filterChips = listOf(
@@ -438,13 +443,23 @@ fun TravelerHomeScreen(navController: NavController) {
                             .weight(1f)
                             .height(200.dp)
                             .clip(RoundedCornerShape(14.dp))
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = featuredCities[0].second
-                                )
-                            )
                             .clickable { navController.navigate(Routes.HotelSearch.route) }
                     ) {
+                        Image(
+                            painter = painterResource(featuredCities[0].second),
+                            contentDescription = featuredCities[0].first,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(Color.Transparent, Color.Black.copy(0.7f))
+                                    )
+                                )
+                        )
                         Text(
                             text = featuredCities[0].first,
                             fontSize = 16.sp,
@@ -461,21 +476,33 @@ fun TravelerHomeScreen(navController: NavController) {
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        featuredCities.drop(1).take(2).forEach { (city, colors) ->
+                        featuredCities.drop(1).take(2).forEach { cityData ->
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(95.dp)
                                     .clip(RoundedCornerShape(14.dp))
-                                    .background(
-                                        brush = Brush.verticalGradient(colors = colors)
-                                    )
                                     .clickable {
                                         navController.navigate(Routes.HotelSearch.route)
                                     }
                             ) {
+                                Image(
+                                    painter = painterResource(cityData.second),
+                                    contentDescription = cityData.first,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(Color.Transparent, Color.Black.copy(0.7f))
+                                            )
+                                        )
+                                )
                                 Text(
-                                    text = city,
+                                    text = cityData.first,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,

@@ -12,7 +12,7 @@ object CancellationMockData {
 
     val summary = CancellationSummary(
         bookingId = "BK-20241234",
-        hotelName = "Sawa Hôtel & SPA",
+        hotelName = "Sawa Hôtel",
         roomType = "Deluxe Suite",
         checkIn = "Nov 15, 2024",
         checkOut = "Nov 20, 2024",
@@ -48,7 +48,7 @@ object CancellationMockData {
 
     val refundTracking = RefundTracking(
         bookingId = "BK-20241234",
-        hotelName = "Sawa Hôtel & SPA",
+        hotelName = "Sawa Hôtel",
         cancellationDate = "Nov 14, 2024",
         refundAmount = "XAF 225,000",
         paymentMethod = "MTN Mobile Money ••••7821",

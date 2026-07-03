@@ -37,6 +37,7 @@ import kamerstay.composeapp.generated.resources.kribi_resort
 import kamerstay.composeapp.generated.resources.yaounde_heights
 import kamerstay.composeapp.generated.resources.buea_escapes
 import kamerstay.composeapp.generated.resources.douala_central
+import kamerstay.composeapp.generated.resources.hero
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -61,7 +62,7 @@ fun WelcomeScreen(navController: NavController) {
                     .height(420.dp)
             ) {
                 Image(
-                    painter = painterResource(Res.drawable.hotel_hero),
+                    painter = painterResource(Res.drawable.hero),
                     contentDescription = "Hotel Hero",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
