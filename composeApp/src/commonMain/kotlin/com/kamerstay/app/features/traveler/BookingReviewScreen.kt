@@ -21,7 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.viewmodel.TravelerViewModel
@@ -36,6 +38,11 @@ fun BookingReviewScreen(navController: NavController) {
     var showPromoDialog by remember { mutableStateOf(false) }
     var promoInput by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Populate booking review with real data from current selection
+    LaunchedEffect(Unit) {
+        viewModel.populateBookingReview()
+    }
 
     LaunchedEffect(viewModel.bookingError) {
         val error = viewModel.bookingError ?: return@LaunchedEffect
@@ -209,21 +216,23 @@ fun BookingReviewScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp)
-                                .clip(
-                                    RoundedCornerShape(
-                                        topStart = 16.dp,
-                                        topEnd = 16.dp
-                                    )
-                                )
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                                 .background(
                                     brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color(0xFF1A3A5C),
-                                            Color(0xFF0D2A4A)
-                                        )
+                                        colors = listOf(Color(0xFF1A3A5C), Color(0xFF0D2A4A))
                                     )
                                 )
-                        )
+                        ) {
+                            val imageUrl = viewModel.selectedHotel?.imageUrls?.firstOrNull() ?: ""
+                            if (imageUrl.isNotEmpty()) {
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentDescription = booking.hotelName,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
 
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(
@@ -545,14 +554,13 @@ fun BookingReviewScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Continue to Payment
+                        // Continue to Payment (navigates to PaymentScreen)
                         Button(
                             onClick = {
                                 viewModel.createBooking(
                                     onSuccess = {
-                                        navController.navigate(Routes.BookingConfirmation.createRoute("confirmed")) {
-                                            popUpTo(Routes.TravelerHome.route)
-                                        }
+                                        val bookingId = viewModel.createdBooking?.id ?: ""
+                                        navController.navigate(Routes.Payment.createRoute(bookingId))
                                     },
                                     onError = {}
                                 )
@@ -563,12 +571,20 @@ fun BookingReviewScreen(navController: NavController) {
                             shape = RoundedCornerShape(28.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Primary)
                         ) {
-                            Text(
-                                text = "Continue to Payment",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = OnPrimary
-                            )
+                            if (viewModel.isCreatingBooking) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    color = OnPrimary,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = "Continue to Payment",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = OnPrimary
+                                )
+                            }
                         }
 
                         viewModel.bookingError?.let {

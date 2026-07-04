@@ -238,7 +238,12 @@ class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
             try {
                 val result = hotelRepository.getAllHotels()
                 shared.allHotels = result
-                shared.hotels = result
+                // Re-apply active search query after load; otherwise the query gets overwritten
+                if (shared.searchState.query.isNotEmpty()) {
+                    shared.searchHotels()
+                } else {
+                    shared.hotels = result
+                }
             } catch (e: Exception) {
                 shared.hotelsError = "Impossible de charger les hôtels. Vérifiez votre connexion."
             } finally {
@@ -450,6 +455,14 @@ class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
         aiConciergeState.restoreMessages(json)
     }
 
+    fun reloadChatHistoryForUser() {
+        aiConciergeState.reset()
+        val json = ChatHistoryStore.load()
+        if (!json.isNullOrBlank()) {
+            aiConciergeState.restoreMessages(json)
+        }
+    }
+
     private fun saveChatHistory() {
         ChatHistoryStore.save(aiConciergeState.serializeMessages())
     }
@@ -480,6 +493,13 @@ class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
                     return@launch
                 }
                 state.paymentReference = response.reference
+                // Mode simulation : succès immédiat sans polling
+                if (response.reference.startsWith("SIM-")) {
+                    state.isLoading = false
+                    state.isSuccess = true
+                    onSuccess()
+                    return@launch
+                }
                 state.isLoading  = false
                 state.isPolling  = true
                 state.statusMessage = "En attente de confirmation sur votre téléphone…"
@@ -765,10 +785,47 @@ class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
         }
     }
 
+    fun populateBookingReview() {
+        val hotel = selectedHotel ?: shared.allHotels.find { it.id == NavigationState.selectedHotelId } ?: return
+        val room  = hotelRooms.find { it.id == NavigationState.selectedRoomId } ?: hotelRooms.firstOrNull()
+        val state = bookingState
+        val rev   = bookingReviewState
+
+        val nights  = state.nights.takeIf { it > 0 } ?: 1
+        val price   = room?.pricePerNight ?: hotel.pricePerNight
+        val roomTotal = price * nights
+        val service = roomTotal * 0.05
+        val taxes   = roomTotal * 0.085
+
+        rev.fullName        = UserSession.fullName.ifBlank { state.contactName }
+        rev.email           = UserSession.email.ifBlank { state.contactEmail }
+        rev.phone           = UserSession.phone.ifBlank { state.contactPhone }
+        rev.specialRequests = state.specialRequests
+
+        rev.booking = com.kamerstay.app.data.model.BookingReviewData(
+            hotelName    = hotel.name,
+            location     = hotel.city,
+            rating       = hotel.rating,
+            amenities    = hotel.amenities.take(3),
+            checkIn      = state.checkInDisplay,
+            checkOut     = state.checkOutDisplay,
+            nights       = nights,
+            guests       = state.guestCount,
+            rooms        = 1,
+            roomType     = room?.type?.name?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "Chambre standard",
+            roomDetail   = room?.description?.take(60) ?: "",
+            pricePerNight = price,
+            serviceFee   = service,
+            taxesFees    = taxes
+        )
+    }
+
     fun createBooking(onSuccess: () -> Unit, onError: (String) -> Unit = {}) {
         val hotel = selectedHotel
             ?: shared.allHotels.find { it.id == NavigationState.selectedHotelId }
             ?: run { onError("Aucun hôtel sélectionné."); return }
+        // Ensure selectedHotel is set so PaymentScreen can access it
+        if (selectedHotel == null) selectedHotel = hotel
         val state = bookingState
 
         viewModelScope.launch {

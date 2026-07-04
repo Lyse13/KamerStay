@@ -95,7 +95,16 @@ class AiConciergeState {
 
     fun finalizeStreamingMessage() {
         val idx = messages.indexOfFirst { it.id == streamingMessageId }
-        if (idx >= 0) messages[idx] = messages[idx].copy(isStreaming = false)
+        if (idx >= 0) {
+            if (messages[idx].content.isBlank()) {
+                // No content received — remove the empty placeholder so it never
+                // ends up in historyForApi() as a blank assistant turn, which causes
+                // the Anthropic API to reject all subsequent requests.
+                messages.removeAt(idx)
+            } else {
+                messages[idx] = messages[idx].copy(isStreaming = false)
+            }
+        }
         streamingMessageId = null
     }
 
@@ -108,8 +117,13 @@ class AiConciergeState {
     val hasOnlyWelcome: Boolean get() = messages.none { !it.isWelcome && !it.isProactive }
 
     fun historyForApi(): List<ConciergeChatMessage> {
-        // Exclut : bienvenue, erreurs, placeholder streaming vide
-        val real = messages.filter { !it.isWelcome && !it.isError && !(it.isStreaming && it.content.isEmpty()) }
+        // Exclut : bienvenue, erreurs, placeholders vides, messages assistant sans contenu
+        val real = messages.filter {
+            !it.isWelcome &&
+            !it.isError &&
+            !(it.isStreaming && it.content.isEmpty()) &&
+            it.content.isNotBlank()
+        }
         val withoutCurrent = if (real.size > 1) real.dropLast(1) else return emptyList()
 
         // Tronquer aux MAX_HISTORY_FOR_API derniers messages.

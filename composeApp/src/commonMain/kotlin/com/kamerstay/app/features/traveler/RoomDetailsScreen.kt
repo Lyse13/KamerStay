@@ -35,16 +35,30 @@ fun RoomDetailsScreen(
     roomId: String
 ) {
     val viewModel = koinViewModel<TravelerViewModel>()
-    val room = viewModel.hotelRooms.find { it.id == roomId }
-        ?: run {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Secondary)
-            }
-            return
+
+    // Doit être avant le guard : recharge hôtel + chambres si absents
+    LaunchedEffect(NavigationState.selectedHotelId) {
+        if (viewModel.hotelRooms.isEmpty() || viewModel.selectedHotel == null) {
+            viewModel.loadHotelDetail(NavigationState.selectedHotelId)
         }
-    val hotel = viewModel.selectedHotel ?: run {
+    }
+
+    val room  = viewModel.hotelRooms.find { it.id == roomId }
+    val hotel = viewModel.selectedHotel
+
+    if (hotel == null || room == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Secondary)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CircularProgressIndicator(color = Secondary)
+                Text(
+                    text = "Chargement de la chambre…",
+                    fontSize = 13.sp,
+                    color = OnSurfaceSecondary
+                )
+            }
         }
         return
     }

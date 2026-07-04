@@ -17,10 +17,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
-import com.kamerstay.app.core.utils.APP_NAME
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.kamerstay_appicon_transparent
+import kamerstay.composeapp.generated.resources.kamerstay_logo
+import org.jetbrains.compose.resources.painterResource
 // Désactivé temporairement pour la soutenance — à réactiver avec la logique de session
 // import com.kamerstay.app.data.state.UserRole
 // import com.kamerstay.app.data.state.UserSession
@@ -69,8 +74,7 @@ fun SplashScreen(navController: NavController) {
         //     }
         // }
 
-        // Flux simplifié : toujours → WelcomeScreen
-        navController.navigate(Routes.Welcome.route) {
+        navController.navigate(Routes.Onboarding.route) {
             popUpTo(Routes.Splash.route) { inclusive = true }
         }
     }
@@ -126,19 +130,12 @@ fun SplashScreen(navController: NavController) {
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            // ── Logo Triangles ────────────────────────
-            KamerStayLogo()
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // ── App Name ──────────────────────────────
-            Text(
-                text = APP_NAME,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                letterSpacing = (-0.5).sp
+            // ── Logo ─────────────────────────────────
+            Image(
+                painter = painterResource(Res.drawable.kamerstay_logo),
+                contentDescription = "KamerStay",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(400.dp)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -148,7 +145,7 @@ fun SplashScreen(navController: NavController) {
                 text = "DIGITAL HOSPITALITY",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
-                color = OnSurfaceSecondary,
+                color = Primary,
                 textAlign = TextAlign.Center,
                 letterSpacing = 3.sp
             )

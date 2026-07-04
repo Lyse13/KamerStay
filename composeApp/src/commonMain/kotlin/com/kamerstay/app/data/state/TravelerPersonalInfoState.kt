@@ -9,7 +9,7 @@ class TravelerPersonalInfoState {
     var email    by mutableStateOf(UserSession.email.ifBlank { "" })
     var phoneCode   by mutableStateOf("+237")
     var phoneNumber by mutableStateOf(UserSession.phone.ifBlank { "" })
-    var city     by mutableStateOf("Douala, Littoral")
+    var city     by mutableStateOf("")
     var emailNotifications  by mutableStateOf(true)
     var isLoading           by mutableStateOf(false)
     var error               by mutableStateOf<String?>(null)

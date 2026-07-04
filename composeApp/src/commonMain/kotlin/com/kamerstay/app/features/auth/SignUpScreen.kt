@@ -36,7 +36,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.launch
 import androidx.navigation.NavController
 import com.kamerstay.app.core.components.ErrorPopup
@@ -49,6 +51,9 @@ import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.state.UserRole
 import com.kamerstay.app.viewmodel.AuthViewModel
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.kamerstay_logo
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 // ── Validation helpers ────────────────────────────────────
@@ -104,6 +109,7 @@ fun SignUpScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        viewModel.resetSignUp()
         state.selectedRole = if (NavigationState.pendingRole == "MANAGER") UserRole.MANAGER else UserRole.TRAVELER
     }
 
@@ -149,11 +155,13 @@ fun SignUpScreen(navController: NavController) {
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "KamerStay",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = SecondaryContainer
+                Image(
+                    painter = painterResource(Res.drawable.kamerstay_logo),
+                    contentDescription = "KamerStay",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(40.dp)
                 )
             }
 
@@ -192,7 +200,7 @@ fun SignUpScreen(navController: NavController) {
                         value = state.fullName,
                         onValueChange = { state.fullName = it },
                         placeholder = {
-                            Text("Ex: Marie Dupont", color = OnSurfaceSecondary.copy(0.5f))
+                            Text("Ex: Lysette Mouandeu", color = OnSurfaceSecondary.copy(0.5f))
                         },
                         leadingIcon = {
                             Icon(

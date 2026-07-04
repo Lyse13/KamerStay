@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,7 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.core.utils.APP_NAME
@@ -138,38 +142,34 @@ fun PaymentFailedScreen(navController: NavController) {
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Retry button
+                        // Retry button — navigue vers PaymentScreen pour réessayer
                         Button(
-                            onClick = { state.isRetrying = true },
+                            onClick = {
+                                val bookingId = viewModel.createdBooking?.id
+                                    ?: NavigationState.selectedBookingId
+                                navController.navigate(Routes.Payment.createRoute(bookingId)) {
+                                    popUpTo(Routes.PaymentFailed.route) { inclusive = true }
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(50.dp),
                             shape = RoundedCornerShape(28.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Secondary
-                            )
+                            colors = ButtonDefaults.buttonColors(containerColor = Secondary)
                         ) {
-                            if (state.isRetrying) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    color = Color.White,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(
-                                    Icons.Outlined.Refresh,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Retry Payment",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White
-                                )
-                            }
+                            Icon(
+                                Icons.Outlined.Refresh,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Retry Payment",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -207,6 +207,7 @@ fun PaymentFailedScreen(navController: NavController) {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Booking info
+                        val hotel = viewModel.selectedHotel
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -218,17 +219,24 @@ fun PaymentFailedScreen(navController: NavController) {
                                     .clip(RoundedCornerShape(10.dp))
                                     .background(
                                         brush = Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color(0xFF1A2A3A),
-                                                Color(0xFF0D1A28)
-                                            )
+                                            colors = listOf(Color(0xFF1A2A3A), Color(0xFF0D1A28))
                                         )
                                     )
-                            )
+                            ) {
+                                val imageUrl = hotel?.imageUrls?.firstOrNull() ?: ""
+                                if (imageUrl.isNotEmpty()) {
+                                    AsyncImage(
+                                        model = imageUrl,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                            }
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = state.bookingName,
+                                    text = hotel?.name ?: state.bookingName,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = LocalAppColors.current.textPrimary
@@ -273,7 +281,7 @@ fun PaymentFailedScreen(navController: NavController) {
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
-                                Icons.Outlined.HelpOutline,
+                                Icons.AutoMirrored.Outlined.HelpOutline,
                                 contentDescription = null,
                                 tint = Secondary,
                                 modifier = Modifier.size(18.dp)
@@ -414,7 +422,7 @@ fun AlternativeHotelCard(
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
-                        text = "${"%,d".format(hotel.pricePerNight).replace(",", " ")} FCFA/nuit",
+                        text = "${hotel.pricePerNight.toString().reversed().chunked(3).joinToString(" ").reversed()} FCFA/nuit",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

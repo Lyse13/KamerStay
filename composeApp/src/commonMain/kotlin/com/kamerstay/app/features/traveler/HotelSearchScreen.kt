@@ -59,6 +59,13 @@ fun HotelSearchScreen(navController: NavController) {
     val isLoading      = viewModel.isLoadingHotels
     val hasActiveFilters = filterState.hasActiveFilters
 
+    // Reset search state and view mode when entering the screen
+    LaunchedEffect(Unit) {
+        searchState.query    = ""
+        searchState.viewMode = "List"
+        viewModel.searchHotels()
+    }
+
     // Filtre les hôtels backend par les critères actifs
     val filteredHotels = viewModel.displayedHotels.filter { hotel ->
         filterState.hotelMatches(

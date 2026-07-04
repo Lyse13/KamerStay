@@ -20,9 +20,20 @@ private fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double):
     return earthRadius * c
 }
 
-// Estime le temps de trajet en voiture (~30 km/h en ville camerounaise)
-private fun estimateMinutes(distanceKm: Double): Int =
-    (distanceKm / 30.0 * 60).roundToInt().coerceAtLeast(1)
+// Estime le temps de trajet en voiture en milieu urbain camerounais.
+// Ajoute un overhead fixe (sortie bâtiment, feux, stationnement) + vitesse selon distance :
+//   < 1 km : 15 km/h (rues étroites, piétons, tuk-tuks)
+//   1-5 km : 20 km/h (trafic urbain normal)
+//   > 5 km : 30 km/h (axes principaux)
+private fun estimateMinutes(distanceKm: Double): Int {
+    val overheadMin = 3
+    val speedKmh = when {
+        distanceKm < 1.0 -> 15.0
+        distanceKm < 5.0 -> 20.0
+        else             -> 30.0
+    }
+    return (overheadMin + distanceKm / speedKmh * 60).roundToInt()
+}
 
 fun Route.landmarkRoutes(
     landmarkRepository: LandmarkRepository,

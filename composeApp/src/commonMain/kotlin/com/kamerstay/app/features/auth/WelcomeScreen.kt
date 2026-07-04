@@ -31,13 +31,13 @@ import androidx.navigation.NavController
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
 import kamerstay.composeapp.generated.resources.Res
-import kamerstay.composeapp.generated.resources.hotel_hero
 import org.jetbrains.compose.resources.DrawableResource
 import kamerstay.composeapp.generated.resources.kribi_resort
 import kamerstay.composeapp.generated.resources.yaounde_heights
 import kamerstay.composeapp.generated.resources.buea_escapes
 import kamerstay.composeapp.generated.resources.douala_central
 import kamerstay.composeapp.generated.resources.hero
+import kamerstay.composeapp.generated.resources.kamerstay_appicon_transparent
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -86,16 +86,18 @@ fun WelcomeScreen(navController: NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                        .statusBarsPadding(),
+//                        .padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "KamerStay",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Primary
+                    Image(
+                        painter = painterResource(Res.drawable.kamerstay_appicon_transparent),
+                        contentDescription = "KamerStay",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .width(150.dp)
+                            .height(60.dp)
                     )
                 }
 
@@ -167,24 +169,6 @@ fun WelcomeScreen(navController: NavController) {
                         fontWeight = FontWeight.Bold,
                         color = LocalAppColors.current.textPrimary
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { navController.navigate(Routes.SignIn.route) }
-                    ) {
-                        Text(
-                            text = "View all",
-                            fontSize = 14.sp,
-                            color = Primary,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            Icons.Outlined.ArrowForward,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -9,11 +9,11 @@ import com.kamerstay.app.features.auth.ChangePasswordScreen
 import com.kamerstay.app.features.auth.ForgotPasswordScreen
 import com.kamerstay.app.features.auth.PasswordResetSuccessScreen
 import com.kamerstay.app.features.auth.ResetPasswordScreen
-import com.kamerstay.app.features.auth.RoleSelectionScreen
 import com.kamerstay.app.features.auth.SignInScreen
 import com.kamerstay.app.features.auth.SignUpScreen
 import com.kamerstay.app.features.auth.SplashScreen
 import com.kamerstay.app.features.auth.VerificationCodeScreen
+import com.kamerstay.app.features.auth.OnboardingScreen
 import com.kamerstay.app.features.auth.WelcomeScreen
 import com.kamerstay.app.features.manager.AddEditRoomScreen
 import com.kamerstay.app.features.manager.AddEditPromotionScreen
@@ -84,11 +84,11 @@ fun KamerStayNavGraph(
         composable(Routes.Splash.route) {
             SplashScreen(navController)
         }
+        composable(Routes.Onboarding.route) {
+            OnboardingScreen(navController)
+        }
         composable(Routes.Welcome.route) {
             WelcomeScreen(navController)
-        }
-        composable(Routes.RoleSelection.route) {
-            RoleSelectionScreen(navController)
         }
         composable(Routes.SignIn.route) {
             SignInScreen(navController)

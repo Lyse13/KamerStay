@@ -53,8 +53,12 @@ private fun campayBaseUrl(): String {
     return if (isProduction) "https://campay.net/api" else "https://demo.campay.net/api"
 }
 
-private fun isSimulationMode(): Boolean =
-    System.getenv("CAMPAY_SIMULATION")?.lowercase() == "true"
+private fun isSimulationMode(): Boolean {
+    val explicit = System.getenv("CAMPAY_SIMULATION")?.lowercase()
+    if (explicit != null) return explicit == "true"
+    // Default: simulation unless CAMPAY_PRODUCTION=true is explicitly set
+    return System.getenv("CAMPAY_PRODUCTION")?.lowercase() != "true"
+}
 
 private fun resolveCampayKey(): String =
     System.getenv("CAMPAY_API_KEY") ?: run {
@@ -94,7 +98,8 @@ fun Route.paymentRoutes() {
         post("/initiate") {
 
             val req = call.receive<PaymentInitRequest>()
-            if (isSimulationMode()) {
+            // Mode simulation : CAMPAY_SIMULATION=true OU pas de clé API (dev/demo sans Campay)
+            if (isSimulationMode() || apiKey.isBlank()) {
                 val fakeRef = "SIM-${System.currentTimeMillis()}"
                 call.respond(
                     HttpStatusCode.OK,
@@ -103,14 +108,6 @@ fun Route.paymentRoutes() {
                         status    = "PENDING",
                         operator  = req.operator
                     )
-                )
-                return@post
-            }
-
-            if (apiKey.isBlank()) {
-                call.respond(
-                    HttpStatusCode.ServiceUnavailable,
-                    PaymentInitResponse("", "ERROR", "", "Clé Campay non configurée sur le serveur")
                 )
                 return@post
             }

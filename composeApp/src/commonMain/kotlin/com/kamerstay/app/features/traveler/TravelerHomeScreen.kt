@@ -42,6 +42,7 @@ import kamerstay.composeapp.generated.resources.city_douala
 import kamerstay.composeapp.generated.resources.city_yaounde
 import kamerstay.composeapp.generated.resources.city_kribi
 import kamerstay.composeapp.generated.resources.city_limbe
+import kamerstay.composeapp.generated.resources.kamerstay_logo
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -116,17 +117,13 @@ fun TravelerHomeScreen(navController: NavController) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(
-                            Icons.Outlined.TravelExplore,
-                            contentDescription = null,
-                            tint = Secondary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = "KamerStay",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SecondaryContainer
+                        Image(
+                            painter = painterResource(Res.drawable.kamerstay_logo),
+                            contentDescription = "KamerStay",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(34.dp)
                         )
                     }
                     Box(

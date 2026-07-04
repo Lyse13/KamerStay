@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,7 +27,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.DrawableResource
 import com.kamerstay.app.viewmodel.TravelerViewModel
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.mtn
+import kamerstay.composeapp.generated.resources.orange
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -45,9 +51,19 @@ fun PaymentScreen(
     val room         = viewModel.hotelRooms.find { it.id == NavigationState.selectedRoomId }
         ?: viewModel.hotelRooms.firstOrNull()
 
+    // If hotel/rooms are missing (rare navigation edge case), reload them
+    LaunchedEffect(NavigationState.selectedHotelId) {
+        if (hotel == null || viewModel.hotelRooms.isEmpty()) {
+            viewModel.loadHotelDetail(NavigationState.selectedHotelId)
+        }
+    }
+
     if (hotel == null || room == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = Secondary)
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                CircularProgressIndicator(color = Secondary)
+                Text("Chargement des données de réservation…", fontSize = 13.sp, color = OnSurfaceSecondary)
+            }
         }
         return
     }
@@ -130,8 +146,7 @@ fun PaymentScreen(
                     MobileMoneyOption(
                         isSelected = state.selectedMethod == "MTN",
                         onClick = { state.selectedMethod = "MTN" },
-                        logo = "MTN",
-                        logoBg = Color(0xFFFFC107),
+                        logo = Res.drawable.mtn,
                         name = "MTN MoMo",
                         subtitle = "Prompt USSD instantané"
                     )
@@ -142,8 +157,7 @@ fun PaymentScreen(
                     MobileMoneyOption(
                         isSelected = state.selectedMethod == "ORANGE",
                         onClick = { state.selectedMethod = "ORANGE" },
-                        logo = "OR",
-                        logoBg = Color(0xFFFF6600),
+                        logo = Res.drawable.orange,
                         name = "Orange Money",
                         subtitle = "Sécurisé & rapide"
                     )
@@ -687,8 +701,7 @@ fun PaymentScreen(
 fun MobileMoneyOption(
     isSelected: Boolean,
     onClick: () -> Unit,
-    logo: String,
-    logoBg: Color,
+    logo: DrawableResource,
     name: String,
     subtitle: String
 ) {
@@ -706,23 +719,15 @@ fun MobileMoneyOption(
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        Image(
+            painter = painterResource(logo),
+            contentDescription = name,
+            contentScale = ContentScale.Fit,
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(logoBg),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = logo,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White
-            )
-        }
-
+        )
         Spacer(modifier = Modifier.width(14.dp))
-
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = name,
@@ -736,7 +741,6 @@ fun MobileMoneyOption(
                 color = OnSurfaceSecondary
             )
         }
-
         if (isSelected) {
             Icon(
                 Icons.Outlined.CheckCircle,

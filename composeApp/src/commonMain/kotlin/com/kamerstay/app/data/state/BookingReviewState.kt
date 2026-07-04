@@ -5,26 +5,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 class BookingReviewState {
-    var fullName by mutableStateOf("Alexander Sterling")
-    var email by mutableStateOf("a.sterling@example.com")
-    var phone by mutableStateOf("+1 (555) 012-3456")
-    var specialRequests by mutableStateOf("High floor, quiet room preferred.")
+    var fullName by mutableStateOf(UserSession.fullName.ifBlank { "" })
+    var email by mutableStateOf(UserSession.email.ifBlank { "" })
+    var phone by mutableStateOf(UserSession.phone.ifBlank { "" })
+    var specialRequests by mutableStateOf("")
     var isLoading by mutableStateOf(false)
 
-    val booking = com.kamerstay.app.data.model.BookingReviewData(
-        hotelName = "Azure Bay Resort & Spa",
-        location = "Mykonos, Greece",
-        rating = 4.9,
-        amenities = listOf("Wi-Fi", "Pool", "Breakfast"),
-        checkIn = "Oct 12",
-        checkOut = "Oct 17",
-        nights = 5,
-        guests = 2,
-        rooms = 1,
-        roomType = "Deluxe Ocean View",
-        roomDetail = "King bed, Balcony",
-        pricePerNight = 420.0,
-        serviceFee = 45.0,
-        taxesFees = 182.50
+    var booking by mutableStateOf(
+        com.kamerstay.app.data.model.BookingReviewData(
+            hotelName = "",
+            location = "",
+            rating = 0.0,
+            amenities = emptyList(),
+            checkIn = "",
+            checkOut = "",
+            nights = 1,
+            guests = 1,
+            rooms = 1,
+            roomType = "",
+            roomDetail = "",
+            pricePerNight = 0.0,
+            serviceFee = 0.0,
+            taxesFees = 0.0
+        )
     )
 }

@@ -1,8 +1,10 @@
 package com.kamerstay.app.features.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -43,6 +45,9 @@ import com.kamerstay.app.core.theme.*
 import com.kamerstay.app.data.state.UserRole
 import com.kamerstay.app.data.state.UserSession
 import com.kamerstay.app.viewmodel.AuthViewModel
+import kamerstay.composeapp.generated.resources.Res
+import kamerstay.composeapp.generated.resources.kamerstay_logo
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -83,11 +88,13 @@ fun SignInScreen(navController: NavController) {
                     .padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "KamerStay",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = SecondaryContainer
+                Image(
+                    painter = painterResource(Res.drawable.kamerstay_logo),
+                    contentDescription = "KamerStay",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(40.dp)
                 )
             }
 

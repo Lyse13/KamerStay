@@ -60,6 +60,13 @@ fun AIConciergeScreen(navController: NavController) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    // Reload chat history when user changes (login/logout) — prevents cross-account leakage
+    LaunchedEffect(UserSession.email) {
+        if (UserSession.email.isNotBlank()) {
+            viewModel.reloadChatHistoryForUser()
+        }
+    }
+
     // Message proactif au premier affichage
     LaunchedEffect(Unit) {
         viewModel.checkProactiveMessage()

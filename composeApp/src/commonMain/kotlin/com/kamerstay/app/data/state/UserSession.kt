@@ -3,6 +3,7 @@ package com.kamerstay.app.data.state
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.kamerstay.app.data.store.ChatHistoryStore
 import com.kamerstay.app.data.store.SessionStore
 
 enum class UserRole { TRAVELER, MANAGER }
@@ -41,6 +42,7 @@ object UserSession {
     }
 
     fun logout() {
+        ChatHistoryStore.clear()
         fullName = ""; email = ""; phone = ""; role = UserRole.TRAVELER; token = ""
         SessionStore.clear()
     }

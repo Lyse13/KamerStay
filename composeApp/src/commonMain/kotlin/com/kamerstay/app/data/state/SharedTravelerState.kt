@@ -38,7 +38,8 @@ class SharedTravelerState {
             val q = searchState.query.normalize()
             allHotels.filter {
                 it.city.normalize().contains(q) ||
-                it.name.normalize().contains(q)
+                it.name.normalize().contains(q) ||
+                it.address.normalize().contains(q)
             }
         }
     }

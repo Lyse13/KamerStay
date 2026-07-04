@@ -30,7 +30,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.kamerstay.app.core.navigation.NavigationState
 import com.kamerstay.app.core.navigation.Routes
 import com.kamerstay.app.core.theme.*
@@ -174,13 +176,20 @@ fun BookingConfirmationScreen(
                                 .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                                 .background(
                                     brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color(0xFF1A2A3A),
-                                            Color(0xFF0D1A28)
-                                        )
+                                        colors = listOf(Color(0xFF1A2A3A), Color(0xFF0D1A28))
                                     )
                                 )
-                        )
+                        ) {
+                            val imageUrl = hotel?.imageUrls?.firstOrNull() ?: ""
+                            if (imageUrl.isNotEmpty()) {
+                                AsyncImage(
+                                    model = imageUrl,
+                                    contentDescription = hotel?.name,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
 
                         Column(modifier = Modifier.padding(16.dp)) {
                             // Confirmed badge

@@ -114,6 +114,16 @@ class AuthViewModel : ViewModel() {
         authError = null
     }
 
+    fun resetSignUp() {
+        signUpState.fullName       = ""
+        signUpState.email          = ""
+        signUpState.phoneNumber    = ""
+        signUpState.password       = ""
+        signUpState.passwordVisible = false
+        signUpState.submitted      = false
+        authError                  = null
+    }
+
     // ── Mot de passe oublié ───────────────────────────────────
     fun sendResetCode(onSuccess: () -> Unit) {
         val email = forgotPasswordState.email.trim()

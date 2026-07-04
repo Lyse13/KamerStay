@@ -46,7 +46,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private val photoLabels = listOf("Extérieur", "Hall d'accueil", "Chambre", "Piscine", "Restaurant")
 
-private fun amenityIcon(label: String): androidx.compose.ui.graphics.vector.ImageVector {
+private fun amenityIcon(label: String): ImageVector {
     val l = label.lowercase()
     return when {
         "wifi" in l || "wi-fi" in l -> Icons.Outlined.Wifi
@@ -107,7 +107,7 @@ fun HotelDetailsScreen(
             bottomBar = {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
@@ -117,6 +117,8 @@ fun HotelDetailsScreen(
                                 )
                             )
                         )
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 14.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -618,36 +620,12 @@ fun HotelDetailsScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color(0xFF1A3A5C),
-                                            Color(0xFF0D2A4A)
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(Primary.copy(0.3f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Place,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                        }
+                        HotelLocationMap(
+                            latitude = hotel.latitude,
+                            longitude = hotel.longitude,
+                            hotelName = hotel.name,
+                            onClick = { navController.navigate(Routes.MapLocation.route) }
+                        )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
