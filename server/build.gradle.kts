@@ -24,6 +24,8 @@ tasks.named<JavaExec>("run") {
     environment("ANTHROPIC_API_KEY", localProps.getProperty("ANTHROPIC_API_KEY") ?: "")
     environment("RESEND_API_KEY",    localProps.getProperty("RESEND_API_KEY")    ?: "")
     environment("RESEND_FROM_EMAIL", localProps.getProperty("RESEND_FROM_EMAIL") ?: "")
+    environment("JWT_SECRET",        localProps.getProperty("JWT_SECRET")        ?: "")
+    environment("DEV_MODE",          localProps.getProperty("DEV_MODE")          ?: "true")
 }
 
 dependencies {
@@ -43,6 +45,7 @@ dependencies {
     implementation(libs.ktor.server.authJwt)
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.serialization)
+    implementation(libs.ktor.server.rateLimit)
 
     // Koin
     implementation(libs.koin.ktor)

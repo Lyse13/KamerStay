@@ -8,9 +8,14 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+
+/** Exception levée quand la chambre est déjà réservée pour les dates demandées. */
+class RoomNotAvailableException(message: String) : Exception(message)
 
 class BookingRemoteRepository {
 
@@ -18,13 +23,20 @@ class BookingRemoteRepository {
     private val baseUrl = ApiClient.BASE_URL
 
     suspend fun createBooking(booking: Booking): Booking {
-        return client.post("$baseUrl/bookings") {
+        val response = client.post("$baseUrl/bookings") {
             contentType(ContentType.Application.Json)
             headers {
                 append(HttpHeaders.Authorization, "Bearer ${UserSession.token}")
             }
             setBody(booking)
-        }.body()
+        }
+        if (response.status == HttpStatusCode.Conflict) {
+            throw RoomNotAvailableException(
+                "Cette chambre n'est plus disponible pour ces dates. " +
+                "Veuillez choisir une autre chambre ou modifier vos dates."
+            )
+        }
+        return response.body()
     }
 
     suspend fun getMyBookings(): List<Booking> {

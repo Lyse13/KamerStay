@@ -3,6 +3,7 @@ package com.kamerstay.app.repository
 import com.kamerstay.app.config.DatabaseConfig
 import com.kamerstay.app.model.Hotel
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Updates
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 
@@ -31,5 +32,24 @@ class HotelRepository {
 
     suspend fun countHotels(): Long {
         return hotels.countDocuments()
+    }
+
+    /**
+     * Ajuste availableRooms de delta (+1 = libération, -1 = occupation).
+     * Ne descend jamais en-dessous de 0 lors d'une décrémentation.
+     */
+    suspend fun adjustAvailableRooms(hotelId: String, delta: Int) {
+        if (delta >= 0) {
+            hotels.updateOne(
+                Filters.eq("id", hotelId),
+                Updates.inc("availableRooms", delta)
+            )
+        } else {
+            // Décrémentation atomique : uniquement si availableRooms > 0
+            hotels.updateOne(
+                Filters.and(Filters.eq("id", hotelId), Filters.gt("availableRooms", 0)),
+                Updates.inc("availableRooms", delta)
+            )
+        }
     }
 }

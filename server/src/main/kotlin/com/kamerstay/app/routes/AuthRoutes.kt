@@ -16,6 +16,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
+import io.ktor.server.plugins.ratelimit.rateLimit
+import io.ktor.server.plugins.ratelimit.RateLimitName
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
@@ -96,6 +98,7 @@ fun Route.authRoutes(
             call.respond(HttpStatusCode.Created, AuthResponse(token = token, user = newUser))
         }
 
+        rateLimit(RateLimitName("auth")) {
         post("/login") {
             val request = call.receive<LoginRequest>()
 
@@ -120,8 +123,10 @@ fun Route.authRoutes(
             val token = JwtConfig.generateToken(user.id, user.email, user.role.name, user.fullName)
             call.respond(HttpStatusCode.OK, AuthResponse(token = token, user = user))
         }
+        } // end rateLimit("auth") login
 
         // ── Mot de passe oublié : envoyer OTP ────────────────
+        rateLimit(RateLimitName("auth")) {
         post("/forgot-password") {
             val req = call.receive<ForgotPasswordRequest>()
             if (req.email.isBlank()) {
@@ -140,15 +145,15 @@ fun Route.authRoutes(
             val code = (1000..9999).random().toString()
             val expiry = System.currentTimeMillis() + 10 * 60 * 1000L  // 10 min
             otpStore[req.email] = OtpEntry(code, expiry)
-            println("[KamerStay] OTP pour ${req.email}: $code")
 
             val emailSent = EmailSender.sendOtpEmail(req.email, code)
             call.respond(HttpStatusCode.OK, ForgotPasswordResponse(
                 success  = true,
                 message  = if (emailSent) "Code envoyé à votre adresse email." else "Code généré.",
-                demoCode = if (emailSent) "" else code  // vide en prod, exposé si email non configuré
+                demoCode = ""
             ))
         }
+        } // end rateLimit("auth") forgot-password
 
         // ── Vérifier le code OTP ──────────────────────────────
         post("/verify-code") {

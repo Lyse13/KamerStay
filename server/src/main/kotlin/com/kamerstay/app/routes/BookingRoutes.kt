@@ -41,6 +41,35 @@ fun Route.bookingRoutes(
 
                 val request = call.receive<Booking>()
 
+                // ── DIAGNOSTIC TEMPORAIRE ─────────────────────────────────────
+                println("[DEBUG-BOOKING] roomId='${request.roomId}' checkIn='${request.checkInDate}' checkOut='${request.checkOutDate}' hotelId='${request.hotelId}'")
+
+                // ── Validation des dates ──────────────────────────────────────
+                if (request.checkInDate.isBlank() || request.checkOutDate.isBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("Les dates de check-in et check-out sont requises"))
+                    return@post
+                }
+                if (request.checkInDate >= request.checkOutDate) {
+                    call.respond(HttpStatusCode.BadRequest, ErrorResponse("La date de check-out doit être après la date de check-in"))
+                    return@post
+                }
+
+                // ── Vérification de chevauchement (anti-double-booking) ────────
+                if (request.roomId.isNotBlank()) {
+                    val hasConflict = bookingRepository.hasOverlappingBooking(
+                        roomId   = request.roomId,
+                        checkIn  = request.checkInDate,
+                        checkOut = request.checkOutDate
+                    )
+                    if (hasConflict) {
+                        call.respond(
+                            HttpStatusCode.Conflict,
+                            ErrorResponse("Cette chambre n'est plus disponible pour ces dates. Veuillez choisir une autre chambre ou modifier vos dates.")
+                        )
+                        return@post
+                    }
+                }
+
                 // Récupérer l'hôtel pour l'inclure dans la réservation
                 val hotel = hotelRepository.getHotelById(request.hotelId)
 
@@ -56,16 +85,23 @@ fun Route.bookingRoutes(
                 )
 
                 bookingRepository.createBooking(booking)
+
+                // Décrémenter le compteur de chambres disponibles
+                if (request.hotelId.isNotBlank()) {
+                    hotelRepository.adjustAvailableRooms(request.hotelId, -1)
+                }
+
                 call.respond(HttpStatusCode.Created, booking)
             }
 
-            // Toutes les réservations (manager)
+            // Toutes les réservations (ADMIN uniquement)
             get("/all") {
-                call.principal<JWTPrincipal>()?.payload?.getClaim("userId")?.asString()
-                    ?: return@get call.respond(
-                        HttpStatusCode.Unauthorized,
-                        ErrorResponse("Non authentifié")
-                    )
+                val principal = call.principal<JWTPrincipal>()
+                val role = principal?.payload?.getClaim("role")?.asString()
+                if (role != "ADMIN") {
+                    call.respond(HttpStatusCode.Forbidden, ErrorResponse("Accès réservé aux administrateurs"))
+                    return@get
+                }
                 val bookings = bookingRepository.getAllBookings()
                 call.respond(HttpStatusCode.OK, bookings)
             }
@@ -108,10 +144,23 @@ fun Route.bookingRoutes(
                         ErrorResponse("status manquant")
                     )
 
+                // Lire la réservation avant la mise à jour pour connaître son état actuel
+                val existingBooking = bookingRepository.getBookingById(id)
+
                 val updated = bookingRepository.updateBookingStatus(id, status)
                 if (updated) {
+                    // ── Libérer la chambre si annulation ou checkout ──────────
+                    val newStatus = status.uppercase()
+                    if ((newStatus == "CANCELLED" || newStatus == "CHECKED_OUT") &&
+                        existingBooking != null &&
+                        bookingRepository.isBlockingStatus(existingBooking.bookingStatus.name) &&
+                        existingBooking.hotelId.isNotBlank()
+                    ) {
+                        hotelRepository.adjustAvailableRooms(existingBooking.hotelId, +1)
+                    }
+
                     // Envoyer notification push au voyageur
-                    val booking = bookingRepository.getBookingById(id)
+                    val booking = existingBooking ?: bookingRepository.getBookingById(id)
                     if (booking != null) {
                         val fcmToken = notificationRepository.getToken(booking.travelerId)
                         if (!fcmToken.isNullOrBlank()) {

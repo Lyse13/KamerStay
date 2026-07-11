@@ -13,6 +13,7 @@ import com.kamerstay.app.data.model.ConciergeRequest
 import com.kamerstay.app.data.model.BookingStatus
 import com.kamerstay.app.data.remote.AiRemoteRepository
 import com.kamerstay.app.data.remote.BookingRemoteRepository
+import com.kamerstay.app.data.remote.RoomNotAvailableException
 import com.kamerstay.app.data.store.ChatHistoryStore
 import com.kamerstay.app.model.Booking as SharedBooking
 import com.kamerstay.app.model.enums.BookingStatus as SharedBookingStatus
@@ -288,7 +289,11 @@ class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
         private set
 
     var bookingError by mutableStateOf<String?>(null)
-        private set
+
+    /** Message d'erreur si la chambre est déjà réservée pour ces dates (409). */
+    var roomConflictError by mutableStateOf<String?>(null)
+
+    fun clearRoomConflictError() { roomConflictError = null }
 
     // ── AI Concierge ──────────────────────────────────────────
     fun sendConciergeMessage(message: String) {
@@ -831,20 +836,39 @@ class TravelerViewModel(private val shared: SharedTravelerState) : ViewModel() {
         viewModelScope.launch {
             isCreatingBooking = true
             bookingError = null
+            roomConflictError = null
             try {
+                val nights = state.nights.takeIf { it > 0 } ?: 1
+                println("[DEBUG-VM] selectedRoomId='${NavigationState.selectedRoomId}' hotelRooms.size=${hotelRooms.size} rooms=${hotelRooms.map { it.id }}")
+                val room = hotelRooms.find { it.id == NavigationState.selectedRoomId }
+                    ?: hotelRooms.firstOrNull()
+                val effectiveRoomId = room?.id ?: NavigationState.selectedRoomId
+                if (effectiveRoomId.isBlank()) {
+                    val msg = "Impossible de déterminer la chambre. Revenez à la liste des chambres."
+                    bookingError = msg
+                    onError(msg)
+                    return@launch
+                }
+                val pricePerNight = room?.pricePerNight ?: hotel.pricePerNight
                 val booking = SharedBooking(
-                    hotelId = hotel.id,
-                    checkInDate = state.checkInDate?.toString() ?: "",
+                    hotelId      = hotel.id,
+                    roomId       = effectiveRoomId,
+                    checkInDate  = state.checkInDate?.toString() ?: "",
                     checkOutDate = state.checkOutDate?.toString() ?: "",
-                    numberOfNights = state.nights.takeIf { it > 0 } ?: 1,
-                    totalAmount = (hotel.pricePerNight * (state.nights.takeIf { it > 0 } ?: 1)),
-                    depositAmount = (hotel.pricePerNight * (state.nights.takeIf { it > 0 } ?: 1)) * 0.20,
-                    remainingAmount = (hotel.pricePerNight * (state.nights.takeIf { it > 0 } ?: 1)) * 0.80,
+                    numberOfNights  = nights,
+                    totalAmount     = pricePerNight * nights,
+                    depositAmount   = pricePerNight * nights * 0.20,
+                    remainingAmount = pricePerNight * nights * 0.80,
                     specialRequests = state.specialRequests
                 )
                 val result = bookingRepository.createBooking(booking)
                 createdBooking = result
                 onSuccess()
+            } catch (e: RoomNotAvailableException) {
+                val message = e.message ?: "Cette chambre n'est plus disponible pour ces dates."
+                roomConflictError = message
+                bookingError = message
+                onError(message)
             } catch (e: Exception) {
                 val message = "Impossible de créer la réservation. Vérifiez votre connexion."
                 bookingError = message

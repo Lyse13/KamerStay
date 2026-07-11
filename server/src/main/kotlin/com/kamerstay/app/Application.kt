@@ -27,10 +27,14 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.plugins.ratelimit.RateLimit
+import io.ktor.server.plugins.ratelimit.RateLimitName
+import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.serialization.json.Json
 
 const val SERVER_PORT = 8080
@@ -70,6 +74,14 @@ fun Application.module() {
         allowMethod(io.ktor.http.HttpMethod.Post)
         allowMethod(io.ktor.http.HttpMethod.Put)
         allowMethod(io.ktor.http.HttpMethod.Delete)
+    }
+
+    install(RateLimit) {
+        // 5 tentatives par minute par IP sur les routes d'auth sensibles
+        register(RateLimitName("auth")) {
+            rateLimiter(limit = 5, refillPeriod = 1.minutes)
+            requestKey { call -> call.request.local.remoteAddress }
+        }
     }
 
     install(Authentication) {

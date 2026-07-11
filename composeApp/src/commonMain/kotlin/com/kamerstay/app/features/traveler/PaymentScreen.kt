@@ -58,7 +58,7 @@ fun PaymentScreen(
         }
     }
 
-    if (hotel == null || room == null) {
+    if (hotel == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CircularProgressIndicator(color = Secondary)
@@ -68,8 +68,9 @@ fun PaymentScreen(
         return
     }
 
+    val pricePerNight = room?.pricePerNight ?: hotel.pricePerNight
     val nights = bookingState.nights.takeIf { it > 0 } ?: 1
-    val roomTotal = room.pricePerNight * nights
+    val roomTotal = pricePerNight * nights
     val taxesFees = roomTotal * 0.085
     val totalTTC = roomTotal + taxesFees
     val depositAmount = totalTTC * 0.20
@@ -422,7 +423,7 @@ fun PaymentScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "$nights ${if (nights == 1) "nuit" else "nuits"} × ${room.pricePerNight.toInt()} FCFA",
+                                text = "$nights ${if (nights == 1) "nuit" else "nuits"} × ${pricePerNight.toInt()} FCFA",
                                 fontSize = 14.sp,
                                 color = OnSurfaceSecondary
                             )

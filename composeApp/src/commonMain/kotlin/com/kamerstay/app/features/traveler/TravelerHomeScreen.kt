@@ -122,8 +122,8 @@ fun TravelerHomeScreen(navController: NavController) {
                             contentDescription = "KamerStay",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
-                                .width(120.dp)
-                                .height(34.dp)
+                                .width(200.dp)
+                                .height(50.dp)
                         )
                     }
                     Box(

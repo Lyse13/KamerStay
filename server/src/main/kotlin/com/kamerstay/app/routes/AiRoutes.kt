@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -432,6 +433,8 @@ fun Route.aiRoutes(hotelRepo: com.kamerstay.app.repository.HotelRepository) {
 
     route("/ai") {
 
+        authenticate("auth-jwt") {
+
         post("/concierge") {
             if (apiKey.isBlank()) {
                 call.respond(
@@ -606,5 +609,7 @@ fun Route.aiRoutes(hotelRepo: com.kamerstay.app.repository.HotelRepository) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Service indisponible"))
             }
         }
+
+        } // end authenticate("auth-jwt")
     }
 }

@@ -5,6 +5,7 @@ import com.kamerstay.app.data.model.PaymentInitResponse
 import com.kamerstay.app.data.model.PaymentStatusResponse
 import com.kamerstay.app.data.state.UserSession
 import io.ktor.client.call.body
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.post

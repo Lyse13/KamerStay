@@ -44,9 +44,35 @@ fun BookingReviewScreen(navController: NavController) {
         viewModel.populateBookingReview()
     }
 
+    // Dialog spécifique pour le conflit de dates (409) — plus visible qu'un snackbar
+    val conflictMessage = viewModel.roomConflictError
+    if (conflictMessage != null) {
+        AlertDialog(
+            onDismissRequest = {
+                viewModel.clearRoomConflictError()
+                navController.popBackStack()
+            },
+            title = {
+                Text("Chambre non disponible", fontWeight = FontWeight.Bold, color = LocalAppColors.current.textPrimary)
+            },
+            text = {
+                Text(conflictMessage, color = LocalAppColors.current.textSecondary, fontSize = 14.sp)
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.clearRoomConflictError()
+                    navController.popBackStack()
+                }) {
+                    Text("Choisir une autre chambre", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        )
+    }
+
     LaunchedEffect(viewModel.bookingError) {
         val error = viewModel.bookingError ?: return@LaunchedEffect
-        snackbarHostState.showSnackbar(error)
+        // Le conflit est géré par le dialog ci-dessus, on ne duplique pas le snackbar
+        if (viewModel.roomConflictError == null) snackbarHostState.showSnackbar(error)
     }
 
     if (showPromoDialog) {

@@ -10,6 +10,9 @@ class BookingRepository {
 
     private val bookings = DatabaseConfig.bookingsCollection
 
+    // Statuts qui bloquent la chambre pour de nouvelles réservations
+    private val blockingStatuses = listOf("PENDING", "CONFIRMED", "CHECKED_IN")
+
     suspend fun createBooking(booking: Booking): Booking {
         bookings.insertOne(booking)
         return booking
@@ -38,4 +41,32 @@ class BookingRepository {
         )
         return result.modifiedCount > 0
     }
+
+    /**
+     * Détecte un chevauchement de dates pour une chambre donnée.
+     * Deux périodes [A, B[ et [C, D[ se chevauchent si A < D ET C < B.
+     * Seuls les statuts PENDING, CONFIRMED, CHECKED_IN sont bloquants.
+     */
+    suspend fun hasOverlappingBooking(roomId: String, checkIn: String, checkOut: String): Boolean {
+        if (roomId.isBlank() || checkIn.isBlank() || checkOut.isBlank()) {
+            println("[DEBUG-OVERLAP] SKIPPED — roomId='$roomId' checkIn='$checkIn' checkOut='$checkOut'")
+            return false
+        }
+        println("[DEBUG-OVERLAP] Checking roomId='$roomId' checkIn='$checkIn' checkOut='$checkOut'")
+        val filter = Filters.and(
+            Filters.eq("roomId", roomId),
+            Filters.`in`("bookingStatus", blockingStatuses),
+            Filters.lt("checkInDate", checkOut),
+            Filters.gt("checkOutDate", checkIn)
+        )
+        val conflict = bookings.find(filter).firstOrNull()
+        println("[DEBUG-OVERLAP] conflict=${conflict != null}, conflictId=${conflict?.id}, conflictStatus=${conflict?.bookingStatus}")
+        return conflict != null
+    }
+
+    /**
+     * Indique si la réservation actuelle a un statut bloquant (pour savoir si
+     * libérer la chambre lors d'une annulation/checkout).
+     */
+    fun isBlockingStatus(status: String): Boolean = status.uppercase() in blockingStatuses
 }

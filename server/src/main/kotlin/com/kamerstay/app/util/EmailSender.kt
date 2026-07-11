@@ -41,7 +41,7 @@ object EmailSender {
     suspend fun sendOtpEmail(toEmail: String, otpCode: String): Boolean {
         val apiKey = resolveApiKey()
         if (apiKey.isBlank()) {
-            println("[KamerStay] RESEND_API_KEY non configurée — email non envoyé. OTP: $otpCode")
+            println("[KamerStay] RESEND_API_KEY non configurée — email non envoyé pour ${toEmail.take(3)}***")
             return false
         }
         return try {

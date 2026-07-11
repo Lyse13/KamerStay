@@ -204,7 +204,6 @@ fun WelcomeScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Footer
                 Text(
                     text = "© $year KamerStay · Smart Hotel Booking for Cameroon",
                     fontSize = 12.sp,

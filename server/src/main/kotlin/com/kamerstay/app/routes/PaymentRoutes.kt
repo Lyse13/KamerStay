@@ -7,6 +7,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -94,7 +95,8 @@ fun Route.paymentRoutes() {
 
     route("/payments") {
 
-        // Initier un paiement Mobile Money via Campay
+        // Initier un paiement Mobile Money via Campay (utilisateur authentifié uniquement)
+        authenticate("auth-jwt") {
         post("/initiate") {
 
             val req = call.receive<PaymentInitRequest>()
@@ -166,6 +168,7 @@ fun Route.paymentRoutes() {
                 )
             }
         }
+        } // end authenticate("auth-jwt")
 
         // Vérifier le statut d'une transaction
         get("/{reference}/status") {
