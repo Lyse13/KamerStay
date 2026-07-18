@@ -1,95 +1,221 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM), Server.
+KamerStay
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+A smart, location-based hotel booking and stay management platform for travelers in Cameroon.
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+Built with Kotlin Multiplatform · Compose Multiplatform · Ktor · MongoDB
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+Report Bug · Request Feature
 
-* [/shared](./shared/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./shared/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+Table of Contents
 
-### Build and Run Android Application
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+About the Project
+Key Features
+Tech Stack
+Architecture
+Project Structure
+Getting Started
 
-### Build and Run Desktop (JVM) Application
+Prerequisites
+Environment Variables
+Build & Run
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
 
-### Build and Run Server
 
-To build and run the development version of the server, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :server:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :server:run
-  ```
+Usage
+API Documentation
+Testing
+Contributing
+Author
+License
 
-### Build and Run Web Application
 
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
-- for the Wasm target (faster, modern browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-- for the JS target (slower, supports older browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:jsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
-    ```
 
-### Build and Run iOS Application
+About the Project
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+Booking a hotel room online in Cameroon remains a real struggle. Travelers rely on phone calls, word of mouth, or physically visiting hotels on arrival — often facing uncertainty about availability, pricing, and safety. On the other side, small and medium hotels lack digital visibility and manage reservations manually, leading to overbooking and lost revenue.
 
----
+KamerStay bridges this gap with a dual-sided mobile platform:
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+For travelers: discover hotels by city or by proximity to known landmarks, chat with an AI concierge, and pay via Mobile Money.
+For hotel managers: manage reservations, rooms, staff, and revenue from a dedicated console.
+
+
+The platform is designed from the ground up for the Cameroonian context — its languages, its landmarks, and its mobile-money payment ecosystem.
+
+
+Key Features
+
+Travelers
+
+
+Smart hotel discovery by city and by landmark proximity (with real distance & travel time)
+Kamsa — an AI concierge that understands French, English, and Cameroonian Pidgin
+Mobile Money payment (MTN MoMo & Orange Money)
+Booking flow with real-time availability and double-booking prevention
+Booking history, digital voucher, wishlist, and hotel reviews
+
+
+Hotel Managers
+
+
+Real-time reservation dashboard
+Check-in / check-out processing
+Room and staff management
+Revenue analytics and reporting
+Property registration and verification
+
+
+
+Tech Stack
+
+LayerTechnologyFrontend (mobile/desktop/web)Kotlin Multiplatform, Compose MultiplatformArchitecture patternMVVMDependency InjectionKoinBackend APIKtor (REST)DatabaseMongoDB (Atlas)AuthenticationJWT + BCryptAI ConciergeAnthropic Claude APIMapsGoogle Maps (Android)PaymentsCampay (MTN MoMo / Orange Money)EmailsResendContainerizationDocker
+
+Architecture
+
+KamerStay follows a three-tier client–server architecture:
+┌─────────────────┐      REST/JSON      ┌──────────────────┐      ┌──────────────┐
+│  Client (KMP)   │  ───────────────▶   │  Server (Ktor)   │ ───▶ │  MongoDB     │
+│ Compose UI      │  ◀───────────────   │  Auth · Business │ ◀─── │  Atlas       │
+│ Android/iOS/Web │      JWT auth       │  Logic · Routes  │      │              │
+└─────────────────┘                     └──────────────────┘      └──────────────┘
+                                               │
+                                     External services:
+                                   Anthropic · Campay · Resend
+                                   
+Roughly 95% of the application code is shared across platforms through Kotlin Multiplatform, with platform-specific code (e.g. Google Maps on Android) isolated via the expect/actual mechanism.
+
+
+Project Structure
+
+This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM), and Server.
+
+
+/composeApp — shared Compose Multiplatform application code.
+
+commonMain — code common to all targets (UI, ViewModels, state, models, DI).
+androidMain, iosMain, jvmMain, wasmJsMain — platform-specific code (e.g. Google Maps lives in androidMain).
+
+
+
+/iosApp — iOS application entry point (SwiftUI host).
+/server — the Ktor server application (REST API, repositories, auth).
+/shared — code shared between all targets (data models, utilities).
+
+
+
+Getting Started
+
+Prerequisites
+
+
+JDK 17 or higher
+Android Studio (Meerkat or newer) with the Kotlin Multiplatform plugin
+A MongoDB Atlas cluster (or local MongoDB)
+API keys: Anthropic, Resend, and Campay (for full functionality)
+
+
+Environment Variables
+
+The server reads its secrets from environment variables. Never commit these. Set them in your environment or in a non-versioned local.properties / .env:
+
+VariableDescriptionRequiredJWT_SECRETSecret used to sign JWT tokens (≥ 32 chars)YesMONGODB_URIMongoDB Atlas connection stringYesANTHROPIC_API_KEYKey for the Kamsa AI conciergeYes (for AI)RESEND_API_KEYKey for transactional emailsYes (for email)CAMPAY_API_KEYKey for Mobile Money paymentsYes (for payments)DEV_MODEtrue only for local developmentNo
+
+Generate a strong JWT secret with:
+
+bashopenssl rand -base64 48
+
+Build & Run
+
+Android
+
+bash./gradlew :composeApp:assembleDebug        # macOS/Linux
+.\gradlew.bat :composeApp:assembleDebug    # Windows
+
+Desktop (JVM)
+
+bash./gradlew :composeApp:run
+
+Web (Wasm — modern browsers)
+
+bash./gradlew :composeApp:wasmJsBrowserDevelopmentRun
+
+Web (JS — older browsers)
+
+bash./gradlew :composeApp:jsBrowserDevelopmentRun
+
+Server
+
+bash./gradlew :server:run
+
+iOS — open /iosApp in Xcode and run, or use the run configuration in Android Studio.
+
+Docker (server)
+
+bashdocker build -t kamerstay-backend .
+docker run -p 8080:8080 --env-file .env kamerstay-backend
+
+
+Usage
+
+
+Launch the app and sign up as a Traveler or a Hotel Manager.
+As a traveler: search a city or tap "Recherche par lieu" to find hotels near a landmark. Chat with Kamsa for guided recommendations. Select a hotel, choose a room, and pay the deposit via Mobile Money. Your booking appears in your history with a digital voucher.
+As a manager: register your hotel, add rooms, and track incoming reservations in real time from the dashboard. Process check-ins and check-outs, and view your revenue analytics.
+
+
+
+API Documentation
+
+The REST API is documented with OpenAPI (Swagger) and a Postman collection.
+
+
+Swagger UI: available at /swagger when the server is running.
+Postman collection: see /docs/KamerStay.postman_collection.json.
+
+
+Main endpoint groups: /auth, /hotels, /rooms, /bookings, /payments, /reviews, /landmarks, /ai, /managers.
+
+
+Testing
+
+Run the test suite and generate a coverage report:
+
+bash./gradlew test              # run unit & integration tests
+./gradlew koverHtmlReport   # generate coverage report
+
+The coverage report is generated at build/reports/kover/html/index.html.
+
+
+Contributing
+
+Contributions are welcome. To contribute:
+
+
+Fork the repository.
+Create a feature branch: git checkout -b feature/your-feature.
+Follow the existing code style (Kotlin official conventions; keep UI in composables, logic in ViewModels/repositories).
+Write or update tests for your changes.
+Commit with a clear message: git commit -m "feat: add X" (Conventional Commits encouraged).
+Push and open a Pull Request describing what and why.
+
+
+Please open an issue first for major changes to discuss the approach. Report bugs and request features via GitHub Issues.
+
+
+Author
+
+Mouandeu Pangop Lysette Merveille
+BSc Software Engineering — The ICT University, Yaoundé, Cameroon
+GitHub: @Lyse13
+
+
+License
+
+This project is released under the MIT License. See the LICENSE file for details.
+
+
+
+
+                                   
