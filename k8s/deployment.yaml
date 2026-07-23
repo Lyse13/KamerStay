@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kamerstay-backend
+  namespace: kamerstay
+  labels:
+    app: kamerstay-backend
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: kamerstay-backend
+
+  # ── Rolling Update ──────────────────────────────────────────────────────────
+  # maxSurge: 1      → Kubernetes peut créer 1 pod supplémentaire pendant la MAJ
+  #                    (on passe brièvement à 4 pods au lieu de 3).
+  # maxUnavailable: 0 → Aucun pod ne peut être hors-service pendant la MAJ.
+  #                    Garantit zéro downtime : le nouveau pod est Ready avant
+  #                    que l'ancien soit supprimé.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  template:
+    metadata:
+      labels:
+        app: kamerstay-backend
+    spec:
+      containers:
+        - name: backend
+          image: kamerstay-backend:latest
+          # imagePullPolicy: Never → Kubernetes utilise l'image locale importée
+          # via "k3d image import" — il ne tente PAS de la télécharger depuis
+          # un registry distant (Docker Hub, etc.). Indispensable en local k3d.
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+
+          # ── Variables d'environnement ───────────────────────────────────────
+          env:
+            # Valeurs sensibles depuis le Secret
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: kamerstay-secrets
+                  key: MONGODB_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kamerstay-secrets
+                  key: JWT_SECRET
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kamerstay-secrets
+                  key: ANTHROPIC_API_KEY
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kamerstay-secrets
+                  key: RESEND_API_KEY
+            - name: RESEND_FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: kamerstay-secrets
+                  key: RESEND_FROM_EMAIL
+            # Valeurs non sensibles depuis le ConfigMap
+            - name: DEV_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: kamerstay-config
+                  key: DEV_MODE
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: kamerstay-config
+                  key: PORT
+
+          # ── Ressources ──────────────────────────────────────────────────────
+          # requests : ressources garanties réservées par le scheduler.
+          # limits   : plafond — le pod est tué si il dépasse la mémoire limite.
+          resources:
+            requests:
+              cpu: "100m"      # 0.1 vCPU garanti
+              memory: "256Mi"
+            limits:
+              cpu: "500m"      # 0.5 vCPU max
+              memory: "512Mi"
+
+          # ── Liveness Probe ──────────────────────────────────────────────────
+          # Kubernetes redémarre le pod si cette probe échoue.
+          # GET / retourne 200 "KamerStay API" sans accès MongoDB (identique au
+          # HEALTHCHECK Docker) — probe légère et fiable.
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30  # Attend que la JVM + Ktor démarrent
+            periodSeconds: 15
+            failureThreshold: 3
+
+          # ── Readiness Probe ─────────────────────────────────────────────────
+          # Kubernetes ne route PAS de trafic vers le pod tant que cette probe
+          # échoue. Pendant un rolling update, l'ancien pod reste actif jusqu'à
+          # ce que le nouveau soit "Ready".
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3

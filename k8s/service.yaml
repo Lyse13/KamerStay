@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kamerstay-service
+  namespace: kamerstay
+spec:
+  # ClusterIP : accessible uniquement à l'intérieur du cluster.
+  # C'est le type par défaut — idéal pour le service discovery inter-pods.
+  # L'Ingress (Traefik) sera le seul point d'entrée depuis l'extérieur.
+  type: ClusterIP
+
+  selector:
+    # Sélectionne tous les pods ayant ce label (créés par le Deployment).
+    app: kamerstay-backend
+
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80         # Port exposé à l'intérieur du cluster
+      targetPort: 8080  # Port sur lequel le conteneur Ktor écoute réellement

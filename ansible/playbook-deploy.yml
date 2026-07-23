@@ -1,0 +1,74 @@
+---
+# Playbook 2 — Déploiement de l'application KamerStay
+# Usage : ansible-playbook -i inventory.ini playbook-deploy.yml
+- name: Déployer KamerStay (monitoring + Kubernetes)
+  hosts: kamerstay_servers
+  become: no
+  vars:
+    k8s_namespace: kamerstay
+    k8s_manifests_dir: "{{ project_dir }}/k8s"
+    monitoring_dir: "{{ project_dir }}/monitoring"
+    cluster_name: kamerstay
+
+  tasks:
+    - name: Vérifier que le cluster k3d existe
+      ansible.builtin.command: k3d cluster list {{ cluster_name }}
+      register: cluster_status
+      changed_when: false
+      failed_when: false
+
+    - name: Démarrer le cluster k3d s'il est arrêté
+      ansible.builtin.command: k3d cluster start {{ cluster_name }}
+      register: cluster_start
+      changed_when: "'started' in cluster_start.stdout | lower"
+      failed_when: false
+
+    - name: Appliquer les manifestes Kubernetes
+      ansible.builtin.command: kubectl apply -f {{ k8s_manifests_dir }}/ -n {{ k8s_namespace }}
+      register: kubectl_apply
+      changed_when: "'configured' in kubectl_apply.stdout or 'created' in kubectl_apply.stdout"
+
+    - name: Attendre que les pods soient prêts
+      ansible.builtin.command: >
+        kubectl wait --for=condition=ready pod
+        -l app=kamerstay-backend
+        -n {{ k8s_namespace }}
+        --timeout=180s
+      register: pods_ready
+      changed_when: false
+      failed_when: false
+
+    - name: Récupérer l'état des pods
+      ansible.builtin.command: kubectl get pods -n {{ k8s_namespace }}
+      register: pods_status
+      changed_when: false
+
+    - name: Afficher l'état des pods
+      ansible.builtin.debug:
+        var: pods_status.stdout_lines
+
+    - name: Démarrer la stack de monitoring (Prometheus, Grafana, exporters)
+      ansible.builtin.command: >
+        docker compose -f {{ monitoring_dir }}/docker-compose.monitoring.yml up -d
+      args:
+        chdir: "{{ monitoring_dir }}"
+      register: monitoring_up
+      changed_when: "'Started' in monitoring_up.stderr or 'Created' in monitoring_up.stderr"
+
+    - name: Vérifier que l'application répond
+      ansible.builtin.uri:
+        url: http://localhost:8080/
+        status_code: 200
+      register: app_health
+      retries: 5
+      delay: 10
+      until: app_health.status == 200
+      failed_when: false
+
+    - name: Résumé du déploiement
+      ansible.builtin.debug:
+        msg:
+          - "Application  : {{ 'OK (HTTP 200)' if app_health.status == 200 else 'NON DISPONIBLE' }}"
+          - "Prometheus   : http://localhost:9090"
+          - "Grafana      : http://localhost:3000"
+          - "Application  : http://localhost:8080"

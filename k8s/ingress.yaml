@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kamerstay-ingress
+  namespace: kamerstay
+  annotations:
+    # Indique à Traefik (inclus dans k3d) de gérer cet Ingress.
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kamerstay-service
+                port:
+                  number: 80

@@ -1,0 +1,24 @@
+# Jenkins pour KamerStay
+# Lancement : docker compose -f docker-compose.jenkins.yml up -d --build
+# Interface  : http://localhost:8090
+#
+# Note : le port 8080 est déjà pris par le cluster k3d, on utilise donc 8090.
+# Le mode network_mode: host permet à Jenkins de joindre l'API du cluster k3d.
+services:
+  jenkins:
+    build: .
+    container_name: kamerstay-jenkins
+    network_mode: host
+    environment:
+      - JENKINS_OPTS=--httpPort=8090
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=true
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # Accès au daemon Docker de l'hôte (pour builder les images)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Accès au cluster Kubernetes
+      - ${HOME}/.kube:/var/jenkins_home/.kube:ro
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:

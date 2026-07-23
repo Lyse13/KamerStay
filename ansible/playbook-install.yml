@@ -1,0 +1,65 @@
+---
+# Playbook 1 — Installation des prérequis de l'infrastructure KamerStay
+# Usage : ansible-playbook -i inventory.ini playbook-install.yml --ask-become-pass
+- name: Installer les outils d'infrastructure KamerStay
+  hosts: kamerstay_servers
+  become: yes
+  vars:
+    required_packages:
+      - curl
+      - git
+      - ca-certificates
+      - gnupg
+      - python3-pip
+
+  tasks:
+    - name: Mettre à jour le cache des paquets APT
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Installer les paquets système requis
+      ansible.builtin.apt:
+        name: "{{ required_packages }}"
+        state: present
+
+    - name: Vérifier si Docker est déjà installé
+      ansible.builtin.command: which docker
+      register: docker_check
+      changed_when: false
+      failed_when: false
+
+    - name: Installer Docker via le script officiel (si absent)
+      ansible.builtin.shell: curl -fsSL https://get.docker.com | sh
+      when: docker_check.rc != 0
+
+    - name: S'assurer que le service Docker est démarré et activé
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Ajouter l'utilisateur au groupe docker
+      ansible.builtin.user:
+        name: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+        groups: docker
+        append: yes
+
+    - name: Vérifier la présence de kubectl
+      ansible.builtin.command: which kubectl
+      register: kubectl_check
+      changed_when: false
+      failed_when: false
+
+    - name: Afficher l'état de kubectl
+      ansible.builtin.debug:
+        msg: "kubectl {{ 'est installé' if kubectl_check.rc == 0 else 'est ABSENT — à installer' }}"
+
+    - name: Afficher la version de Docker installée
+      ansible.builtin.command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Résumé de l'installation
+      ansible.builtin.debug:
+        msg: "Installation terminée — {{ docker_version.stdout }}"

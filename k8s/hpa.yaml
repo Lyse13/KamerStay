@@ -1,0 +1,24 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kamerstay-hpa
+  namespace: kamerstay
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kamerstay-backend
+
+  minReplicas: 2   # Jamais moins de 2 pods (haute disponibilité minimale)
+  maxReplicas: 6   # Jamais plus de 6 pods (protection contre la surcharge)
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # Si l'utilisation CPU moyenne des pods dépasse 70 %,
+          # le HPA augmente le nombre de replicas automatiquement.
+          # En dessous de 70 %, il peut réduire (scale down).
+          averageUtilization: 70

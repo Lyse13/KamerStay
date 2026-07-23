@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kamerstay-config
+  namespace: kamerstay
+data:
+  DEV_MODE: "false"
+  PORT: "8080"
