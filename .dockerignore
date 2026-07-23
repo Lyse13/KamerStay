@@ -1,0 +1,39 @@
+# ── Artefacts de build & caches Gradle ───────────────────────────────────────
+build/
+.gradle/
+*/build/
+*/.gradle/
+
+# ── Version control ───────────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── IDE & OS ──────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.DS_Store
+Thumbs.db
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+*.md
+LICENSE
+
+# ── Secrets & variables d'environnement (ne jamais inclure dans l'image) ─────
+.env
+*.env
+local.properties
+*.keystore
+*.jks
+
+# ── Sources mobile/frontend (non necessaires pour le build backend) ───────────
+# composeApp/build.gradle.kts est conserve : Gradle en a besoin pour configurer
+# le sous-projet. Seules les sources sont exclues.
+composeApp/src/
+iosApp/
+
+# ── Fichiers de configuration locaux ─────────────────────────────────────────
+*.local

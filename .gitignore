@@ -32,3 +32,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+.env
+
+# Kubernetes — fichiers secrets locaux (jamais commiter)
+k8s/secret.local.yaml
+k8s/*.local.yaml

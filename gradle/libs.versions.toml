@@ -36,6 +36,9 @@ datastore = "1.2.1"
 # MongoDB (Backend)
 mongodb-driver = "5.5.0"
 
+# Micrometer (Monitoring)
+micrometer = "1.14.2"
+
 # DateTime
 kotlinx-datetime = "0.8.0"
 
@@ -106,6 +109,8 @@ ktor-server-authJwt = { module = "io.ktor:ktor-server-auth-jwt-jvm", version.ref
 ktor-server-cors = { module = "io.ktor:ktor-server-cors-jvm", version.ref = "ktor" }
 ktor-server-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
 ktor-server-rateLimit = { module = "io.ktor:ktor-server-rate-limit-jvm", version.ref = "ktor" }
+ktor-server-metrics-micrometer = { module = "io.ktor:ktor-server-metrics-micrometer-jvm", version.ref = "ktor" }
+micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
 
 # ─── Serialization ────────────────────────────────────────
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }

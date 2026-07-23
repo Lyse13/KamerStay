@@ -30,10 +30,20 @@ import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
 import io.ktor.server.plugins.ratelimit.rateLimit
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.serialization.json.Json
 
@@ -46,6 +56,19 @@ fun main() {
 }
 
 fun Application.module() {
+
+    val prometheusRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
+    install(MicrometerMetrics) {
+        registry = prometheusRegistry
+        meterBinders = listOf(
+            JvmMemoryMetrics(),
+            JvmGcMetrics(),
+            JvmThreadMetrics(),
+            ClassLoaderMetrics(),
+            ProcessorMetrics()
+        )
+    }
 
     val userRepository    = UserRepository()
     val hotelRepository   = HotelRepository()
@@ -103,6 +126,7 @@ fun Application.module() {
 
     routing {
         get("/") { call.respond(HttpStatusCode.OK, "KamerStay API") }
+        get("/metrics") { call.respondText(prometheusRegistry.scrape(), ContentType.Text.Plain) }
         authRoutes(userRepository)
         hotelRoutes(hotelRepository, roomRepository)
         bookingRoutes(bookingRepository, hotelRepository)

@@ -46,6 +46,8 @@ dependencies {
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.serialization)
     implementation(libs.ktor.server.rateLimit)
+    implementation(libs.ktor.server.metrics.micrometer)
+    implementation(libs.micrometer.registry.prometheus)
 
     // Koin
     implementation(libs.koin.ktor)
