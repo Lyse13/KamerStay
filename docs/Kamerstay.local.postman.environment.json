@@ -1,0 +1,17 @@
+{
+  "id": "87afdb2a-5774-4fd2-85cc-a1a8e7fec4d8",
+  "name": "KamerStay - Local",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

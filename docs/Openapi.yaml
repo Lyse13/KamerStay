@@ -1,0 +1,1172 @@
+openapi: 3.0.3
+
+info:
+  title: KamerStay API
+  description: |
+    API REST du système KamerStay — plateforme de réservation hôtelière
+    géolocalisée pour le Cameroun.
+
+    L'API expose les fonctionnalités destinées aux **voyageurs** (découverte,
+    recherche par point de repère, réservation, paiement Mobile Money,
+    concierge IA) et aux **gestionnaires d'hôtel** (propriétés, chambres,
+    réservations, personnel).
+
+    **Authentification.** La plupart des routes exigent un jeton JWT obtenu
+    via `POST /auth/login`, transmis dans l'en-tête `Authorization: Bearer <token>`.
+  version: 1.0.0
+  contact:
+    name: Mouandeu Pangop Lysette Merveille
+    url: https://github.com/Lyse13/KamerStay
+  license:
+    name: MIT
+
+servers:
+  - url: https://kamerstay-backend.onrender.com
+    description: Environnement de production (Render)
+  - url: http://localhost:8080
+    description: Environnement local (cluster Kubernetes k3d ou Docker)
+
+tags:
+  - name: Système
+    description: Santé du service et métriques
+  - name: Authentification
+    description: Inscription, connexion, gestion du compte
+  - name: Hôtels
+    description: Consultation et gestion des établissements
+  - name: Chambres
+    description: Gestion des chambres d'un hôtel
+  - name: Points de repère
+    description: Recherche géolocalisée par lieu connu
+  - name: Réservations
+    description: Cycle de vie des réservations
+  - name: Paiements
+    description: Paiement Mobile Money (MTN, Orange)
+  - name: Avis
+    description: Notations et commentaires
+  - name: Personnel
+    description: Gestion du personnel d'un hôtel
+  - name: Intelligence artificielle
+    description: Concierge Kamsa et tarification assistée
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  # ─────────────────────────── SYSTÈME ───────────────────────────
+  /:
+    get:
+      tags: [Système]
+      summary: Vérifier que l'API est en ligne
+      description: Route de santé utilisée par les sondes Kubernetes et le HEALTHCHECK Docker.
+      security: []
+      responses:
+        '200':
+          description: Service opérationnel
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: KamerStay API
+
+  /metrics:
+    get:
+      tags: [Système]
+      summary: Exposer les métriques au format Prometheus
+      description: |
+        Métriques JVM (mémoire, threads, GC), système (CPU) et applicatives
+        (nombre et latence des requêtes HTTP par route et par code de statut),
+        collectées par Micrometer et scrapées par Prometheus.
+      security: []
+      responses:
+        '200':
+          description: Métriques au format texte Prometheus
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  # ──────────────────────── AUTHENTIFICATION ────────────────────────
+  /auth/register:
+    post:
+      tags: [Authentification]
+      summary: Créer un compte
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fullName, email, password, role]
+              properties:
+                fullName:
+                  type: string
+                  example: Lysette Mouandeu
+                email:
+                  type: string
+                  format: email
+                  example: lysette@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: MotDePasse123
+                phoneNumber:
+                  type: string
+                  example: "+237690000000"
+                role:
+                  $ref: '#/components/schemas/UserRole'
+      responses:
+        '201':
+          description: Compte créé, jeton JWT retourné
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Un compte existe déjà avec cet email
+
+  /auth/login:
+    post:
+      tags: [Authentification]
+      summary: Se connecter
+      description: Route limitée à 5 tentatives par minute et par adresse IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: lysette@example.com
+                password:
+                  type: string
+                  format: password
+                  example: MotDePasse123
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          description: Trop de tentatives, réessayer plus tard
+
+  /auth/forgot-password:
+    post:
+      tags: [Authentification]
+      summary: Demander un code de réinitialisation
+      description: |
+        Envoie un code à usage unique par email, valable 10 minutes.
+        Route limitée à 5 requêtes par minute et par adresse IP.
+        Le code n'apparaît jamais dans la réponse ni dans les journaux.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Code envoyé si le compte existe
+        '429':
+          description: Trop de requêtes
+
+  /auth/verify-code:
+    post:
+      tags: [Authentification]
+      summary: Vérifier le code de réinitialisation
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, code]
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+                  example: "4821"
+      responses:
+        '200':
+          description: Code valide, jeton de réinitialisation retourné (valable 15 minutes)
+        '400':
+          description: Code invalide ou expiré
+
+  /auth/reset-password:
+    post:
+      tags: [Authentification]
+      summary: Définir un nouveau mot de passe
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [resetToken, newPassword]
+              properties:
+                resetToken:
+                  type: string
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '200':
+          description: Mot de passe modifié
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/me:
+    put:
+      tags: [Authentification]
+      summary: Mettre à jour son profil
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                phoneNumber:
+                  type: string
+      responses:
+        '200':
+          description: Profil mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/change-password:
+    put:
+      tags: [Authentification]
+      summary: Changer son mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currentPassword, newPassword]
+              properties:
+                currentPassword:
+                  type: string
+                  format: password
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        '200':
+          description: Mot de passe modifié
+        '401':
+          description: Mot de passe actuel incorrect
+
+  /auth/fcm-token:
+    put:
+      tags: [Authentification]
+      summary: Enregistrer le jeton de notification push
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fcmToken]
+              properties:
+                fcmToken:
+                  type: string
+      responses:
+        '200':
+          description: Jeton enregistré
+
+  # ──────────────────────────── HÔTELS ────────────────────────────
+  /hotels:
+    get:
+      tags: [Hôtels]
+      summary: Lister les hôtels
+      security: []
+      parameters:
+        - name: city
+          in: query
+          required: false
+          schema:
+            type: string
+          example: Douala
+          description: Filtrer par ville
+      responses:
+        '200':
+          description: Liste des hôtels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hotel'
+    post:
+      tags: [Hôtels]
+      summary: Enregistrer un nouvel établissement
+      description: Réservé aux utilisateurs ayant le rôle HOTEL_MANAGER.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Hotel'
+      responses:
+        '201':
+          description: Hôtel créé
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /hotels/{id}:
+    get:
+      tags: [Hôtels]
+      summary: Consulter le détail d'un hôtel
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+      responses:
+        '200':
+          description: Détail de l'hôtel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hotel'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /hotels/my:
+    get:
+      tags: [Hôtels]
+      summary: Lister ses propres établissements
+      description: Retourne les hôtels appartenant au gestionnaire authentifié.
+      responses:
+        '200':
+          description: Liste des hôtels du gestionnaire
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hotel'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ──────────────────────────── CHAMBRES ────────────────────────────
+  /hotels/{id}/rooms:
+    get:
+      tags: [Chambres]
+      summary: Lister les chambres d'un hôtel
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+      responses:
+        '200':
+          description: Liste des chambres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Room'
+    post:
+      tags: [Chambres]
+      summary: Ajouter une chambre
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room'
+      responses:
+        '201':
+          description: Chambre créée
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    put:
+      tags: [Chambres]
+      summary: Modifier une chambre
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room'
+      responses:
+        '200':
+          description: Chambre modifiée
+    delete:
+      tags: [Chambres]
+      summary: Supprimer une chambre
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+        - name: roomId
+          in: query
+          required: true
+          schema:
+            type: string
+          example: r1_1
+      responses:
+        '204':
+          description: Chambre supprimée
+
+  # ────────────────────── POINTS DE REPÈRE ──────────────────────
+  /landmarks:
+    get:
+      tags: [Points de repère]
+      summary: Lister tous les points de repère
+      security: []
+      responses:
+        '200':
+          description: Liste des points de repère
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Landmark'
+
+  /landmarks/city/{city}:
+    get:
+      tags: [Points de repère]
+      summary: Lister les points de repère d'une ville
+      security: []
+      parameters:
+        - name: city
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Yaoundé
+      responses:
+        '200':
+          description: Points de repère de la ville
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Landmark'
+
+  /hotels/near-landmark/{id}:
+    get:
+      tags: [Points de repère]
+      summary: Trouver les hôtels proches d'un point de repère
+      description: |
+        Fonctionnalité distinctive de KamerStay. La distance réelle entre
+        chaque hôtel et le point de repère est calculée avec la **formule de
+        Haversine** (rayon terrestre R = 6371 km), puis les résultats sont
+        triés du plus proche au plus éloigné.
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "21"
+          description: Identifiant du point de repère
+      responses:
+        '200':
+          description: Hôtels triés par distance croissante
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/Hotel'
+                    - type: object
+                      properties:
+                        distanceKm:
+                          type: number
+                          format: double
+                          example: 2.4
+                        estimatedTravelTime:
+                          type: string
+                          example: "8 min"
+
+  # ────────────────────────── RÉSERVATIONS ──────────────────────────
+  /bookings:
+    post:
+      tags: [Réservations]
+      summary: Créer une réservation
+      description: |
+        Avant l'enregistrement, le serveur vérifie qu'aucune réservation
+        active (statut PENDING, CONFIRMED ou CHECKED_IN) n'existe déjà pour
+        la même chambre sur des dates qui se chevauchent.
+
+        Deux périodes se chevauchent si `checkIn1 < checkOut2` **et**
+        `checkIn2 < checkOut1`. En cas de conflit, la requête est rejetée
+        avec le code **409 Conflict**.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingRequest'
+      responses:
+        '201':
+          description: Réservation créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Chambre déjà réservée pour ces dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Cette chambre n'est plus disponible pour ces dates"
+
+  /bookings/my:
+    get:
+      tags: [Réservations]
+      summary: Consulter ses réservations
+      responses:
+        '200':
+          description: Réservations de l'utilisateur authentifié
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /bookings/hotel/{id}:
+    get:
+      tags: [Réservations]
+      summary: Consulter les réservations d'un hôtel
+      description: Réservé au gestionnaire propriétaire de l'établissement.
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+      responses:
+        '200':
+          description: Réservations de l'hôtel
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /bookings/all:
+    get:
+      tags: [Réservations]
+      summary: Consulter toutes les réservations
+      description: Réservé au rôle ADMIN. Retourne 403 pour tout autre rôle.
+      responses:
+        '200':
+          description: Toutes les réservations
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /bookings/{id}/status:
+    put:
+      tags: [Réservations]
+      summary: Modifier le statut d'une réservation
+      description: |
+        Transitions du cycle de vie : `PENDING → CONFIRMED → CHECKED_IN →
+        CHECKED_OUT`, ou `→ CANCELLED`. Le passage à `CANCELLED` ou
+        `CHECKED_OUT` libère la chambre et réincrémente le compteur de
+        disponibilité de l'hôtel.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/BookingStatus'
+      responses:
+        '200':
+          description: Statut mis à jour
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────── PAIEMENTS ───────────────────────────
+  /payments/initiate:
+    post:
+      tags: [Paiements]
+      summary: Initier un paiement Mobile Money
+      description: |
+        Déclenche une demande de paiement auprès de l'opérateur (MTN Mobile
+        Money ou Orange Money) via la passerelle Campay. L'utilisateur reçoit
+        une invitation à valider la transaction sur son téléphone.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookingId, amount, phoneNumber, operator]
+              properties:
+                bookingId:
+                  type: string
+                amount:
+                  type: number
+                  format: double
+                  example: 25000.0
+                phoneNumber:
+                  type: string
+                  example: "+237690000000"
+                operator:
+                  type: string
+                  enum: [MTN, ORANGE]
+      responses:
+        '200':
+          description: Paiement initié, référence de transaction retournée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reference:
+                    type: string
+                  status:
+                    $ref: '#/components/schemas/PaymentStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /payments/{reference}/status:
+    get:
+      tags: [Paiements]
+      summary: Consulter le statut d'un paiement
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Statut de la transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reference:
+                    type: string
+                  status:
+                    $ref: '#/components/schemas/PaymentStatus'
+
+  # ───────────────────────────── AVIS ─────────────────────────────
+  /reviews:
+    post:
+      tags: [Avis]
+      summary: Publier un avis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [hotelId, rating]
+              properties:
+                hotelId:
+                  type: string
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Avis publié
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /reviews/hotel/{id}:
+    get:
+      tags: [Avis]
+      summary: Consulter les avis d'un hôtel
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/HotelId'
+      responses:
+        '200':
+          description: Liste des avis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+
+  # ──────────────────────────── PERSONNEL ────────────────────────────
+  /staff:
+    get:
+      tags: [Personnel]
+      summary: Lister le personnel d'un hôtel
+      parameters:
+        - name: hotelId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste du personnel
+    post:
+      tags: [Personnel]
+      summary: Ajouter un membre du personnel
+      responses:
+        '201':
+          description: Membre ajouté
+
+  /staff/{id}:
+    put:
+      tags: [Personnel]
+      summary: Modifier un membre du personnel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Membre modifié
+    delete:
+      tags: [Personnel]
+      summary: Retirer un membre du personnel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Membre retiré
+
+  # ─────────────────── INTELLIGENCE ARTIFICIELLE ───────────────────
+  /ai/concierge:
+    post:
+      tags: [Intelligence artificielle]
+      summary: Dialoguer avec le concierge Kamsa
+      description: |
+        Envoie un message en langage naturel au concierge intelligent, propulsé
+        par un grand modèle de langage (Anthropic Claude). Kamsa comprend le
+        français, l'anglais et le pidgin camerounais, extrait les critères de
+        recherche (ville, budget, type de séjour) et interroge la base
+        d'hôtels en temps réel.
+
+        Route authentifiée : elle consomme un service payant et ne doit pas
+        être exposée publiquement.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  example: Je cherche un hôtel calme à Kribi pour le week-end, budget 50000 FCFA
+                conversationHistory:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [user, assistant]
+                      content:
+                        type: string
+      responses:
+        '200':
+          description: Réponse du concierge, éventuellement accompagnée d'hôtels suggérés
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reply:
+                    type: string
+                  hotels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Hotel'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: Service d'IA indisponible
+
+  /ai/concierge/stream:
+    post:
+      tags: [Intelligence artificielle]
+      summary: Dialoguer avec Kamsa en flux continu
+      description: Même comportement que `/ai/concierge`, avec réponse diffusée progressivement (Server-Sent Events).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Flux d'événements SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /ai/pricing:
+    post:
+      tags: [Intelligence artificielle]
+      summary: Obtenir une suggestion tarifaire
+      description: Propose au gestionnaire un prix optimisé selon la demande et la saison.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hotelId:
+                  type: string
+                roomType:
+                  type: string
+                currentPrice:
+                  type: number
+                  format: double
+      responses:
+        '200':
+          description: Suggestion tarifaire
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+# ═══════════════════════════ COMPOSANTS ═══════════════════════════
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Jeton JWT obtenu via `/auth/login`, valable 24 heures.
+
+  parameters:
+    HotelId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      example: "200"
+      description: Identifiant de l'hôtel
+
+  responses:
+    BadRequest:
+      description: Requête invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Jeton absent, invalide ou expiré
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Rôle insuffisant pour cette opération
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+
+    UserRole:
+      type: string
+      enum: [TRAVELER, HOTEL_MANAGER, ADMIN]
+      example: TRAVELER
+
+    BookingStatus:
+      type: string
+      enum: [PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED]
+      example: PENDING
+
+    PaymentStatus:
+      type: string
+      enum: [PENDING, SUCCESSFUL, FAILED, CANCELLED]
+      example: SUCCESSFUL
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Requête invalide
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Jeton JWT valable 24 heures
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        fullName:
+          type: string
+          example: Lysette Mouandeu
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+
+    Hotel:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "200"
+        name:
+          type: string
+          example: Hôtel Akwa Palace
+        city:
+          type: string
+          example: Douala
+        address:
+          type: string
+        description:
+          type: string
+        latitude:
+          type: number
+          format: double
+          example: 4.0511
+          description: Doit impérativement être un nombre décimal
+        longitude:
+          type: number
+          format: double
+          example: 9.7679
+        rating:
+          type: number
+          format: double
+          example: 4.5
+        pricePerNight:
+          type: number
+          format: double
+          example: 25000.0
+        availableRooms:
+          type: integer
+          example: 12
+        amenities:
+          type: array
+          items:
+            type: string
+          example: [WiFi, Piscine, Restaurant, Parking]
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: L'élément d'indice 0 sert de vignette principale
+        verified:
+          type: boolean
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: string
+          example: r1_1
+        hotelId:
+          type: string
+        roomNumber:
+          type: string
+          example: "101"
+        type:
+          type: string
+          example: Chambre double
+        pricePerNight:
+          type: number
+          format: double
+          example: 25000.0
+        capacity:
+          type: integer
+          example: 2
+        available:
+          type: boolean
+
+    Landmark:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "21"
+        name:
+          type: string
+          example: ICT University Campus Messassi
+        city:
+          type: string
+          example: Yaoundé
+        category:
+          type: string
+          example: Université
+        latitude:
+          type: number
+          format: double
+          example: 3.9176
+        longitude:
+          type: number
+          format: double
+          example: 11.5366
+
+    BookingRequest:
+      type: object
+      required: [hotelId, roomId, checkInDate, checkOutDate, guests]
+      properties:
+        hotelId:
+          type: string
+          example: "200"
+        roomId:
+          type: string
+          example: r1_1
+          description: Identifiant réel de la chambre — indispensable au contrôle de chevauchement
+        checkInDate:
+          type: string
+          format: date
+          example: "2026-08-15"
+        checkOutDate:
+          type: string
+          format: date
+          example: "2026-08-17"
+        guests:
+          type: integer
+          example: 2
+        totalAmount:
+          type: number
+          format: double
+          example: 50000.0
+
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        reference:
+          type: string
+          example: KS-A1B2C3D4
+        userId:
+          type: string
+        hotelId:
+          type: string
+        roomId:
+          type: string
+        checkInDate:
+          type: string
+          format: date
+        checkOutDate:
+          type: string
+          format: date
+        guests:
+          type: integer
+        totalAmount:
+          type: number
+          format: double
+        bookingStatus:
+          $ref: '#/components/schemas/BookingStatus'
+        createdAt:
+          type: string
+          format: date-time
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        hotelId:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time

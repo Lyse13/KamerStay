@@ -1,0 +1,17 @@
+{
+  "id": "ec62ce6c-20d9-4042-b623-f971a4f4ee91",
+  "name": "KamerStay - Production",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://kamerstay-backend.onrender.com",
+      "enabled": true
+    },
+    {
+      "key": "token",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
